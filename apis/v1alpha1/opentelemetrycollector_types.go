@@ -81,6 +81,9 @@ type Ingress struct {
 	// type "route" is used.
 	// +optional
 	Route OpenShiftRoute `json:"route,omitempty"`
+
+	// Endpoints is used to provide endpoint paths to configure receivers ingress resources
+	Endpoints IngressEndpoint `json:"endpoints,omitempty"`
 }
 
 // OpenShiftRoute defines openshift route specific settings.

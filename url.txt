@@ -1,0 +1,2 @@
+url: https://host.docker.internal:9443/validate-opentelemetry-io-v1alpha1-opentelemetrycollector
+url: https://host.docker.internal:9443/mutate-opentelemetry-io-v1alpha1-opentelemetrycollector

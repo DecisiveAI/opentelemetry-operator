@@ -61,3 +61,9 @@ const (
 	// receiver port. The port name is used as a subdomain for the host defined in the Ingress e.g. otlp-http.example.com.
 	IngressRuleTypeSubdomain IngressRuleType = "subdomain"
 )
+
+type (
+	// IngressEndpoint is used to configure endpoint paths for receivers ingress resources
+	// [receiverN]{"/path1", "/path2"}
+	IngressEndpoint map[string][]string
+)
