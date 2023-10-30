@@ -3,7 +3,7 @@ module github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridg
 go 1.20
 
 require (
-	github.com/go-logr/logr v1.2.4
+	github.com/go-logr/logr v1.3.0
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/open-telemetry/opamp-go v0.9.0
 	github.com/open-telemetry/opentelemetry-operator v0.85.0
