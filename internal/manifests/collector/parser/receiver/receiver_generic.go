@@ -18,6 +18,7 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
@@ -73,4 +74,10 @@ func (g *GenericReceiver) Ports() ([]corev1.ServicePort, error) {
 // ParserName returns the name of this parser.
 func (g *GenericReceiver) ParserName() string {
 	return g.parserName
+}
+
+// PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (g *GenericReceiver) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	var portUrlPaths = []parser.PortUrlPaths{}
+	return portUrlPaths, nil
 }

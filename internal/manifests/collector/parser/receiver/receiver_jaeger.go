@@ -20,6 +20,7 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
@@ -130,6 +131,11 @@ func (j *JaegerReceiverParser) Ports() ([]corev1.ServicePort, error) {
 // ParserName returns the name of this parser.
 func (j *JaegerReceiverParser) ParserName() string {
 	return parserNameJaeger
+}
+
+func (j *JaegerReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	var portUrlPaths = []parser.PortUrlPaths{}
+	return portUrlPaths, nil
 }
 
 func init() {

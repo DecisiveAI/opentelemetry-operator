@@ -26,6 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
@@ -33,6 +34,9 @@ import (
 type ReceiverParser interface {
 	// Ports returns the service ports parsed based on the receiver's configuration
 	Ports() ([]corev1.ServicePort, error)
+
+	// PortsUrlPaths returns the service ports + URL paths parsed based on the receiver's configuration
+	PortsUrlPaths() ([]parser.PortUrlPaths, error)
 
 	// ParserName returns the name of this parser
 	ParserName() string

@@ -16,23 +16,17 @@ package adapters
 
 import (
 	"errors"
-	"net"
-	"sort"
-	"strconv"
-	"strings"
-
 	"github.com/go-logr/logr"
 	"github.com/mitchellh/mapstructure"
 	corev1 "k8s.io/api/core/v1"
+	"net"
+	"sort"
+	"strconv"
 
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	exporterParser "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser/exporter"
 	receiverParser "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser/receiver"
 )
-
-type PortEndpoints struct {
-	Port      corev1.ServicePort
-	Endpoints []string
-}
 
 var (
 	// ErrNoExporters indicates that there are no exporters in the configuration.
@@ -182,7 +176,7 @@ func ConfigToReceiverPorts(logger logr.Logger, config map[interface{}]interface{
 }
 
 // ConfigToReceiverPortsEndpoints converts the incoming configuration object into a set of service ports + endpoints required by the receivers.
-func ConfigToReceiverPortsEndpoints(logger logr.Logger, config map[interface{}]interface{}) ([]PortEndpoints, error) {
+func ConfigToReceiverPortsUrlPaths(logger logr.Logger, config map[interface{}]interface{}) ([]parser.PortUrlPaths, error) {
 	receiversProperty, ok := config["receivers"]
 	if !ok {
 		return nil, ErrNoReceivers
@@ -196,7 +190,7 @@ func ConfigToReceiverPortsEndpoints(logger logr.Logger, config map[interface{}]i
 		return nil, ErrReceiversNotAMap
 	}
 
-	portsEndpoints := []PortEndpoints{}
+	portsUrlPaths := []parser.PortUrlPaths{}
 	for key, val := range receivers {
 		// This check will pass only the enabled receivers,
 		// then only the related ports will be opened.
@@ -212,7 +206,7 @@ func ConfigToReceiverPortsEndpoints(logger logr.Logger, config map[interface{}]i
 		rcvrName := key.(string)
 		rcvrParser := receiverParser.For(logger, rcvrName, receiver)
 
-		rcvrPorts, err := rcvrParser.Ports()
+		rcvrPortsUrlPaths, err := rcvrParser.PortsUrlPaths()
 		if err != nil {
 			// should we break the process and return an error, or just ignore this faulty parser
 			// and let the other parsers add their ports to the service? right now, the best
@@ -221,28 +215,14 @@ func ConfigToReceiverPortsEndpoints(logger logr.Logger, config map[interface{}]i
 			continue
 		}
 
-		var rcvrEndpoints = []string{}
-		if len(rcvrPorts) > 0 {
-			// TODO: get rid of below  hack, modify receiver parser to get endpoints!!!
-			if strings.HasPrefix(rcvrName, "otlp") {
-				rcvrEndpoints = []string{"/v1/metrics", "/v1/logs", "/v1/traces"}
-			} else if strings.HasPrefix(rcvrName, "jaeger") {
-				rcvrEndpoints = []string{"/" +
-					"" +
-					"jaeger"}
-			}
-			for _, rcvrPort := range rcvrPorts {
-				portEndpoints := PortEndpoints{Port: rcvrPort, Endpoints: rcvrEndpoints}
-				portsEndpoints = append(portsEndpoints, portEndpoints)
-			}
-		}
+		portsUrlPaths = append(portsUrlPaths, rcvrPortsUrlPaths...)
 	}
 
-	sort.Slice(portsEndpoints, func(i, j int) bool {
-		return portsEndpoints[i].Port.Name < portsEndpoints[j].Port.Name
+	sort.Slice(portsUrlPaths, func(i, j int) bool {
+		return portsUrlPaths[i].Port.Name < portsUrlPaths[j].Port.Name
 	})
 
-	return portsEndpoints, nil
+	return portsUrlPaths, nil
 }
 
 func ConfigToPorts(logger logr.Logger, config map[interface{}]interface{}) []corev1.ServicePort {

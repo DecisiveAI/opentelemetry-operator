@@ -25,6 +25,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/adapters"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
@@ -34,7 +35,7 @@ func Ingress(params manifests.Params) *networkingv1.Ingress {
 	}
 
 	ports := servicePortsFromCfg(params.Log, params.OtelCol)
-	portsEndpoints := servicePortsEndpointsFromCfg(params.Log, params.OtelCol)
+	portsEndpoints := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
 
 	// if we have no ports, we don't need a ingress entry
 	if len(ports) == 0 {
@@ -49,7 +50,7 @@ func Ingress(params manifests.Params) *networkingv1.Ingress {
 	var rules []networkingv1.IngressRule
 	switch params.OtelCol.Spec.Ingress.RuleType {
 	case v1alpha1.IngressRuleTypePath, "":
-		rules = []networkingv1.IngressRule{createPathIngressRulesEndpoints(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, portsEndpoints)}
+		rules = []networkingv1.IngressRule{createPathIngressRulesUrlPaths(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, portsEndpoints)}
 	case v1alpha1.IngressRuleTypeSubdomain:
 		rules = createSubdomainIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)
 	}
@@ -73,20 +74,19 @@ func Ingress(params manifests.Params) *networkingv1.Ingress {
 	}
 }
 
-func createPathIngressRulesEndpoints(otelcol string, hostname string, portsEndpoints []adapters.PortEndpoints) networkingv1.IngressRule {
+func createPathIngressRulesUrlPaths(otelcol string, hostname string, portsUrlPaths []parser.PortUrlPaths) networkingv1.IngressRule {
 	pathType := networkingv1.PathTypePrefix
-	// TODO: refactor this. Preliminar loop here just sucks!
 	var totalPaths = 0
-	for _, portEndpoints := range portsEndpoints {
-		for range portEndpoints.Endpoints {
+	for _, portUrlPaths := range portsUrlPaths {
+		for range portUrlPaths.UrlPaths {
 			totalPaths++
 		}
 	}
 	paths := make([]networkingv1.HTTPIngressPath, totalPaths)
 	var i = 0
-	for _, portEndpoints := range portsEndpoints {
-		for _, endpoint := range portEndpoints.Endpoints {
-			portName := naming.PortName(portEndpoints.Port.Name, portEndpoints.Port.Port)
+	for _, portUrlPaths := range portsUrlPaths {
+		for _, endpoint := range portUrlPaths.UrlPaths {
+			portName := naming.PortName(portUrlPaths.Port.Name, portUrlPaths.Port.Port)
 			paths[i] = networkingv1.HTTPIngressPath{
 				Path:     endpoint,
 				PathType: &pathType,
@@ -211,17 +211,17 @@ func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryColle
 }
 
 // does
-func servicePortsEndpointsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) []adapters.PortEndpoints {
+func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) []parser.PortUrlPaths {
 	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
 	if err != nil {
 		logger.Error(err, "couldn't extract the configuration from the context")
 		return nil
 	}
 
-	portsEndpoints, err := adapters.ConfigToReceiverPortsEndpoints(logger, configFromString)
+	portsUrlPaths, err := adapters.ConfigToReceiverPortsUrlPaths(logger, configFromString)
 	if err != nil {
 		logger.Error(err, "couldn't build the ingress for this instance")
 	}
 
-	return portsEndpoints
+	return portsUrlPaths
 }

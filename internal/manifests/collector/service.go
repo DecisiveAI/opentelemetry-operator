@@ -150,10 +150,11 @@ func Service(params manifests.Params) *corev1.Service {
 			Annotations: params.OtelCol.Annotations,
 		},
 		Spec: corev1.ServiceSpec{
+			Type:                  "NodePort",
 			InternalTrafficPolicy: &trafficPolicy,
 			Selector:              SelectorLabels(params.OtelCol),
-			ClusterIP:             "",
-			Ports:                 ports,
+			//		ClusterIP:             "",
+			Ports: ports,
 		},
 	}
 }
