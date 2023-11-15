@@ -90,6 +90,11 @@ func MonitoringService(otelcol string) string {
 	return DNSName(Truncate("%s-monitoring", 63, Service(otelcol)))
 }
 
+// BehindIngressService builds the name for the monitoring service based on the instance.
+func BehindIngressService(otelcol string) string {
+	return DNSName(Truncate("%s-behind-ingress", 63, Service(otelcol)))
+}
+
 // Service builds the service name based on the instance.
 func Service(otelcol string) string {
 	return DNSName(Truncate("%s-collector", 63, otelcol))

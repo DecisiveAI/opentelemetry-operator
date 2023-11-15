@@ -34,8 +34,17 @@ func Ingress(params manifests.Params) *networkingv1.Ingress {
 		return nil
 	}
 
-	ports := servicePortsFromCfg(params.Log, params.OtelCol)
-	portsEndpoints := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
+	//ports := servicePortsFromCfg(params.Log, params.OtelCol)
+	//ports := grpcServicePortsFromCfg(params.Log, params.OtelCol)
+	//portsEndpoints := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
+
+	// TODO: refactor this filtering logic
+	ports := []corev1.ServicePort{}
+	for _, port := range servicePortsFromCfg(params.Log, params.OtelCol) {
+		if *port.AppProtocol == "grpc" {
+			ports = append(ports, port)
+		}
+	}
 
 	// if we have no ports, we don't need a ingress entry
 	if len(ports) == 0 {
@@ -50,7 +59,8 @@ func Ingress(params manifests.Params) *networkingv1.Ingress {
 	var rules []networkingv1.IngressRule
 	switch params.OtelCol.Spec.Ingress.RuleType {
 	case v1alpha1.IngressRuleTypePath, "":
-		rules = []networkingv1.IngressRule{createPathIngressRulesUrlPaths(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, portsEndpoints)}
+		//rules = []networkingv1.IngressRule{createPathIngressRulesUrlPaths(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, portsEndpoints)}
+		rules = []networkingv1.IngressRule{createPathIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)}
 	case v1alpha1.IngressRuleTypeSubdomain:
 		rules = createSubdomainIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)
 	}
@@ -118,11 +128,12 @@ func createPathIngressRules(otelcol string, hostname string, ports []corev1.Serv
 	for i, port := range ports {
 		portName := naming.PortName(port.Name, port.Port)
 		paths[i] = networkingv1.HTTPIngressPath{
-			Path:     "/" + port.Name,
+			//Path:     "/" + port.Name,
+			Path:     "/",
 			PathType: &pathType,
 			Backend: networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
-					Name: naming.Service(otelcol),
+					Name: naming.BehindIngressService(otelcol),
 					Port: networkingv1.ServiceBackendPort{
 						Name: portName,
 					},
@@ -210,7 +221,39 @@ func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryColle
 	return ports
 }
 
-// does
+func grpcServicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) []corev1.ServicePort {
+	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
+	if err != nil {
+		logger.Error(err, "couldn't extract the configuration from the context")
+		return nil
+	}
+
+	ports, err := adapters.ConfigToReceiverPorts(logger, configFromString)
+	if err != nil {
+		logger.Error(err, "couldn't build the ingress for this instance")
+	}
+
+	if len(otelcol.Spec.Ports) > 0 {
+		portNumbers, portNames := extractPortNumbersAndNames(otelcol.Spec.Ports)
+		var resultingInferredPorts []corev1.ServicePort
+		for _, inferred := range ports {
+			if filtered := filterPort(logger, inferred, portNumbers, portNames); filtered != nil {
+				resultingInferredPorts = append(resultingInferredPorts, *filtered)
+			}
+		}
+
+		ports = append(otelcol.Spec.Ports, resultingInferredPorts...)
+	}
+
+	// TODO: refactor this filtering logic
+	for i, port := range ports {
+		if *port.AppProtocol != "grpc" {
+			ports = append(ports[:i], ports[i+1:]...)
+		}
+	}
+	return ports
+}
+
 func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) []parser.PortUrlPaths {
 	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
 	if err != nil {

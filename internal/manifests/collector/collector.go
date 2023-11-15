@@ -45,6 +45,7 @@ func Build(params manifests.Params) ([]client.Object, error) {
 		manifests.FactoryWithoutError(Service),
 		manifests.FactoryWithoutError(HeadlessService),
 		manifests.FactoryWithoutError(MonitoringService),
+		manifests.FactoryWithoutError(ServiceBehindIngress),
 		manifests.FactoryWithoutError(Ingress),
 	}...)
 	if params.OtelCol.Spec.Observability.Metrics.EnableMetrics && featuregate.PrometheusOperatorIsAvailable.IsEnabled() {

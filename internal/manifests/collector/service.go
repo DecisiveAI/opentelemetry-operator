@@ -101,7 +101,14 @@ func Service(params manifests.Params) *corev1.Service {
 		return nil
 	}
 
-	ports := adapters.ConfigToPorts(params.Log, configFromString)
+	ports := []corev1.ServicePort{}
+
+	// TODO: refactor this filtering logic
+	for _, port := range adapters.ConfigToPorts(params.Log, configFromString) {
+		if *port.AppProtocol != "grpc" {
+			ports = append(ports, port)
+		}
+	}
 
 	// set appProtocol to h2c for grpc ports on OpenShift.
 	// OpenShift uses HA proxy that uses appProtocol for its configuration.
@@ -150,6 +157,86 @@ func Service(params manifests.Params) *corev1.Service {
 			Annotations: params.OtelCol.Annotations,
 		},
 		Spec: corev1.ServiceSpec{
+			// AWS LB controller
+			//Type:                  "NodePort",
+			// nginx-ingress controller
+			Type:                  "LoadBalancer",
+			InternalTrafficPolicy: &trafficPolicy,
+			Selector:              SelectorLabels(params.OtelCol),
+			//		ClusterIP:             "",
+			Ports: ports,
+		},
+	}
+}
+
+// for grpc
+func ServiceBehindIngress(params manifests.Params) *corev1.Service {
+	name := naming.BehindIngressService(params.OtelCol.Name)
+	labels := Labels(params.OtelCol, name, []string{})
+
+	configFromString, err := adapters.ConfigFromString(params.OtelCol.Spec.Config)
+	if err != nil {
+		params.Log.Error(err, "couldn't extract the configuration from the context")
+		return nil
+	}
+
+	ports := []corev1.ServicePort{}
+
+	// TODO: refactor this filtering logic
+	for _, port := range adapters.ConfigToPorts(params.Log, configFromString) {
+		if *port.AppProtocol == "grpc" {
+			ports = append(ports, port)
+		}
+	}
+
+	// set appProtocol to h2c for grpc ports on OpenShift.
+	// OpenShift uses HA proxy that uses appProtocol for its configuration.
+	for i := range ports {
+		h2c := "h2c"
+		if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeRoute && ports[i].AppProtocol != nil && strings.EqualFold(*ports[i].AppProtocol, "grpc") {
+			ports[i].AppProtocol = &h2c
+		}
+	}
+
+	if len(params.OtelCol.Spec.Ports) > 0 {
+		// we should add all the ports from the CR
+		// there are two cases where problems might occur:
+		// 1) when the port number is already being used by a receiver
+		// 2) same, but for the port name
+		//
+		// in the first case, we remove the port we inferred from the list
+		// in the second case, we rename our inferred port to something like "port-%d"
+		portNumbers, portNames := extractPortNumbersAndNames(params.OtelCol.Spec.Ports)
+		var resultingInferredPorts []corev1.ServicePort
+		for _, inferred := range ports {
+			if filtered := filterPort(params.Log, inferred, portNumbers, portNames); filtered != nil {
+				resultingInferredPorts = append(resultingInferredPorts, *filtered)
+			}
+		}
+
+		ports = append(params.OtelCol.Spec.Ports, resultingInferredPorts...)
+	}
+
+	// if we have no ports, we don't need a service
+	if len(ports) == 0 {
+		params.Log.V(1).Info("the instance's configuration didn't yield any ports to open, skipping service", "instance.name", params.OtelCol.Name, "instance.namespace", params.OtelCol.Namespace)
+		return nil
+	}
+
+	trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
+	if params.OtelCol.Spec.Mode == v1alpha1.ModeDaemonSet {
+		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
+	}
+
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   params.OtelCol.Namespace,
+			Labels:      labels,
+			Annotations: params.OtelCol.Annotations,
+		},
+		Spec: corev1.ServiceSpec{
+			// AWS LB controller
 			Type:                  "NodePort",
 			InternalTrafficPolicy: &trafficPolicy,
 			Selector:              SelectorLabels(params.OtelCol),
