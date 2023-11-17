@@ -6,7 +6,7 @@ retract v1.51.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
-	github.com/go-logr/logr v1.2.4
+	github.com/go-logr/logr v1.3.0
 	github.com/imdario/mergo v0.3.16
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/openshift/api v3.9.0+incompatible
@@ -16,7 +16,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector/featuregate v0.77.0
-	go.opentelemetry.io/otel v1.19.0
+	go.opentelemetry.io/otel v1.21.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.28.2
 	k8s.io/apiextensions-apiserver v0.28.2
@@ -73,11 +73,10 @@ require (
 	github.com/go-zookeeper/zk v1.0.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
-	github.com/golang/glog v1.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
@@ -110,7 +109,6 @@ require (
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/linode/linodego v1.19.0 // indirect
-	github.com/llparse/controller-gen v0.0.0-20180131011002-7a38c4658cb4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
@@ -136,7 +134,7 @@ require (
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/vultr/govultr/v2 v2.17.2 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.opentelemetry.io/otel/trace v1.19.0 // indirect
+	go.opentelemetry.io/otel/trace v1.21.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
@@ -160,8 +158,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/code-generator v0.28.2 // indirect
-	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230717233707-2695361300d9 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
