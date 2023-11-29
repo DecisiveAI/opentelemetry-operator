@@ -45,6 +45,12 @@ func Ingress(params manifests.Params) *networkingv1.Ingress {
 			ports = append(ports, port)
 		}
 	}
+	portsEndpoints := []parser.PortUrlPaths{}
+	for _, portEndpoints := range servicePortsUrlPathsFromCfg(params.Log, params.OtelCol) {
+		if *portEndpoints.Port.AppProtocol == "grpc" {
+			portsEndpoints = append(portsEndpoints, portEndpoints)
+		}
+	}
 
 	// if we have no ports, we don't need a ingress entry
 	if len(ports) == 0 {
@@ -59,8 +65,8 @@ func Ingress(params manifests.Params) *networkingv1.Ingress {
 	var rules []networkingv1.IngressRule
 	switch params.OtelCol.Spec.Ingress.RuleType {
 	case v1alpha1.IngressRuleTypePath, "":
-		//rules = []networkingv1.IngressRule{createPathIngressRulesUrlPaths(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, portsEndpoints)}
-		rules = []networkingv1.IngressRule{createPathIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)}
+		rules = []networkingv1.IngressRule{createPathIngressRulesUrlPaths(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, portsEndpoints)}
+		//rules = []networkingv1.IngressRule{createPathIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)}
 	case v1alpha1.IngressRuleTypeSubdomain:
 		rules = createSubdomainIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)
 	}
@@ -102,7 +108,7 @@ func createPathIngressRulesUrlPaths(otelcol string, hostname string, portsUrlPat
 				PathType: &pathType,
 				Backend: networkingv1.IngressBackend{
 					Service: &networkingv1.IngressServiceBackend{
-						Name: naming.Service(otelcol),
+						Name: naming.BehindIngressService(otelcol),
 						Port: networkingv1.ServiceBackendPort{
 							Name: portName,
 						},

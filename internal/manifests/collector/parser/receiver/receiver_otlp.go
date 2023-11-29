@@ -196,7 +196,9 @@ func (o *OTLPReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 					urlPaths = append(urlPaths, "/v1/traces")
 				}
 			} else if protocol.name == grpc {
-				urlPaths = append(urlPaths, "/")
+				urlPaths = append(urlPaths, "/opentelemetry.proto.collector.logs.v1.LogsService")
+				urlPaths = append(urlPaths, "/opentelemetry.proto.collector.traces.v1.TracesService")
+				urlPaths = append(urlPaths, "/opentelemetry.proto.collector.metrics.v1.MetricsService")
 			}
 
 			// have we parsed a port based on the configuration block?
