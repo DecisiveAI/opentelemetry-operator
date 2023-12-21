@@ -53,7 +53,8 @@ func HeadlessService(params manifests.Params) *corev1.Service {
 	h.Annotations = annotations
 
 	h.Spec.ClusterIP = "None"
-	h.Spec.Type = "NodePort"
+	//h.Spec.Type = "NodePort"
+	h.Spec.Type = "ClusterIP"
 	return h
 }
 
