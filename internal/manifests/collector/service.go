@@ -105,6 +105,15 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 		return nil, err
 	}
 
+	// mydecisive non-grpc ports only
+	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
+		for i := len(ports) - 1; i >= 0; i-- {
+			if ports[i].AppProtocol != nil && *ports[i].AppProtocol == "grpc" {
+				ports = append(ports[:i], ports[i+1:]...)
+			}
+		}
+	}
+
 	// set appProtocol to h2c for grpc ports on OpenShift.
 	// OpenShift uses HA proxy that uses appProtocol for its configuration.
 	for i := range ports {
@@ -145,6 +154,24 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
 	}
 
+	// mydecisive
+	spec := corev1.ServiceSpec{}
+	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
+		spec = corev1.ServiceSpec{
+			InternalTrafficPolicy: &trafficPolicy,
+			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
+			Type:                  "LoadBalancer",
+			Ports:                 ports,
+		}
+	} else {
+		spec = corev1.ServiceSpec{
+			InternalTrafficPolicy: &trafficPolicy,
+			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
+			Ports:                 ports,
+			ClusterIP:             "",
+		}
+	}
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        naming.Service(params.OtelCol.Name),
@@ -152,11 +179,83 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 			Labels:      labels,
 			Annotations: params.OtelCol.Annotations,
 		},
+		Spec: spec,
+	}, nil
+}
+
+// mydecisive
+func ServiceBehindIngress(params manifests.Params) (*corev1.Service, error) {
+	// we need this service for aws only
+	if params.OtelCol.Spec.Ingress.Type != v1alpha1.IngressTypeAws {
+		return nil, nil
+	}
+	name := naming.BehindIngressService(params.OtelCol.Name)
+	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
+
+	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := len(ports) - 1; i >= 0; i-- {
+		if ports[i].AppProtocol == nil || (ports[i].AppProtocol != nil && *ports[i].AppProtocol != "grpc") {
+			ports = append(ports[:i], ports[i+1:]...)
+		}
+	}
+
+	// set appProtocol to h2c for grpc ports on OpenShift.
+	// OpenShift uses HA proxy that uses appProtocol for its configuration.
+	for i := range ports {
+		h2c := "h2c"
+		if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeRoute && ports[i].AppProtocol != nil && strings.EqualFold(*ports[i].AppProtocol, "grpc") {
+			ports[i].AppProtocol = &h2c
+		}
+	}
+
+	if len(params.OtelCol.Spec.Ports) > 0 {
+		// we should add all the ports from the CR
+		// there are two cases where problems might occur:
+		// 1) when the port number is already being used by a receiver
+		// 2) same, but for the port name
+		//
+		// in the first case, we remove the port we inferred from the list
+		// in the second case, we rename our inferred port to something like "port-%d"
+		portNumbers, portNames := extractPortNumbersAndNames(params.OtelCol.Spec.Ports)
+		var resultingInferredPorts []corev1.ServicePort
+		for _, inferred := range ports {
+			if filtered := filterPort(params.Log, inferred, portNumbers, portNames); filtered != nil {
+				resultingInferredPorts = append(resultingInferredPorts, *filtered)
+			}
+		}
+
+		ports = append(params.OtelCol.Spec.Ports, resultingInferredPorts...)
+	}
+
+	// if we have no ports, we don't need a service
+	if len(ports) == 0 {
+		params.Log.V(1).Info("the instance's configuration didn't yield any ports to open, skipping service", "instance.name", params.OtelCol.Name, "instance.namespace", params.OtelCol.Namespace)
+		return nil, err
+	}
+
+	trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
+	if params.OtelCol.Spec.Mode == v1alpha1.ModeDaemonSet {
+		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
+	}
+
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        name,
+			Namespace:   params.OtelCol.Namespace,
+			Labels:      labels,
+			Annotations: params.OtelCol.Annotations,
+		},
 		Spec: corev1.ServiceSpec{
+			// AWS LB controller
+			Type:                  "NodePort",
 			InternalTrafficPolicy: &trafficPolicy,
 			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
-			ClusterIP:             "",
-			Ports:                 ports,
+			//		ClusterIP:             "",
+			Ports: ports,
 		},
 	}, nil
 }

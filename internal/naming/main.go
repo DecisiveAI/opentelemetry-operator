@@ -110,6 +110,12 @@ func HeadlessService(otelcol string) string {
 	return DNSName(Truncate("%s-headless", 63, Service(otelcol)))
 }
 
+// mydecisive
+// BehindIngressService builds the name for the monitoring service based on the instance.
+func BehindIngressService(otelcol string) string {
+	return DNSName(Truncate("%s-behind-ingress", 63, Service(otelcol)))
+}
+
 // MonitoringService builds the name for the monitoring service based on the instance.
 func MonitoringService(otelcol string) string {
 	return DNSName(Truncate("%s-monitoring", 63, Service(otelcol)))

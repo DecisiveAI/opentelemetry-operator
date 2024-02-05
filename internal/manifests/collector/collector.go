@@ -49,6 +49,8 @@ func Build(params manifests.Params) ([]client.Object, error) {
 		manifests.Factory(Service),
 		manifests.Factory(HeadlessService),
 		manifests.Factory(MonitoringService),
+		// mydecisive
+		manifests.Factory(ServiceBehindIngress),
 		manifests.Factory(Ingress),
 	}...)
 

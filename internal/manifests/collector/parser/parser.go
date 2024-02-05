@@ -23,8 +23,18 @@ type ComponentPortParser interface {
 	// Ports returns the service ports parsed based on the exporter's configuration
 	Ports() ([]corev1.ServicePort, error)
 
+	//mydecisive
+	// PortsUrlPaths returns the service ports + URL paths parsed based on the receiver's configuration
+	PortsUrlPaths() ([]PortUrlPaths, error)
+
 	// ParserName returns the name of this parser
 	ParserName() string
+}
+
+// mydecisive
+type PortUrlPaths struct {
+	Port     corev1.ServicePort
+	UrlPaths []string
 }
 
 // Builder specifies the signature required for parser builders.

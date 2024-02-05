@@ -75,3 +75,10 @@ func (g *GenericReceiver) Ports() ([]corev1.ServicePort, error) {
 func (g *GenericReceiver) ParserName() string {
 	return g.parserName
 }
+
+// decisive
+// PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (g *GenericReceiver) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	var portUrlPaths = []parser.PortUrlPaths{}
+	return portUrlPaths, nil
+}
