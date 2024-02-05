@@ -14,18 +14,24 @@
 
 package receiver
 
-import "github.com/go-logr/logr"
+import (
+	"github.com/go-logr/logr"
+
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
+)
 
 const parserNameOpenCensus = "__opencensus"
 
 // NewOpenCensusReceiverParser builds a new parser for OpenCensus receivers.
-func NewOpenCensusReceiverParser(logger logr.Logger, name string, config map[interface{}]interface{}) ReceiverParser {
+func NewOpenCensusReceiverParser(logger logr.Logger, name string, config map[interface{}]interface{}) parser.ComponentPortParser {
+	httpAppProtocol := "http"
 	return &GenericReceiver{
-		logger:      logger,
-		name:        name,
-		config:      config,
-		defaultPort: 55678,
-		parserName:  parserNameOpenCensus,
+		logger:             logger,
+		name:               name,
+		config:             config,
+		defaultPort:        55678,
+		parserName:         parserNameOpenCensus,
+		defaultAppProtocol: &httpAppProtocol,
 	}
 }
 

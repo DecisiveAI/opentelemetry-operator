@@ -8,6 +8,7 @@ rules:
   - ""
   resources:
   - configmaps
+  - pods
   - serviceaccounts
   - services
   verbs:
@@ -67,6 +68,15 @@ rules:
   - update
   - watch
 - apiGroups:
+  - config.openshift.io
+  resources:
+  - infrastructures
+  - infrastructures/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - coordination.k8s.io
   resources:
   - leases
@@ -78,6 +88,7 @@ rules:
 - apiGroups:
   - monitoring.coreos.com
   resources:
+  - podmonitors
   - servicemonitors
   verbs:
   - create
@@ -109,6 +120,32 @@ rules:
   - patch
   - update
   - watch
+- apiGroups:
+  - opentelemetry.io
+  resources:
+  - opampbridges
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - opentelemetry.io
+  resources:
+  - opampbridges/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - opentelemetry.io
+  resources:
+  - opampbridges/status
+  verbs:
+  - get
+  - patch
+  - update
 - apiGroups:
   - opentelemetry.io
   resources:

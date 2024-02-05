@@ -68,6 +68,8 @@ The `config` node holds the `YAML` that should be passed down as-is to the under
 
 > 🚨 **NOTE:** At this point, the Operator does *not* validate the contents of the configuration file: if the configuration is invalid, the instance will still be created but the underlying OpenTelemetry Collector might crash.
 
+> 🚨 **Note:** For private GKE clusters, you will need to either add a firewall rule that allows master nodes access to port `9443/tcp` on worker nodes, or change the existing rule that allows access to port `80/tcp`, `443/tcp` and `10254/tcp` to also allow access to port `9443/tcp`. More information can be found in the [Official GCP Documentation](https://cloud.google.com/load-balancing/docs/tcp/setting-up-tcp#config-hc-firewall). See the [GKE documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/private-clusters#add_firewall_rules) on adding rules and the [Kubernetes issue](https://github.com/kubernetes/kubernetes/issues/79739) for more detail.
+
 The Operator does examine the configuration file to discover configured receivers and their ports. If it finds receivers with ports, it creates a pair of kubernetes services, one headless, exposing those ports within the cluster. The headless service contains a `service.beta.openshift.io/serving-cert-secret-name` annotation that will cause OpenShift to create a secret containing a certificate and key. This secret can be mounted as a volume and the certificate and key used in those receivers' TLS configurations.
 
 ### Upgrades
@@ -89,7 +91,7 @@ See below for examples of each deployment mode:
 - [`Deployment`](https://github.com/open-telemetry/opentelemetry-operator/blob/main/tests/e2e/ingress/00-install.yaml)
 - [`DaemonSet`](https://github.com/open-telemetry/opentelemetry-operator/blob/main/tests/e2e/daemonset-features/01-install.yaml)
 - [`StatefulSet`](https://github.com/open-telemetry/opentelemetry-operator/blob/main/tests/e2e/smoke-statefulset/00-install.yaml)
-- [`Sidecar`](https://github.com/open-telemetry/opentelemetry-operator/blob/main/tests/e2e/instrumentation-python/00-install-collector.yaml)
+- [`Sidecar`](https://github.com/open-telemetry/opentelemetry-operator/blob/main/tests/e2e/smoke-sidecar/00-install.yaml)
 
 #### Sidecar injection
 
@@ -187,6 +189,27 @@ EOF
 
 When using sidecar mode the OpenTelemetry collector container will have the environment variable `OTEL_RESOURCE_ATTRIBUTES`set with Kubernetes resource attributes, ready to be consumed by the [resourcedetection](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor) processor.
 
+### Using imagePullSecrets
+
+The OpenTelemetry Collector defines a ServiceAccount field which could be set to run collector instances with a specific Service and their properties (e.g. imagePullSecrets). Therefore, if you have a constraint to run your collector with a private container registry, you should follow the procedure below:
+
+* Create Service Account.
+````bash
+kubectl create serviceaccount <service-account-name>
+````
+
+* Create an imagePullSecret.
+````bash
+kubectl create secret docker-registry <secret-name> --docker-server=<registry name> \
+        --docker-username=DUMMY_USERNAME --docker-password=DUMMY_DOCKER_PASSWORD \
+        --docker-email=DUMMY_DOCKER_EMAIL
+````
+
+* Add image pull secret to service account
+````bash
+kubectl patch serviceaccount <service-account-name> -p '{"imagePullSecrets": [{"name": "<secret-name>"}]}'
+````
+
 ### OpenTelemetry auto-instrumentation injection
 
 The operator can inject and configure OpenTelemetry auto-instrumentation libraries. Currently Apache HTTPD, DotNet, Go, Java, Nginx, NodeJS and Python are supported.
@@ -221,6 +244,13 @@ spec:
       # Required if endpoint is set to 4317.
       # Dotnet autoinstrumentation uses http/proto by default
       # See https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/blob/888e2cd216c77d12e56b54ee91dafbc4e7452a52/docs/config.md#otlp
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: http://otel-collector:4318
+  go:
+    env:
+      # Required if endpoint is set to 4317.
+      # Go autoinstrumentation uses http/proto by default
+      # so data must be sent to 4318 instead of 4317.
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
         value: http://otel-collector:4318
 EOF
@@ -279,9 +309,6 @@ Go auto-instrumentation also requires elevated permissions. The below permission
 
 ```yaml
 securityContext:
-    capabilities:
-     add:
-     - SYS_PTRACE
     privileged: true
     runAsUser: 0
 ```
@@ -307,7 +334,10 @@ The possible values for the annotation can be
 * `"my-other-namespace/my-instrumentation"` - name and namespace of `Instrumentation` CR instance in another namespace.
 * `"false"` - do not inject
 
+>**Note:** For `DotNet` auto-instrumentation, by default, operator sets the `OTEL_DOTNET_AUTO_TRACES_ENABLED_INSTRUMENTATIONS` environment variable which specifies the list of traces source instrumentations you want to enable. The value that is set by default by the operator is all available instrumentations supported by the `openTelemery-dotnet-instrumentation` release consumed in the image, i.e. `AspNet,HttpClient,SqlClient`. This value can be overriden by configuring the environment variable explicitely.
+
 #### Multi-container pods with single instrumentation
+
 
 If nothing else is specified, instrumentation is performed on the first container available in the pod spec.
 In some cases (for example in the case of the injection of an Istio sidecar) it becomes necessary to specify on which container(s) this injection must be performed.
@@ -531,12 +561,17 @@ If a language is enabled by default its gate only needs to be supplied when disa
 Language not specified in the table are always supported and cannot be disabled.
 
 OpenTelemetry Operator allows to instrument multiple containers using multiple language specific instrumentations.
-These feature can be enabled using `operator.autoinstrumentation.multi-instrumentation` flag. By default flag is `disabled`.
+These features can be enabled using `operator.autoinstrumentation.multi-instrumentation` flag when installing the Operator via Helm. By default flag is `disabled`. For example:
+
+```sh
+helm install opentelemetry-operator open-telemetry/opentelemetry-operator --set manager.featureGates=operator.autoinstrumentation.multi-instrumentation
+```
+
 For more information about multi-instrumentation feature capabilities please see [Multi-container pods with multiple instrumentations](#Multi-container-pods-with-multiple-instrumentations).
 
 ### Target Allocator
 
-The OpenTelemetry Operator comes with an optional component, the [Target Allocator](/cmd/otel-allocator/README.md) (TA). When creating an OpenTelemetryCollector Custom Resource (CR) and setting the TA as enabled, the Operator will create a new deployment and service to serve specific `http_sd_config` directives for each Collector pod as part of that CR. It will also change the Prometheus receiver configuration in the CR, so that it uses the [http_sd_config](https://prometheus.io/docs/prometheus/latest/http_sd/) from the TA. The following example shows how to get started with the Target Allocator:
+The OpenTelemetry Operator comes with an optional component, the [Target Allocator](/cmd/otel-allocator/README.md) (TA). When creating an OpenTelemetryCollector Custom Resource (CR) and setting the TA as enabled, the Operator will create a new deployment and service to serve specific `http_sd_config` directives for each Collector pod as part of that CR. It will also rewrite the Prometheus receiver configuration in the CR, so that it uses the deployed target allocator. The following example shows how to get started with the Target Allocator:
 
 ```yaml
 apiVersion: opentelemetry.io/v1alpha1
@@ -559,7 +594,6 @@ spec:
             metric_relabel_configs:
             - action: labeldrop
               regex: (id|name)
-              replacement: $$1
             - action: labelmap
               regex: label_(.+)
               replacement: $$1
@@ -574,6 +608,7 @@ spec:
           processors: []
           exporters: [debug]
 ```
+
 The usage of `$$` in the replacement keys in the example above is based on the information provided in the Prometheus receiver [README](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/prometheusreceiver/README.md) documentation, which states:
 `Note: Since the collector configuration supports env variable substitution $ characters in your prometheus configuration are interpreted as environment variables. If you want to use $ characters in your prometheus configuration, you must escape them using $$.`
 
@@ -582,67 +617,6 @@ Behind the scenes, the OpenTelemetry Operator will convert the Collector’s con
 ```yaml
     receivers:
       prometheus:
-        config:
-          scrape_configs:
-          - job_name: otel-collector
-            scrape_interval: 10s
-            http_sd_configs:
-            - url: http://collector-with-ta-targetallocator:80/jobs/otel-collector/targets?collector_id=$POD_NAME
-            metric_relabel_configs:
-            - action: labeldrop
-              regex: (id|name)
-              replacement: $$1
-            - action: labelmap
-              regex: label_(.+)
-              replacement: $$1
-
-    exporters:
-      debug:
-
-    service:
-      pipelines:
-        metrics:
-          receivers: [prometheus]
-          processors: []
-          exporters: [debug]
-```
-
-Note how the Operator removes any existing service discovery configurations (e.g., `static_configs`, `file_sd_configs`, etc.) from the `scrape_configs` section and adds an `http_sd_configs` configuration pointing to a Target Allocator instance it provisioned.
-
-The OpenTelemetry Operator will also convert the Target Allocator's Prometheus configuration after the reconciliation into the following:
-
-```yaml
-    config:
-      scrape_configs:
-      - job_name: otel-collector
-        scrape_interval: 10s
-        static_configs:
-        - targets: [ '0.0.0.0:8888' ]
-        metric_relabel_configs:
-        - action: labeldrop
-          regex: (id|name)
-          replacement: $1
-        - action: labelmap
-          regex: label_(.+)
-          replacement: $1
-```
-Note that in this case, the Operator replaces "$$" with a single "$" in the replacement keys. This is because the collector supports environment variable substitution, whereas the TA (Target Allocator) does not. Therefore, to ensure compatibility, the TA configuration should only contain a single "$" symbol.
-
-More info on the TargetAllocator can be found [here](cmd/otel-allocator/README.md).
-
-#### Target Allocator config rewriting
-
-Prometheus receiver now has explicit support for acquiring scrape targets from the target allocator. As such, it is now possible to have the
-Operator add the necessary target allocator configuration automatically. This feature currently requires the `operator.collector.rewritetargetallocator` feature flag to be enabled. With the flag enabled, the configuration from the previous section would be rendered as:
-
-```yaml
-    receivers:
-      prometheus:
-        config:
-          global:
-            scrape_interval: 1m
-            scrape_timeout: 10s
-            evaluation_interval: 1m
         target_allocator:
           endpoint: http://collector-with-ta-targetallocator:80
           interval: 30s
@@ -659,7 +633,33 @@ Operator add the necessary target allocator configuration automatically. This fe
           exporters: [debug]
 ```
 
-This also allows for a more straightforward collector configuration for target discovery using prometheus-operator CRDs. See below for a minimal example:
+The OpenTelemetry Operator will also convert the Target Allocator's Prometheus configuration after the reconciliation into the following:
+
+```yaml
+    config:
+      scrape_configs:
+      - job_name: otel-collector
+        scrape_interval: 10s
+        static_configs:
+        - targets: [ '0.0.0.0:8888' ]
+        metric_relabel_configs:
+        - action: labeldrop
+          regex: (id|name)
+        - action: labelmap
+          regex: label_(.+)
+          replacement: $1
+```
+
+Note that in this case, the Operator replaces "$$" with a single "$" in the replacement keys. This is because the collector supports environment variable substitution, whereas the TA (Target Allocator) does not. Therefore, to ensure compatibility, the TA configuration should only contain a single "$" symbol.
+
+More info on the TargetAllocator can be found [here](cmd/otel-allocator/README.md).
+
+#### Using Prometheus Custom Resources for service discovery
+
+The target allocator can use Custom Resources from the prometheus-operator ecosystem, like ServiceMonitors and PodMonitors, for service discovery, performing
+a function analogous to that of prometheus-operator itself. This is enabled via the `prometheusCR` section in the Collector CR.
+
+See below for a minimal example:
 
 ```yaml
 apiVersion: opentelemetry.io/v1alpha1
@@ -710,6 +710,13 @@ The OpenTelemetry Operator *might* work on versions outside of the given range, 
 
 | OpenTelemetry Operator | Kubernetes           | Cert-Manager        |
 |------------------------|----------------------|---------------------|
+| v0.93.0                | v1.23 to v1.29       | v1                  |
+| v0.92.0                | v1.23 to v1.29       | v1                  |
+| v0.91.0                | v1.23 to v1.29       | v1                  |
+| v0.90.0                | v1.23 to v1.28       | v1                  |
+| v0.89.0                | v1.23 to v1.28       | v1                  |
+| v0.88.0                | v1.23 to v1.28       | v1                  |
+| v0.87.0                | v1.23 to v1.28       | v1                  |
 | v0.86.0                | v1.23 to v1.28       | v1                  |
 | v0.85.0                | v1.19 to v1.28       | v1                  |
 | v0.84.0                | v1.19 to v1.28       | v1                  |
@@ -726,13 +733,6 @@ The OpenTelemetry Operator *might* work on versions outside of the given range, 
 | v0.73.0                | v1.19 to v1.26       | v1                  |
 | v0.72.0                | v1.19 to v1.26       | v1                  |
 | v0.71.0                | v1.19 to v1.25       | v1                  |
-| v0.70.0                | v1.19 to v1.25       | v1                  |
-| v0.69.0                | v1.19 to v1.25       | v1                  |
-| v0.68.0                | v1.19 to v1.25       | v1                  |
-| v0.67.0                | v1.19 to v1.25       | v1                  |
-| v0.66.0                | v1.19 to v1.25       | v1                  |
-| v0.64.1                | v1.19 to v1.25       | v1                  |
-| v0.63.1                | v1.19 to v1.25       | v1                  |
 
 ## Contributing and Developing
 
