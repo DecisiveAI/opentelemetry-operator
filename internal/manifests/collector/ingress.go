@@ -168,15 +168,13 @@ func createPathIngressRulesUrlPaths(otelcol string, hostname string, portsUrlPat
 	pathType := networkingv1.PathTypePrefix
 	var totalPaths = 0
 	for _, portUrlPaths := range portsUrlPaths {
-		for range portUrlPaths.UrlPaths {
-			totalPaths++
-		}
+		totalPaths += len(portUrlPaths.UrlPaths)
 	}
 	paths := make([]networkingv1.HTTPIngressPath, totalPaths)
 	var i = 0
 	for _, portUrlPaths := range portsUrlPaths {
+		portName := naming.PortName(portUrlPaths.Port.Name, portUrlPaths.Port.Port)
 		for _, endpoint := range portUrlPaths.UrlPaths {
-			portName := naming.PortName(portUrlPaths.Port.Name, portUrlPaths.Port.Port)
 			paths[i] = networkingv1.HTTPIngressPath{
 				Path:     endpoint,
 				PathType: &pathType,
