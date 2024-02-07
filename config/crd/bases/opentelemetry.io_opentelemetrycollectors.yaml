@@ -2471,6 +2471,7 @@ spec:
                     enum:
                     - ingress
                     - route
+                    - aws
                     type: string
                 type: object
               initContainers:

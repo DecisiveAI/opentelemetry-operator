@@ -57,6 +57,80 @@ func NewLokiReceiverParser(logger logr.Logger, name string, config map[interface
 	}
 }
 
+// decisive
+// PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (o *LokiReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	var portsUrlPaths = []parser.PortUrlPaths{}
+
+	for _, protocol := range []struct {
+		name         string
+		defaultPorts []corev1.ServicePort
+	}{
+		{
+			name: grpc,
+			defaultPorts: []corev1.ServicePort{
+				{
+					Name:        naming.PortName(fmt.Sprintf("%s-grpc", o.name), defaultLokiGRPCPort),
+					Port:        defaultLokiGRPCPort,
+					TargetPort:  intstr.FromInt(int(defaultLokiGRPCPort)),
+					AppProtocol: &grpc,
+				},
+			},
+		},
+		{
+			name: http,
+			defaultPorts: []corev1.ServicePort{
+				{
+					Name:        naming.PortName(fmt.Sprintf("%s-http", o.name), defaultLokiHTTPPort),
+					Port:        defaultLokiHTTPPort,
+					TargetPort:  intstr.FromInt(int(defaultLokiHTTPPort)),
+					AppProtocol: &http,
+				},
+			},
+		},
+	} {
+		// do we have the protocol specified at all?
+		if receiverProtocol, ok := o.config[protocol.name]; ok {
+			// we have the specified protocol, we definitely need a service port
+			nameWithProtocol := fmt.Sprintf("%s-%s", o.name, protocol.name)
+			var protocolPort *corev1.ServicePort
+
+			// do we have a configuration block for the protocol?
+			settings, ok := receiverProtocol.(map[interface{}]interface{})
+			if ok {
+				protocolPort = singlePortFromConfigEndpoint(o.logger, nameWithProtocol, settings)
+			}
+
+			// manage url paths here
+			urlPaths := []string{}
+			if protocol.name == http {
+				urlPaths = append(urlPaths, "/")
+			} else if protocol.name == grpc {
+				urlPaths = append(urlPaths, "/logproto.Pusher")
+			}
+
+			// have we parsed a port based on the configuration block?
+			// if not, we use the default port
+			if protocolPort == nil {
+				portsUrlPaths = append(portsUrlPaths, parser.PortUrlPaths{Port: protocol.defaultPorts[0],
+					UrlPaths: urlPaths})
+			} else {
+				// infer protocol and appProtocol from protocol.name
+				if protocol.name == grpc {
+					protocolPort.Protocol = corev1.ProtocolTCP
+					protocolPort.AppProtocol = &grpc
+				} else if protocol.name == http {
+					protocolPort.Protocol = corev1.ProtocolTCP
+					protocolPort.AppProtocol = &http
+				}
+				portsUrlPaths = append(portsUrlPaths, parser.PortUrlPaths{Port: *protocolPort,
+					UrlPaths: urlPaths})
+			}
+		}
+	}
+	return portsUrlPaths, nil
+}
+
 // Ports returns all the service ports for all protocols in this parser.
 func (o *LokiReceiverParser) Ports() ([]corev1.ServicePort, error) {
 	ports := []corev1.ServicePort{}

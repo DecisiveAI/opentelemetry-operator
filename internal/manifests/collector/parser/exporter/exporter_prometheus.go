@@ -67,6 +67,12 @@ func (o *PrometheusExporterParser) Ports() ([]corev1.ServicePort, error) {
 	return ports, nil
 }
 
+// mydecisive
+func (o *PrometheusExporterParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	var portUrlPaths = []parser.PortUrlPaths{}
+	return portUrlPaths, nil
+}
+
 // ParserName returns the name of this parser.
 func (o *PrometheusExporterParser) ParserName() string {
 	return parserNamePrometheus
