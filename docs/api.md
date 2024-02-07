@@ -14715,7 +14715,7 @@ Ingress is used to specify how OpenTelemetry Collector is exposed. This function
         <td>
           Type default value is: "" Supported types are: ingress, route<br/>
           <br/>
-            <i>Enum</i>: ingress, route<br/>
+            <i>Enum</i>: ingress, route, aws<br/>
         </td>
         <td>false</td>
       </tr></tbody>

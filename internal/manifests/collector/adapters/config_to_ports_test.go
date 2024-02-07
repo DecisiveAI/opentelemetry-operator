@@ -290,3 +290,9 @@ func (m *mockParser) Ports() ([]corev1.ServicePort, error) {
 func (m *mockParser) ParserName() string {
 	return "__mock-adapters"
 }
+
+// decisive
+// PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (g *mockParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	return []parser.PortUrlPaths{}, nil
+}

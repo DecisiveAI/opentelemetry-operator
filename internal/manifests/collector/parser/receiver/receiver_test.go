@@ -152,6 +152,11 @@ func (m *mockParser) ParserName() string {
 	return "__mock"
 }
 
+// decisive
+func (g *mockParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	return []parser.PortUrlPaths{}, nil
+}
+
 func TestSkipPortsForScrapers(t *testing.T) {
 	for receiver := range scraperReceivers {
 		builder := NewGenericReceiverParser(logger, receiver, map[interface{}]interface{}{
