@@ -131,7 +131,7 @@ func (o *OTLPReceiverParser) ParserName() string {
 	return parserNameOTLP
 }
 
-// decisive
+// mydecisive.
 // PortsUrlPaths returns all the service ports for all protocols in this parser.
 func (o *OTLPReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 	portsUrlPaths := []parser.PortUrlPaths{}

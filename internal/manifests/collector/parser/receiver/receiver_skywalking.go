@@ -121,7 +121,7 @@ func (o *SkywalkingReceiverParser) Ports() ([]corev1.ServicePort, error) {
 	return ports, nil
 }
 
-// decisive
+// mydecisive.
 // PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
 func (o *SkywalkingReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 	portsUrlPaths := []parser.PortUrlPaths{}

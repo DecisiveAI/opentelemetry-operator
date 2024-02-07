@@ -152,7 +152,7 @@ func (m *mockParser) ParserName() string {
 	return "__mock"
 }
 
-// decisive
+// mydecisive.
 func (g *mockParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 	return []parser.PortUrlPaths{}, nil
 }

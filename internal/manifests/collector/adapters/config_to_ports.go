@@ -144,7 +144,7 @@ func ConfigToPorts(logger logr.Logger, config map[interface{}]interface{}) ([]co
 	return ports, nil
 }
 
-// mydecisive
+// mydecisive.
 // ConfigToComponentPortsEndpoints converts the incoming configuration object into a set of service ports + endpoints required by the receivers.
 func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, config map[interface{}]interface{}) ([]parser.PortUrlPaths, error) {
 	componentsProperty, ok := config[fmt.Sprintf("%ss", cType.String())]
@@ -186,6 +186,11 @@ func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, con
 			cmptParser, err = receiverParser.For(logger, cmptName, receiver)
 		case ComponentTypeProcessor:
 			logger.V(4).Info("processors don't provide a way to enable associated ports", "name", key)
+		}
+
+		if err != nil {
+			logger.V(2).Info("no parser found for '%s'", cmptName)
+			continue
 		}
 
 		rcvrPortsUrlPaths, err := cmptParser.PortsUrlPaths()

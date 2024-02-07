@@ -31,7 +31,7 @@ type ComponentPortParser interface {
 	ParserName() string
 }
 
-// mydecisive
+// mydecisive.
 type PortUrlPaths struct {
 	Port     corev1.ServicePort
 	UrlPaths []string

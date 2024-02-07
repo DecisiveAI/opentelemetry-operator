@@ -67,7 +67,7 @@ func (o *PrometheusExporterParser) Ports() ([]corev1.ServicePort, error) {
 	return ports, nil
 }
 
-// mydecisive
+// mydecisive.
 func (o *PrometheusExporterParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 	var portUrlPaths = []parser.PortUrlPaths{}
 	return portUrlPaths, nil

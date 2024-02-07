@@ -25,7 +25,7 @@ const (
 	IngressTypeNginx IngressType = "ingress"
 	// IngressTypeOpenshiftRoute specifies that an route entry should be created.
 	IngressTypeRoute IngressType = "route"
-	// mydecisive
+	// mydecisive.
 	IngressTypeAws IngressType = "aws"
 )
 

@@ -105,7 +105,7 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 		return nil, err
 	}
 
-	// mydecisive non-grpc ports only
+	// mydecisive non-grpc ports only.
 	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
 		for i := len(ports) - 1; i >= 0; i-- {
 			if ports[i].AppProtocol != nil && *ports[i].AppProtocol == "grpc" {
@@ -154,8 +154,8 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
 	}
 
-	// mydecisive
-	spec := corev1.ServiceSpec{}
+	// mydecisive.
+	var spec corev1.ServiceSpec
 	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
 		spec = corev1.ServiceSpec{
 			InternalTrafficPolicy: &trafficPolicy,
@@ -183,7 +183,7 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 	}, nil
 }
 
-// mydecisive
+// mydecisive.
 func ServiceBehindIngress(params manifests.Params) (*corev1.Service, error) {
 	// we need this service for aws only
 	if params.OtelCol.Spec.Ingress.Type != v1alpha1.IngressTypeAws {

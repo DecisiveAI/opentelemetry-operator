@@ -16,6 +16,7 @@ package collector
 
 import (
 	"fmt"
+
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 
 	"github.com/go-logr/logr"
@@ -30,8 +31,7 @@ import (
 )
 
 func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
-	// mydecisive
-
+	// mydecisive.
 	var rules []networkingv1.IngressRule
 
 	switch params.OtelCol.Spec.Ingress.Type {
@@ -60,7 +60,7 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 				}
 			}
 			// if we have no ports, we don't need a ingress entry
-			if len(portsEndpoints) == 0 || err != nil {
+			if len(portsEndpoints) == 0 {
 				params.Log.V(1).Info(
 					"the instance's configuration didn't yield any ports to open, skipping ingress",
 					"instance.name", params.OtelCol.Name,
@@ -79,6 +79,8 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 				return nil, err
 			}
 		} // v1alpha1.IngressTypeAws
+	case v1alpha1.IngressTypeRoute:
+		return nil, nil
 	default:
 		return nil, nil
 	}
@@ -166,7 +168,7 @@ func createSubdomainIngressRules(otelcol string, hostname string, ports []corev1
 	return rules
 }
 
-// mydecisive
+// mydecisive.
 func createPathIngressRulesUrlPaths(otelcol string, hostname string, portsUrlPaths []parser.PortUrlPaths) networkingv1.IngressRule {
 	pathType := networkingv1.PathTypePrefix
 	var totalPaths = 0
@@ -236,7 +238,7 @@ func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryColle
 	return ports, err
 }
 
-// mydecisive
+// mydecisive.
 func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) ([]parser.PortUrlPaths, error) {
 	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
 	if err != nil {
