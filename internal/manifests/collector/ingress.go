@@ -31,16 +31,16 @@ import (
 
 func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 	// mydecisive
-	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
-	if err != nil {
-		return nil, err
-	}
 
 	var rules []networkingv1.IngressRule
 
 	switch params.OtelCol.Spec.Ingress.Type {
 	case v1alpha1.IngressTypeNginx:
 		{
+			ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
+			if err != nil {
+				return nil, err
+			}
 			switch params.OtelCol.Spec.Ingress.RuleType {
 			case v1alpha1.IngressRuleTypePath, "":
 				rules = []networkingv1.IngressRule{createPathIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)}
@@ -50,8 +50,11 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 		} // v1alpha1.IngressTypeNginx
 	case v1alpha1.IngressTypeAws:
 		{
-			portsEndpoints := []parser.PortUrlPaths{}
-			for _, portEndpoints := range servicePortsUrlPathsFromCfg(params.Log, params.OtelCol) {
+			portsEndpoints, err := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
+			if err != nil {
+				return nil, err
+			}
+			for _, portEndpoints := range portsEndpoints {
 				if *portEndpoints.Port.AppProtocol == "grpc" {
 					portsEndpoints = append(portsEndpoints, portEndpoints)
 				}
@@ -234,17 +237,18 @@ func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryColle
 }
 
 // mydecisive
-func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) []parser.PortUrlPaths {
+func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) ([]parser.PortUrlPaths, error) {
 	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
 	if err != nil {
 		logger.Error(err, "couldn't extract the configuration from the context")
-		return nil
+		return nil, err
 	}
 
 	portsUrlPaths, err := adapters.ConfigToComponentPortsUrlPaths(logger, adapters.ComponentTypeReceiver, configFromString)
 	if err != nil {
 		logger.Error(err, "couldn't build the ingress for this instance")
+		return nil, err
 	}
 
-	return portsUrlPaths
+	return portsUrlPaths, nil
 }
