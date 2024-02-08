@@ -25,6 +25,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/adapters"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
 	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
@@ -34,10 +35,10 @@ const (
 	headlessExists = "Exists"
 )
 
-func HeadlessService(params manifests.Params) *corev1.Service {
-	h := Service(params)
-	if h == nil {
-		return h
+func HeadlessService(params manifests.Params) (*corev1.Service, error) {
+	h, err := Service(params)
+	if h == nil || err != nil {
+		return h, err
 	}
 
 	h.Name = naming.HeadlessService(params.OtelCol.Name)
@@ -53,24 +54,22 @@ func HeadlessService(params manifests.Params) *corev1.Service {
 	h.Annotations = annotations
 
 	h.Spec.ClusterIP = "None"
-	return h
+	return h, nil
 }
 
-func MonitoringService(params manifests.Params) *corev1.Service {
+func MonitoringService(params manifests.Params) (*corev1.Service, error) {
 	name := naming.MonitoringService(params.OtelCol.Name)
-	labels := Labels(params.OtelCol, name, []string{})
+	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
 
 	c, err := adapters.ConfigFromString(params.OtelCol.Spec.Config)
-	// TODO: Update this to properly return an error https://github.com/open-telemetry/opentelemetry-operator/issues/1972
 	if err != nil {
 		params.Log.Error(err, "couldn't extract the configuration")
-		return nil
+		return nil, err
 	}
 
 	metricsPort, err := adapters.ConfigToMetricsPort(params.Log, c)
 	if err != nil {
-		params.Log.V(2).Info("couldn't determine metrics port from configuration, using 8888 default value", "error", err)
-		metricsPort = 8888
+		return nil, err
 	}
 
 	return &corev1.Service{
@@ -81,27 +80,128 @@ func MonitoringService(params manifests.Params) *corev1.Service {
 			Annotations: params.OtelCol.Annotations,
 		},
 		Spec: corev1.ServiceSpec{
-			Selector:  SelectorLabels(params.OtelCol),
+			Selector:  manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
 			ClusterIP: "",
 			Ports: []corev1.ServicePort{{
 				Name: "monitoring",
 				Port: metricsPort,
 			}},
 		},
-	}
+	}, nil
 }
 
-func Service(params manifests.Params) *corev1.Service {
+func Service(params manifests.Params) (*corev1.Service, error) {
 	name := naming.Service(params.OtelCol.Name)
-	labels := Labels(params.OtelCol, name, []string{})
+	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
 
 	configFromString, err := adapters.ConfigFromString(params.OtelCol.Spec.Config)
 	if err != nil {
 		params.Log.Error(err, "couldn't extract the configuration from the context")
-		return nil
+		return nil, err
 	}
 
-	ports := adapters.ConfigToPorts(params.Log, configFromString)
+	ports, err := adapters.ConfigToPorts(params.Log, configFromString)
+	if err != nil {
+		return nil, err
+	}
+
+	// mydecisive non-grpc ports only.
+	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
+		for i := len(ports) - 1; i >= 0; i-- {
+			if ports[i].AppProtocol != nil && *ports[i].AppProtocol == "grpc" {
+				ports = append(ports[:i], ports[i+1:]...)
+			}
+		}
+	}
+
+	// set appProtocol to h2c for grpc ports on OpenShift.
+	// OpenShift uses HA proxy that uses appProtocol for its configuration.
+	for i := range ports {
+		h2c := "h2c"
+		if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeRoute && ports[i].AppProtocol != nil && strings.EqualFold(*ports[i].AppProtocol, "grpc") {
+			ports[i].AppProtocol = &h2c
+		}
+	}
+
+	if len(params.OtelCol.Spec.Ports) > 0 {
+		// we should add all the ports from the CR
+		// there are two cases where problems might occur:
+		// 1) when the port number is already being used by a receiver
+		// 2) same, but for the port name
+		//
+		// in the first case, we remove the port we inferred from the list
+		// in the second case, we rename our inferred port to something like "port-%d"
+		portNumbers, portNames := extractPortNumbersAndNames(params.OtelCol.Spec.Ports)
+		var resultingInferredPorts []corev1.ServicePort
+		for _, inferred := range ports {
+			if filtered := filterPort(params.Log, inferred, portNumbers, portNames); filtered != nil {
+				resultingInferredPorts = append(resultingInferredPorts, *filtered)
+			}
+		}
+
+		ports = append(params.OtelCol.Spec.Ports, resultingInferredPorts...)
+	}
+
+	// if we have no ports, we don't need a service
+	if len(ports) == 0 {
+
+		params.Log.V(1).Info("the instance's configuration didn't yield any ports to open, skipping service", "instance.name", params.OtelCol.Name, "instance.namespace", params.OtelCol.Namespace)
+		return nil, err
+	}
+
+	trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
+	if params.OtelCol.Spec.Mode == v1alpha1.ModeDaemonSet {
+		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
+	}
+
+	// mydecisive.
+	var spec corev1.ServiceSpec
+	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
+		spec = corev1.ServiceSpec{
+			InternalTrafficPolicy: &trafficPolicy,
+			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
+			Type:                  "LoadBalancer",
+			Ports:                 ports,
+		}
+	} else {
+		spec = corev1.ServiceSpec{
+			InternalTrafficPolicy: &trafficPolicy,
+			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
+			Ports:                 ports,
+			ClusterIP:             "",
+		}
+	}
+
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        naming.Service(params.OtelCol.Name),
+			Namespace:   params.OtelCol.Namespace,
+			Labels:      labels,
+			Annotations: params.OtelCol.Annotations,
+		},
+		Spec: spec,
+	}, nil
+}
+
+// mydecisive.
+func ServiceBehindIngress(params manifests.Params) (*corev1.Service, error) {
+	// we need this service for aws only
+	if params.OtelCol.Spec.Ingress.Type != v1alpha1.IngressTypeAws {
+		return nil, nil
+	}
+	name := naming.BehindIngressService(params.OtelCol.Name)
+	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
+
+	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := len(ports) - 1; i >= 0; i-- {
+		if ports[i].AppProtocol == nil || (ports[i].AppProtocol != nil && *ports[i].AppProtocol != "grpc") {
+			ports = append(ports[:i], ports[i+1:]...)
+		}
+	}
 
 	// set appProtocol to h2c for grpc ports on OpenShift.
 	// OpenShift uses HA proxy that uses appProtocol for its configuration.
@@ -134,7 +234,7 @@ func Service(params manifests.Params) *corev1.Service {
 	// if we have no ports, we don't need a service
 	if len(ports) == 0 {
 		params.Log.V(1).Info("the instance's configuration didn't yield any ports to open, skipping service", "instance.name", params.OtelCol.Name, "instance.namespace", params.OtelCol.Namespace)
-		return nil
+		return nil, err
 	}
 
 	trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
@@ -144,18 +244,20 @@ func Service(params manifests.Params) *corev1.Service {
 
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        naming.Service(params.OtelCol.Name),
+			Name:        name,
 			Namespace:   params.OtelCol.Namespace,
 			Labels:      labels,
 			Annotations: params.OtelCol.Annotations,
 		},
 		Spec: corev1.ServiceSpec{
+			// AWS LB controller
+			Type:                  "NodePort",
 			InternalTrafficPolicy: &trafficPolicy,
-			Selector:              SelectorLabels(params.OtelCol),
-			ClusterIP:             "",
-			Ports:                 ports,
+			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
+			//		ClusterIP:             "",
+			Ports: ports,
 		},
-	}
+	}, nil
 }
 
 func filterPort(logger logr.Logger, candidate corev1.ServicePort, portNumbers map[int32]bool, portNames map[string]bool) *corev1.ServicePort {

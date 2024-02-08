@@ -30,6 +30,7 @@ import (
 	colfeaturegate "go.opentelemetry.io/collector/featuregate"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/record"
@@ -45,10 +46,11 @@ import (
 
 	otelv1alpha1 "github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 	"github.com/open-telemetry/opentelemetry-operator/controllers"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
 	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
 	"github.com/open-telemetry/opentelemetry-operator/internal/version"
 	"github.com/open-telemetry/opentelemetry-operator/internal/webhook/podmutation"
-	"github.com/open-telemetry/opentelemetry-operator/pkg/autodetect"
 	collectorupgrade "github.com/open-telemetry/opentelemetry-operator/pkg/collector/upgrade"
 	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
 	"github.com/open-telemetry/opentelemetry-operator/pkg/instrumentation"
@@ -75,6 +77,16 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 }
 
+// stringFlagOrEnv defines a string flag which can be set by an environment variable.
+// Precedence: flag > env var > default value.
+func stringFlagOrEnv(p *string, name string, envName string, defaultValue string, usage string) {
+	envValue := os.Getenv(envName)
+	if envValue != "" {
+		defaultValue = envValue
+	}
+	pflag.StringVar(p, name, defaultValue, usage)
+}
+
 func main() {
 	// registers any flags that underlying libraries might use
 	opts := zap.Options{}
@@ -91,6 +103,7 @@ func main() {
 		probeAddr                      string
 		pprofAddr                      string
 		enableLeaderElection           bool
+		createRBACPermissions          bool
 		collectorImage                 string
 		targetAllocatorImage           string
 		operatorOpAMPBridgeImage       string
@@ -112,16 +125,17 @@ func main() {
 	pflag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	pflag.StringVar(&collectorImage, "collector-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector:%s", v.OpenTelemetryCollector), "The default OpenTelemetry collector image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&targetAllocatorImage, "target-allocator-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:%s", v.TargetAllocator), "The default OpenTelemetry target allocator image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&operatorOpAMPBridgeImage, "operator-opamp-bridge-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/operator-opamp-bridge:%s", v.OperatorOpAMPBridge), "The default OpenTelemetry Operator OpAMP Bridge image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&autoInstrumentationJava, "auto-instrumentation-java-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:%s", v.AutoInstrumentationJava), "The default OpenTelemetry Java instrumentation image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&autoInstrumentationNodeJS, "auto-instrumentation-nodejs-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:%s", v.AutoInstrumentationNodeJS), "The default OpenTelemetry NodeJS instrumentation image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&autoInstrumentationPython, "auto-instrumentation-python-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:%s", v.AutoInstrumentationPython), "The default OpenTelemetry Python instrumentation image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&autoInstrumentationDotNet, "auto-instrumentation-dotnet-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:%s", v.AutoInstrumentationDotNet), "The default OpenTelemetry DotNet instrumentation image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&autoInstrumentationGo, "auto-instrumentation-go-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:%s", v.AutoInstrumentationGo), "The default OpenTelemetry Go instrumentation image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&autoInstrumentationApacheHttpd, "auto-instrumentation-apache-httpd-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-apache-httpd:%s", v.AutoInstrumentationApacheHttpd), "The default OpenTelemetry Apache HTTPD instrumentation image. This image is used when no image is specified in the CustomResource.")
-	pflag.StringVar(&autoInstrumentationNginx, "auto-instrumentation-nginx-image", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-apache-httpd:%s", v.AutoInstrumentationNginx), "The default OpenTelemetry Nginx instrumentation image. This image is used when no image is specified in the CustomResource.")
+	pflag.BoolVar(&createRBACPermissions, "create-rbac-permissions", false, "Automatically create RBAC permissions needed by the processors")
+	stringFlagOrEnv(&collectorImage, "collector-image", "RELATED_IMAGE_COLLECTOR", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector:%s", v.OpenTelemetryCollector), "The default OpenTelemetry collector image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&targetAllocatorImage, "target-allocator-image", "RELATED_IMAGE_TARGET_ALLOCATOR", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:%s", v.TargetAllocator), "The default OpenTelemetry target allocator image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&operatorOpAMPBridgeImage, "operator-opamp-bridge-image", "RELATED_IMAGE_OPERATOR_OPAMP_BRIDGE", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/operator-opamp-bridge:%s", v.OperatorOpAMPBridge), "The default OpenTelemetry Operator OpAMP Bridge image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&autoInstrumentationJava, "auto-instrumentation-java-image", "RELATED_IMAGE_AUTO_INSTRUMENTATION_JAVA", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:%s", v.AutoInstrumentationJava), "The default OpenTelemetry Java instrumentation image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&autoInstrumentationNodeJS, "auto-instrumentation-nodejs-image", "RELATED_IMAGE_AUTO_INSTRUMENTATION_NODEJS", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:%s", v.AutoInstrumentationNodeJS), "The default OpenTelemetry NodeJS instrumentation image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&autoInstrumentationPython, "auto-instrumentation-python-image", "RELATED_IMAGE_AUTO_INSTRUMENTATION_PYTHON", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-python:%s", v.AutoInstrumentationPython), "The default OpenTelemetry Python instrumentation image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&autoInstrumentationDotNet, "auto-instrumentation-dotnet-image", "RELATED_IMAGE_AUTO_INSTRUMENTATION_DOTNET", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-dotnet:%s", v.AutoInstrumentationDotNet), "The default OpenTelemetry DotNet instrumentation image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&autoInstrumentationGo, "auto-instrumentation-go-image", "RELATED_IMAGE_AUTO_INSTRUMENTATION_GO", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-go-instrumentation/autoinstrumentation-go:%s", v.AutoInstrumentationGo), "The default OpenTelemetry Go instrumentation image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&autoInstrumentationApacheHttpd, "auto-instrumentation-apache-httpd-image", "RELATED_IMAGE_AUTO_INSTRUMENTATION_APACHE_HTTPD", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-apache-httpd:%s", v.AutoInstrumentationApacheHttpd), "The default OpenTelemetry Apache HTTPD instrumentation image. This image is used when no image is specified in the CustomResource.")
+	stringFlagOrEnv(&autoInstrumentationNginx, "auto-instrumentation-nginx-image", "RELATED_IMAGE_AUTO_INSTRUMENTATION_NGINX", fmt.Sprintf("ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-apache-httpd:%s", v.AutoInstrumentationNginx), "The default OpenTelemetry Nginx instrumentation image. This image is used when no image is specified in the CustomResource.")
 	pflag.StringArrayVar(&labelsFilter, "labels", []string{}, "Labels to filter away from propagating onto deploys")
 	pflag.IntVar(&webhookPort, "webhook-port", 9443, "The port the webhook endpoint binds to.")
 	pflag.StringVar(&tlsOpt.minVersion, "tls-min-version", "VersionTLS12", "Minimum TLS version supported. Value must match version names from https://golang.org/pkg/crypto/tls/#pkg-constants.")
@@ -164,6 +178,7 @@ func main() {
 		config.WithLogger(ctrl.Log.WithName("config")),
 		config.WithVersion(v),
 		config.WithCollectorImage(collectorImage),
+		config.WithCreateRBACPermissions(createRBACPermissions),
 		config.WithTargetAllocatorImage(targetAllocatorImage),
 		config.WithOperatorOpAMPBridgeImage(operatorOpAMPBridgeImage),
 		config.WithAutoInstrumentationJavaImage(autoInstrumentationJava),
@@ -176,6 +191,10 @@ func main() {
 		config.WithAutoDetect(ad),
 		config.WithLabelFilters(labelsFilter),
 	)
+	err = cfg.AutoDetect()
+	if err != nil {
+		setupLog.Error(err, "failed to autodetect config variables")
+	}
 
 	watchNamespace, found := os.LookupEnv("WATCH_NAMESPACE")
 	if found {
@@ -221,7 +240,7 @@ func main() {
 		},
 	}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), mgrOptions)
+	mgr, err := ctrl.NewManager(restConfig, mgrOptions)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
@@ -233,6 +252,11 @@ func main() {
 		setupLog.Error(err, "failed to add/run bootstrap dependencies to the controller manager")
 		os.Exit(1)
 	}
+	clientset, clientErr := kubernetes.NewForConfig(mgr.GetConfig())
+	if err != nil {
+		setupLog.Error(clientErr, "failed to create kubernetes clientset")
+	}
+	reviewer := rbac.NewReviewer(clientset)
 
 	if err = controllers.NewReconciler(controllers.Params{
 		Client:   mgr.GetClient(),
@@ -245,8 +269,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = controllers.NewOpAMPBridgeReconciler(controllers.OpAMPBridgeReconcilerParams{
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("OpAMPBridge"),
+		Scheme:   mgr.GetScheme(),
+		Config:   cfg,
+		Recorder: mgr.GetEventRecorderFor("opamp-bridge"),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "OpAMPBridge")
+		os.Exit(1)
+	}
+
 	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = otelv1alpha1.SetupCollectorWebhook(mgr, cfg); err != nil {
+		if err = otelv1alpha1.SetupCollectorWebhook(mgr, cfg, reviewer); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "OpenTelemetryCollector")
 			os.Exit(1)
 		}
@@ -262,6 +297,11 @@ func main() {
 					instrumentation.NewMutator(logger, mgr.GetClient(), mgr.GetEventRecorderFor("opentelemetry-operator")),
 				}),
 		})
+
+		if err = otelv1alpha1.SetupOpAMPBridgeWebhook(mgr, cfg); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "OpAMPBridge")
+			os.Exit(1)
+		}
 	} else {
 		ctrl.Log.Info("Webhooks are disabled, operator is running an unsupported mode", "ENABLE_WEBHOOKS", "false")
 	}
@@ -284,15 +324,8 @@ func main() {
 }
 
 func addDependencies(_ context.Context, mgr ctrl.Manager, cfg config.Config, v version.Version) error {
-	// run the auto-detect mechanism for the configuration
-	err := mgr.Add(manager.RunnableFunc(func(_ context.Context) error {
-		return cfg.StartAutoDetect()
-	}))
-	if err != nil {
-		return fmt.Errorf("failed to start the auto-detect mechanism: %w", err)
-	}
 	// adds the upgrade mechanism to be executed once the manager is ready
-	err = mgr.Add(manager.RunnableFunc(func(c context.Context) error {
+	err := mgr.Add(manager.RunnableFunc(func(c context.Context) error {
 		up := &collectorupgrade.VersionUpgrade{
 			Log:      ctrl.Log.WithName("collector-upgrade"),
 			Version:  v,

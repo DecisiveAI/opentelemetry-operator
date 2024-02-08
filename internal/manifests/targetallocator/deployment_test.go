@@ -49,6 +49,80 @@ var testTopologySpreadConstraintValue = []v1.TopologySpreadConstraint{
 	},
 }
 
+var testAffinityValue = &v1.Affinity{
+	NodeAffinity: &v1.NodeAffinity{
+		RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+			NodeSelectorTerms: []v1.NodeSelectorTerm{
+				{
+					MatchExpressions: []v1.NodeSelectorRequirement{
+						{
+							Key:      "node",
+							Operator: v1.NodeSelectorOpIn,
+							Values:   []string{"test-node"},
+						},
+					},
+				},
+			},
+		},
+	},
+}
+
+var runAsUser int64 = 1000
+var runAsGroup int64 = 1000
+
+var testSecurityContextValue = &v1.PodSecurityContext{
+	RunAsUser:  &runAsUser,
+	RunAsGroup: &runAsGroup,
+}
+
+func TestDeploymentSecurityContext(t *testing.T) {
+	// Test default
+	otelcol1 := v1alpha1.OpenTelemetryCollector{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-instance",
+		},
+	}
+
+	cfg := config.New()
+
+	params1 := manifests.Params{
+		OtelCol: otelcol1,
+		Config:  cfg,
+		Log:     logger,
+	}
+	d1, err := Deployment(params1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Empty(t, d1.Spec.Template.Spec.SecurityContext)
+
+	// Test SecurityContext
+	otelcol2 := v1alpha1.OpenTelemetryCollector{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-instance-securitycontext",
+		},
+		Spec: v1alpha1.OpenTelemetryCollectorSpec{
+			TargetAllocator: v1alpha1.OpenTelemetryTargetAllocator{
+				PodSecurityContext: testSecurityContextValue,
+			},
+		},
+	}
+
+	cfg = config.New()
+
+	params2 := manifests.Params{
+		OtelCol: otelcol2,
+		Config:  cfg,
+		Log:     logger,
+	}
+
+	d2, err := Deployment(params2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, *testSecurityContextValue, *d2.Spec.Template.Spec.SecurityContext)
+}
+
 func TestDeploymentNewDefault(t *testing.T) {
 	// prepare
 	otelcol := collectorInstance()
@@ -61,7 +135,9 @@ func TestDeploymentNewDefault(t *testing.T) {
 	}
 
 	// test
-	d := Deployment(params)
+	d, err := Deployment(params)
+
+	assert.NoError(t, err)
 
 	// verify
 	assert.Equal(t, "my-instance-targetallocator", d.GetName())
@@ -74,7 +150,7 @@ func TestDeploymentNewDefault(t *testing.T) {
 	assert.Len(t, d.Spec.Template.Annotations, 1)
 
 	// the pod selector should match the pod spec's labels
-	assert.Equal(t, d.Spec.Template.Labels, d.Spec.Selector.MatchLabels)
+	assert.Subset(t, d.Spec.Template.Labels, d.Spec.Selector.MatchLabels)
 }
 
 func TestDeploymentPodAnnotations(t *testing.T) {
@@ -91,8 +167,8 @@ func TestDeploymentPodAnnotations(t *testing.T) {
 	}
 
 	// test
-	ds := Deployment(params)
-
+	ds, err := Deployment(params)
+	assert.NoError(t, err)
 	// verify
 	assert.Equal(t, "my-instance-targetallocator", ds.Name)
 	assert.Subset(t, ds.Spec.Template.Annotations, testPodAnnotationValues)
@@ -111,6 +187,10 @@ func collectorInstance() v1alpha1.OpenTelemetryCollector {
 		Spec: v1alpha1.OpenTelemetryCollectorSpec{
 			Image:  "ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.47.0",
 			Config: string(configYAML),
+			TargetAllocator: v1alpha1.OpenTelemetryTargetAllocator{
+				Image:          "ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-targetallocator:0.47.0",
+				FilterStrategy: "relabel-config",
+			},
 		},
 	}
 }
@@ -130,7 +210,8 @@ func TestDeploymentNodeSelector(t *testing.T) {
 		Config:  cfg,
 		Log:     logger,
 	}
-	d1 := Deployment(params1)
+	d1, err := Deployment(params1)
+	assert.NoError(t, err)
 	assert.Empty(t, d1.Spec.Template.Spec.NodeSelector)
 
 	// Test nodeSelector
@@ -155,8 +236,52 @@ func TestDeploymentNodeSelector(t *testing.T) {
 		Log:     logger,
 	}
 
-	d2 := Deployment(params2)
+	d2, err := Deployment(params2)
+	assert.NoError(t, err)
 	assert.Equal(t, map[string]string{"node-key": "node-value"}, d2.Spec.Template.Spec.NodeSelector)
+}
+func TestDeploymentAffinity(t *testing.T) {
+	// Test default
+	otelcol1 := v1alpha1.OpenTelemetryCollector{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-instance",
+		},
+	}
+
+	cfg := config.New()
+
+	params1 := manifests.Params{
+		OtelCol: otelcol1,
+		Config:  cfg,
+		Log:     logger,
+	}
+	d1, err := Deployment(params1)
+	assert.NoError(t, err)
+	assert.Empty(t, d1.Spec.Template.Spec.Affinity)
+
+	// Test affinity
+	otelcol2 := v1alpha1.OpenTelemetryCollector{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "my-instance-affinity",
+		},
+		Spec: v1alpha1.OpenTelemetryCollectorSpec{
+			TargetAllocator: v1alpha1.OpenTelemetryTargetAllocator{
+				Affinity: testAffinityValue,
+			},
+		},
+	}
+
+	cfg = config.New()
+
+	params2 := manifests.Params{
+		OtelCol: otelcol2,
+		Config:  cfg,
+		Log:     logger,
+	}
+
+	d2, err := Deployment(params2)
+	assert.NoError(t, err)
+	assert.Equal(t, *testAffinityValue, *d2.Spec.Template.Spec.Affinity)
 }
 
 func TestDeploymentTolerations(t *testing.T) {
@@ -173,7 +298,8 @@ func TestDeploymentTolerations(t *testing.T) {
 		Config:  cfg,
 		Log:     logger,
 	}
-	d1 := Deployment(params1)
+	d1, err := Deployment(params1)
+	assert.NoError(t, err)
 	assert.Equal(t, "my-instance-targetallocator", d1.Name)
 	assert.Empty(t, d1.Spec.Template.Spec.Tolerations)
 
@@ -194,7 +320,8 @@ func TestDeploymentTolerations(t *testing.T) {
 		Config:  cfg,
 		Log:     logger,
 	}
-	d2 := Deployment(params2)
+	d2, err := Deployment(params2)
+	assert.NoError(t, err)
 	assert.Equal(t, "my-instance-toleration-targetallocator", d2.Name)
 	assert.NotNil(t, d2.Spec.Template.Spec.Tolerations)
 	assert.NotEmpty(t, d2.Spec.Template.Spec.Tolerations)
@@ -216,7 +343,8 @@ func TestDeploymentTopologySpreadConstraints(t *testing.T) {
 		Config:  cfg,
 		Log:     logger,
 	}
-	d1 := Deployment(params1)
+	d1, err := Deployment(params1)
+	assert.NoError(t, err)
 	assert.Equal(t, "my-instance-targetallocator", d1.Name)
 	assert.Empty(t, d1.Spec.Template.Spec.TopologySpreadConstraints)
 
@@ -239,7 +367,8 @@ func TestDeploymentTopologySpreadConstraints(t *testing.T) {
 		Log:     logger,
 	}
 
-	d2 := Deployment(params2)
+	d2, err := Deployment(params2)
+	assert.NoError(t, err)
 	assert.Equal(t, "my-instance-topologyspreadconstraint-targetallocator", d2.Name)
 	assert.NotNil(t, d2.Spec.Template.Spec.TopologySpreadConstraints)
 	assert.NotEmpty(t, d2.Spec.Template.Spec.TopologySpreadConstraints)

@@ -18,28 +18,29 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
-	"gopkg.in/yaml.v3"
-
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/metrics"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
-
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/config"
-
 	"github.com/oklog/ulid/v2"
-	"go.uber.org/multierr"
-
 	"github.com/open-telemetry/opamp-go/client"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
+	"go.uber.org/multierr"
+	"k8s.io/utils/clock"
+	"sigs.k8s.io/yaml"
+
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/config"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/metrics"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
 )
 
 type Agent struct {
 	logger logr.Logger
 
-	appliedKeys map[collectorKey]bool
+	appliedKeys map[kubeResourceKey]bool
+	clock       clock.Clock
 	startTime   uint64
 	lastHash    []byte
 
@@ -52,18 +53,28 @@ type Agent struct {
 	config              *config.Config
 	applier             operator.ConfigApplier
 	remoteConfigEnabled bool
+
+	done   chan struct{}
+	ticker *time.Ticker
 }
 
 func NewAgent(logger logr.Logger, applier operator.ConfigApplier, config *config.Config, opampClient client.OpAMPClient) *Agent {
+	var t *time.Ticker
+	if config.HeartbeatInterval > 0 {
+		t = time.NewTicker(config.HeartbeatInterval)
+	}
 	agent := &Agent{
 		config:              config,
 		applier:             applier,
 		logger:              logger,
-		appliedKeys:         map[collectorKey]bool{},
+		appliedKeys:         map[kubeResourceKey]bool{},
 		instanceId:          config.GetNewInstanceId(),
 		agentDescription:    config.GetDescription(),
 		remoteConfigEnabled: config.RemoteConfigEnabled(),
 		opampClient:         opampClient,
+		clock:               clock.RealClock{},
+		done:                make(chan struct{}, 1),
+		ticker:              t,
 	}
 
 	agent.logger.V(3).Info("Agent created",
@@ -74,27 +85,112 @@ func NewAgent(logger logr.Logger, applier operator.ConfigApplier, config *config
 	return agent
 }
 
-// TODO: Something should run on a schedule to set the health of the OpAMP client.
-func (agent *Agent) getHealth() *protobufs.AgentHealth {
-	return &protobufs.AgentHealth{
-		Healthy:           true,
-		StartTimeUnixNano: agent.startTime,
-		LastError:         "",
+// getHealth is called every heartbeat interval to report health.
+func (agent *Agent) getHealth() *protobufs.ComponentHealth {
+	healthMap, err := agent.generateCollectorPoolHealth()
+	if err != nil {
+		return &protobufs.ComponentHealth{
+			Healthy:           false,
+			StartTimeUnixNano: agent.startTime,
+			LastError:         err.Error(),
+		}
+	}
+	return &protobufs.ComponentHealth{
+		Healthy:            true,
+		StartTimeUnixNano:  agent.startTime,
+		StatusTimeUnixNano: uint64(agent.clock.Now().UnixNano()),
+		LastError:          "",
+		ComponentHealthMap: healthMap,
 	}
 }
 
+// generateCollectorPoolHealth allows the bridge to report the status of the collector pools it owns.
+// TODO: implement enhanced health messaging using the collector's new healthcheck extension:
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26661
+func (agent *Agent) generateCollectorPoolHealth() (map[string]*protobufs.ComponentHealth, error) {
+	cols, err := agent.applier.ListInstances()
+	if err != nil {
+		return nil, err
+	}
+	healthMap := map[string]*protobufs.ComponentHealth{}
+	for _, col := range cols {
+		key := newKubeResourceKey(col.GetNamespace(), col.GetName())
+		podMap, err := agent.generateCollectorHealth(agent.getCollectorSelector(col), col.GetNamespace())
+		if err != nil {
+			return nil, err
+		}
+		healthMap[key.String()] = &protobufs.ComponentHealth{
+			StartTimeUnixNano:  uint64(col.ObjectMeta.GetCreationTimestamp().UnixNano()),
+			StatusTimeUnixNano: uint64(agent.clock.Now().UnixNano()),
+			Status:             col.Status.Scale.StatusReplicas,
+			ComponentHealthMap: podMap,
+		}
+	}
+	return healthMap, nil
+}
+
+// getCollectorSelector destructures the collectors scale selector if present, if uses the labelmap from the operator.
+func (agent *Agent) getCollectorSelector(col v1alpha1.OpenTelemetryCollector) map[string]string {
+	if len(col.Status.Scale.Selector) > 0 {
+		selMap := map[string]string{}
+		for _, kvPair := range strings.Split(col.Status.Scale.Selector, ",") {
+			kv := strings.Split(kvPair, "=")
+			// skip malformed pairs
+			if len(kv) != 2 {
+				continue
+			}
+			selMap[kv[0]] = kv[1]
+		}
+		return selMap
+	}
+	return map[string]string{
+		"app.kubernetes.io/managed-by": "opentelemetry-operator",
+		"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", col.GetNamespace(), col.GetName()),
+		"app.kubernetes.io/part-of":    "opentelemetry",
+		"app.kubernetes.io/component":  "opentelemetry-collector",
+	}
+}
+
+func (agent *Agent) generateCollectorHealth(selectorLabels map[string]string, namespace string) (map[string]*protobufs.ComponentHealth, error) {
+	pods, err := agent.applier.GetCollectorPods(selectorLabels, namespace)
+	if err != nil {
+		return nil, err
+	}
+	healthMap := map[string]*protobufs.ComponentHealth{}
+	for _, item := range pods.Items {
+		key := newKubeResourceKey(item.GetNamespace(), item.GetName())
+		healthy := true
+		if item.Status.Phase != "Running" {
+			healthy = false
+		}
+		var startTime int64
+		if item.Status.StartTime != nil {
+			startTime = item.Status.StartTime.UnixNano()
+		} else {
+			healthy = false
+		}
+		healthMap[key.String()] = &protobufs.ComponentHealth{
+			StartTimeUnixNano:  uint64(startTime),
+			StatusTimeUnixNano: uint64(agent.clock.Now().UnixNano()),
+			Status:             string(item.Status.Phase),
+			Healthy:            healthy,
+		}
+	}
+	return healthMap, nil
+}
+
 // onConnect is called when an agent is successfully connected to a server.
-func (agent *Agent) onConnect() {
+func (agent *Agent) onConnect(ctx context.Context) {
 	agent.logger.V(3).Info("Connected to the server.")
 }
 
 // onConnectFailed is called when an agent was unable to connect to a server.
-func (agent *Agent) onConnectFailed(err error) {
+func (agent *Agent) onConnectFailed(ctx context.Context, err error) {
 	agent.logger.Error(err, "failed to connect to the server")
 }
 
 // onError is called when an agent receives an error response from the server.
-func (agent *Agent) onError(err *protobufs.ServerErrorResponse) {
+func (agent *Agent) onError(ctx context.Context, err *protobufs.ServerErrorResponse) {
 	agent.logger.Error(fmt.Errorf(err.GetErrorMessage()), "server returned an error response")
 }
 
@@ -105,9 +201,10 @@ func (agent *Agent) saveRemoteConfigStatus(_ context.Context, status *protobufs.
 
 // Start sets up the callbacks for the OpAMP client and begins the client's connection to the server.
 func (agent *Agent) Start() error {
-	agent.startTime = uint64(time.Now().UnixNano())
+	agent.startTime = uint64(agent.clock.Now().UnixNano())
 	settings := types.StartSettings{
 		OpAMPServerURL: agent.config.Endpoint,
+		Header:         agent.config.Headers.ToHTTPHeader(),
 		InstanceUid:    agent.instanceId.String(),
 		Callbacks: types.CallbacksStruct{
 			OnConnectFunc:              agent.onConnect,
@@ -137,9 +234,36 @@ func (agent *Agent) Start() error {
 		return err
 	}
 
+	if agent.config.HeartbeatInterval > 0 {
+		go agent.runHeartbeat()
+	}
+
 	agent.logger.V(3).Info("OpAMP Client started.")
 
 	return nil
+}
+
+// runHeartbeat sets health on an interval to keep the connection active.
+func (agent *Agent) runHeartbeat() {
+	if agent.ticker == nil {
+		agent.logger.Info("cannot run heartbeat without setting an interval for the ticker")
+		return
+	}
+	for {
+		select {
+		case <-agent.ticker.C:
+			agent.logger.V(4).Info("sending heartbeat")
+			err := agent.opampClient.SetHealth(agent.getHealth())
+			if err != nil {
+				agent.logger.Error(err, "failed to heartbeat")
+				return
+			}
+		case <-agent.done:
+			agent.ticker.Stop()
+			agent.logger.Info("stopping heartbeating")
+			return
+		}
+	}
 }
 
 // updateAgentIdentity receives a new instanced Id from the remote server and updates the agent's instanceID field.
@@ -166,7 +290,7 @@ func (agent *Agent) getEffectiveConfig(ctx context.Context) (*protobufs.Effectiv
 			agent.logger.Error(err, "failed to marhsal config")
 			return nil, err
 		}
-		mapKey := newCollectorKey(instance.GetName(), instance.GetNamespace())
+		mapKey := newKubeResourceKey(instance.GetNamespace(), instance.GetName())
 		instanceMap[mapKey.String()] = &protobufs.AgentConfigFile{
 			Body:        marshaled,
 			ContentType: "yaml",
@@ -211,7 +335,7 @@ func (agent *Agent) applyRemoteConfig(config *protobufs.AgentRemoteConfig) (*pro
 		if len(key) == 0 || len(file.Body) == 0 {
 			continue
 		}
-		colKey, err := collectorKeyFromKey(key)
+		colKey, err := kubeResourceFromKey(key)
 		if err != nil {
 			multiErr = multierr.Append(multiErr, err)
 			continue
@@ -249,6 +373,7 @@ func (agent *Agent) applyRemoteConfig(config *protobufs.AgentRemoteConfig) (*pro
 // Shutdown will stop the OpAMP client gracefully.
 func (agent *Agent) Shutdown() {
 	agent.logger.V(3).Info("Agent shutting down...")
+	close(agent.done)
 	if agent.opampClient != nil {
 		err := agent.opampClient.Stop(context.Background())
 		if err != nil {

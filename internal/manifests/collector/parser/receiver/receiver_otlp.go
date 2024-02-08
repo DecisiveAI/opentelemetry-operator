@@ -21,10 +21,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
-var _ ReceiverParser = &OTLPReceiverParser{}
+var _ parser.ComponentPortParser = &OTLPReceiverParser{}
 
 const (
 	parserNameOTLP = "__otlp"
@@ -46,7 +47,7 @@ type OTLPReceiverParser struct {
 }
 
 // NewOTLPReceiverParser builds a new parser for OTLP receivers.
-func NewOTLPReceiverParser(logger logr.Logger, name string, config map[interface{}]interface{}) ReceiverParser {
+func NewOTLPReceiverParser(logger logr.Logger, name string, config map[interface{}]interface{}) parser.ComponentPortParser {
 	if protocols, ok := config["protocols"].(map[interface{}]interface{}); ok {
 		return &OTLPReceiverParser{
 			logger: logger,
@@ -128,6 +129,99 @@ func (o *OTLPReceiverParser) Ports() ([]corev1.ServicePort, error) {
 // ParserName returns the name of this parser.
 func (o *OTLPReceiverParser) ParserName() string {
 	return parserNameOTLP
+}
+
+// mydecisive.
+// PortsUrlPaths returns all the service ports for all protocols in this parser.
+func (o *OTLPReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+	portsUrlPaths := []parser.PortUrlPaths{}
+
+	for _, protocol := range []struct {
+		name         string
+		defaultPorts []corev1.ServicePort
+	}{
+		{
+			name: grpc,
+			defaultPorts: []corev1.ServicePort{
+				{
+					Name:        naming.PortName(fmt.Sprintf("%s-grpc", o.name), defaultOTLPGRPCPort),
+					Port:        defaultOTLPGRPCPort,
+					TargetPort:  intstr.FromInt(int(defaultOTLPGRPCPort)),
+					AppProtocol: &grpc,
+				},
+			},
+		},
+		{
+			name: http,
+			defaultPorts: []corev1.ServicePort{
+				{
+					Name:        naming.PortName(fmt.Sprintf("%s-http", o.name), defaultOTLPHTTPPort),
+					Port:        defaultOTLPHTTPPort,
+					TargetPort:  intstr.FromInt(int(defaultOTLPHTTPPort)),
+					AppProtocol: &http,
+				},
+			},
+		},
+	} {
+		// do we have the protocol specified at all?
+		if receiverProtocol, ok := o.config[protocol.name]; ok {
+			// we have the specified protocol, we definitely need a service port
+			nameWithProtocol := fmt.Sprintf("%s-%s", o.name, protocol.name)
+			var protocolPort *corev1.ServicePort
+
+			// do we have a configuration block for the protocol?
+			settings, ok := receiverProtocol.(map[interface{}]interface{})
+			if ok {
+				protocolPort = singlePortFromConfigEndpoint(o.logger, nameWithProtocol, settings)
+			}
+
+			// manage url paths here
+			urlPaths := []string{}
+			if protocol.name == http {
+				lUrl, ok := settings["logs_url_path"]
+				if ok {
+					urlPaths = append(urlPaths, lUrl.(string))
+				} else {
+					urlPaths = append(urlPaths, "/v1/logs")
+				}
+				mUrl, ok := settings["metrics_url_path"]
+				if ok {
+					urlPaths = append(urlPaths, mUrl.(string))
+				} else {
+					urlPaths = append(urlPaths, "/v1/metrics")
+				}
+				tUrl, ok := settings["traces_url_path"]
+				if ok {
+					urlPaths = append(urlPaths, tUrl.(string))
+				} else {
+					urlPaths = append(urlPaths, "/v1/traces")
+				}
+			} else if protocol.name == grpc {
+				urlPaths = append(urlPaths, "/opentelemetry.proto.collector.logs.v1.LogsService")
+				urlPaths = append(urlPaths, "/opentelemetry.proto.collector.traces.v1.TracesService")
+				urlPaths = append(urlPaths, "/opentelemetry.proto.collector.metrics.v1.MetricsService")
+			}
+
+			// have we parsed a port based on the configuration block?
+			// if not, we use the default port
+			if protocolPort == nil {
+				portsUrlPaths = append(portsUrlPaths, parser.PortUrlPaths{Port: protocol.defaultPorts[0],
+					UrlPaths: urlPaths})
+			} else {
+				// infer protocol and appProtocol from protocol.name
+				if protocol.name == grpc {
+					protocolPort.Protocol = corev1.ProtocolTCP
+					protocolPort.AppProtocol = &grpc
+				} else if protocol.name == http {
+					protocolPort.Protocol = corev1.ProtocolTCP
+					protocolPort.AppProtocol = &http
+				}
+				portsUrlPaths = append(portsUrlPaths, parser.PortUrlPaths{Port: *protocolPort,
+					UrlPaths: urlPaths})
+			}
+		}
+	}
+	return portsUrlPaths, nil
 }
 
 func init() {

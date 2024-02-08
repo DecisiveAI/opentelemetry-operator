@@ -94,7 +94,10 @@ type Config struct {
 	// ComponentsAllowed is a list of allowed OpenTelemetry components for each pipeline type (receiver, processor, etc.)
 	ComponentsAllowed map[string][]string `yaml:"componentsAllowed,omitempty"`
 	Endpoint          string              `yaml:"endpoint"`
+	Headers           Headers             `yaml:"headers,omitempty"`
 	Capabilities      map[Capability]bool `yaml:"capabilities"`
+	HeartbeatInterval time.Duration       `yaml:"heartbeatInterval,omitempty"`
+	Name              string              `yaml:"name,omitempty"`
 }
 
 func NewConfig(logger logr.Logger) *Config {
@@ -248,6 +251,16 @@ func LoadFromCLI(target *Config, flagSet *pflag.FlagSet) error {
 		return err
 	}
 
+	target.HeartbeatInterval, err = getHeartbeatInterval(flagSet)
+	if err != nil {
+		return err
+	}
+
+	target.Name, err = getName(flagSet)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -256,7 +269,8 @@ func LoadFromFile(cfg *Config, configFile string) error {
 	if err != nil {
 		return err
 	}
-	if err = yaml.UnmarshalStrict(yamlFile, cfg); err != nil {
+	envExpandedYaml := []byte(os.ExpandEnv(string(yamlFile)))
+	if err = yaml.Unmarshal(envExpandedYaml, cfg); err != nil {
 		return fmt.Errorf("error unmarshaling YAML: %w", err)
 	}
 	return nil

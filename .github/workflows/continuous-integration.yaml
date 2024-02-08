@@ -49,21 +49,3 @@ jobs:
 
     - name: Lint
       run: make lint
-
-  security:
-    name: Security
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: go
-
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2

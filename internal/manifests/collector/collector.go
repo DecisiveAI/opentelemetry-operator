@@ -22,6 +22,10 @@ import (
 	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
 )
 
+const (
+	ComponentOpenTelemetryCollector = "opentelemetry-collector"
+)
+
 // Build creates the manifest for the collector resource.
 func Build(params manifests.Params) ([]client.Object, error) {
 	var resourceManifests []client.Object
@@ -39,17 +43,32 @@ func Build(params manifests.Params) ([]client.Object, error) {
 		params.Log.V(5).Info("not building sidecar...")
 	}
 	manifestFactories = append(manifestFactories, []manifests.K8sManifestFactory{
-		manifests.FactoryWithoutError(ConfigMap),
+		manifests.Factory(ConfigMap),
 		manifests.FactoryWithoutError(HorizontalPodAutoscaler),
 		manifests.FactoryWithoutError(ServiceAccount),
-		manifests.FactoryWithoutError(Service),
-		manifests.FactoryWithoutError(HeadlessService),
-		manifests.FactoryWithoutError(MonitoringService),
-		manifests.FactoryWithoutError(Ingress),
+		manifests.Factory(Service),
+		manifests.Factory(HeadlessService),
+		manifests.Factory(MonitoringService),
+		// mydecisive
+		manifests.Factory(ServiceBehindIngress),
+		manifests.Factory(Ingress),
 	}...)
+
 	if params.OtelCol.Spec.Observability.Metrics.EnableMetrics && featuregate.PrometheusOperatorIsAvailable.IsEnabled() {
-		manifestFactories = append(manifestFactories, manifests.Factory(ServiceMonitor))
+		if params.OtelCol.Spec.Mode == v1alpha1.ModeSidecar {
+			manifestFactories = append(manifestFactories, manifests.Factory(PodMonitor))
+		} else {
+			manifestFactories = append(manifestFactories, manifests.Factory(ServiceMonitor))
+		}
 	}
+
+	if params.Config.CreateRBACPermissions() {
+		manifestFactories = append(manifestFactories,
+			manifests.FactoryWithoutError(ClusterRole),
+			manifests.FactoryWithoutError(ClusterRoleBinding),
+		)
+	}
+
 	for _, factory := range manifestFactories {
 		res, err := factory(params)
 		if err != nil {
@@ -58,7 +77,10 @@ func Build(params manifests.Params) ([]client.Object, error) {
 			resourceManifests = append(resourceManifests, res)
 		}
 	}
-	routes := Routes(params)
+	routes, err := Routes(params)
+	if err != nil {
+		return nil, err
+	}
 	// NOTE: we cannot just unpack the slice, the type checker doesn't coerce the type correctly.
 	for _, route := range routes {
 		resourceManifests = append(resourceManifests, route)

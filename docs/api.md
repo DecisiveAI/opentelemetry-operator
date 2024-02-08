@@ -10,6 +10,8 @@ Resource Types:
 
 - [Instrumentation](#instrumentation)
 
+- [OpAMPBridge](#opampbridge)
+
 - [OpenTelemetryCollector](#opentelemetrycollector)
 
 
@@ -235,7 +237,7 @@ ApacheHttpd defines configuration for Apache HTTPD auto-instrumentation.
         <td><b>volumeLimitSize</b></td>
         <td>int or string</td>
         <td>
-          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 150Mi.<br/>
+          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 200Mi.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -844,7 +846,7 @@ DotNet defines configuration for DotNet auto-instrumentation.
         <td><b>volumeLimitSize</b></td>
         <td>int or string</td>
         <td>
-          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 150Mi.<br/>
+          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 200Mi.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1480,7 +1482,7 @@ Go defines configuration for Go auto-instrumentation.
         <td><b>volumeLimitSize</b></td>
         <td>int or string</td>
         <td>
-          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 150Mi.<br/>
+          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 200Mi.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -1843,7 +1845,7 @@ Java defines configuration for java auto-instrumentation.
         <td><b>volumeLimitSize</b></td>
         <td>int or string</td>
         <td>
-          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 150Mi.<br/>
+          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 200Mi.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2220,7 +2222,7 @@ Nginx defines configuration for Nginx auto-instrumentation.
         <td><b>volumeLimitSize</b></td>
         <td>int or string</td>
         <td>
-          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 150Mi.<br/>
+          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 200Mi.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2829,7 +2831,7 @@ NodeJS defines configuration for nodejs auto-instrumentation.
         <td><b>volumeLimitSize</b></td>
         <td>int or string</td>
         <td>
-          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 150Mi.<br/>
+          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 200Mi.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3192,7 +3194,7 @@ Python defines configuration for python auto-instrumentation.
         <td><b>volumeLimitSize</b></td>
         <td>int or string</td>
         <td>
-          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 150Mi.<br/>
+          VolumeSizeLimit defines size limit for volume used for auto-instrumentation. The default size is 200Mi.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -3583,6 +3585,5951 @@ Sampler defines sampling configuration.
       </tr></tbody>
 </table>
 
+## OpAMPBridge
+<sup><sup>[↩ Parent](#opentelemetryiov1alpha1 )</sup></sup>
+
+
+
+
+
+
+OpAMPBridge is the Schema for the opampbridges API.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+      <td><b>apiVersion</b></td>
+      <td>string</td>
+      <td>opentelemetry.io/v1alpha1</td>
+      <td>true</td>
+      </tr>
+      <tr>
+      <td><b>kind</b></td>
+      <td>string</td>
+      <td>OpAMPBridge</td>
+      <td>true</td>
+      </tr>
+      <tr>
+      <td><b><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#objectmeta-v1-meta">metadata</a></b></td>
+      <td>object</td>
+      <td>Refer to the Kubernetes API documentation for the fields of the `metadata` field.</td>
+      <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespec">spec</a></b></td>
+        <td>object</td>
+        <td>
+          OpAMPBridgeSpec defines the desired state of OpAMPBridge.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgestatus">status</a></b></td>
+        <td>object</td>
+        <td>
+          OpAMPBridgeStatus defines the observed state of OpAMPBridge.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec
+<sup><sup>[↩ Parent](#opampbridge)</sup></sup>
+
+
+
+OpAMPBridgeSpec defines the desired state of OpAMPBridge.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>capabilities</b></td>
+        <td>map[string]boolean</td>
+        <td>
+          Capabilities supported by the OpAMP Bridge<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>endpoint</b></td>
+        <td>string</td>
+        <td>
+          OpAMP backend Server endpoint<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinity">affinity</a></b></td>
+        <td>object</td>
+        <td>
+          If specified, indicates the pod's scheduling constraints<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>componentsAllowed</b></td>
+        <td>map[string][]string</td>
+        <td>
+          ComponentsAllowed is a list of allowed OpenTelemetry components for each pipeline type (receiver, processor, etc.)<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecenvindex">env</a></b></td>
+        <td>[]object</td>
+        <td>
+          ENV vars to set on the OpAMPBridge Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecenvfromindex">envFrom</a></b></td>
+        <td>[]object</td>
+        <td>
+          List of sources to populate environment variables on the OpAMPBridge Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>headers</b></td>
+        <td>map[string]string</td>
+        <td>
+          Headers is an optional map of headers to use when connecting to the OpAMP Server, typically used to set access tokens or other authorization headers.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>hostNetwork</b></td>
+        <td>boolean</td>
+        <td>
+          HostNetwork indicates if the pod should run in the host networking namespace.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          Image indicates the container image to use for the OpAMPBridge.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>imagePullPolicy</b></td>
+        <td>string</td>
+        <td>
+          ImagePullPolicy indicates the pull policy to be used for retrieving the container image (Always, Never, IfNotPresent)<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeSelector</b></td>
+        <td>map[string]string</td>
+        <td>
+          NodeSelector to schedule OpAMPBridge pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>podAnnotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          PodAnnotations is the set of annotations that will be attached to OpAMPBridge pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecpodsecuritycontext">podSecurityContext</a></b></td>
+        <td>object</td>
+        <td>
+          PodSecurityContext will be set as the pod security context.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecportsindex">ports</a></b></td>
+        <td>[]object</td>
+        <td>
+          Ports allows a set of ports to be exposed by the underlying v1.Service.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>priorityClassName</b></td>
+        <td>string</td>
+        <td>
+          If specified, indicates the pod's priority. If not specified, the pod priority will be default or zero if there is no default.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>replicas</b></td>
+        <td>integer</td>
+        <td>
+          Replicas is the number of pod instances for the OpAMPBridge.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+            <i>Maximum</i>: 1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          Resources to set on the OpAMPBridge pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecsecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          SecurityContext will be set as the container security context.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>serviceAccount</b></td>
+        <td>string</td>
+        <td>
+          ServiceAccount indicates the name of an existing service account to use with this instance. When set, the operator will not automatically create a ServiceAccount for the OpAMPBridge.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespectolerationsindex">tolerations</a></b></td>
+        <td>[]object</td>
+        <td>
+          Toleration to schedule OpAMPBridge pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespectopologyspreadconstraintsindex">topologySpreadConstraints</a></b></td>
+        <td>[]object</td>
+        <td>
+          TopologySpreadConstraints embedded kubernetes pod configuration option, controls how pods are spread across your cluster among failure-domains such as regions, zones, nodes, and other user-defined top<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>upgradeStrategy</b></td>
+        <td>enum</td>
+        <td>
+          UpgradeStrategy represents how the operator will handle upgrades to the CR when a newer version of the operator is deployed<br/>
+          <br/>
+            <i>Enum</i>: automatic, none<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumemountsindex">volumeMounts</a></b></td>
+        <td>[]object</td>
+        <td>
+          VolumeMounts represents the mount points to use in the underlying OpAMPBridge deployment(s)<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindex">volumes</a></b></td>
+        <td>[]object</td>
+        <td>
+          Volumes represents which volumes to use in the underlying OpAMPBridge deployment(s).<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+If specified, indicates the pod's scheduling constraints
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinity">nodeAffinity</a></b></td>
+        <td>object</td>
+        <td>
+          Describes node affinity scheduling rules for the pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinity">podAffinity</a></b></td>
+        <td>object</td>
+        <td>
+          Describes pod affinity scheduling rules (e.g. co-locate this pod in the same node, zone, etc. as some other pod(s)).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinity">podAntiAffinity</a></b></td>
+        <td>object</td>
+        <td>
+          Describes pod anti-affinity scheduling rules (e.g. avoid putting this pod in the same node, zone, etc. as some other pod(s)).<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity
+<sup><sup>[↩ Parent](#opampbridgespecaffinity)</sup></sup>
+
+
+
+Describes node affinity scheduling rules for the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindex">preferredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinityrequiredduringschedulingignoredduringexecution">requiredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>object</td>
+        <td>
+          If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinity)</sup></sup>
+
+
+
+An empty preferred scheduling term matches all objects with implicit weight 0 (i.e. it's a no-op). A null preferred scheduling term matches no objects (i.e. is also a no-op).
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference">preference</a></b></td>
+        <td>object</td>
+        <td>
+          A node selector term, associated with the corresponding weight.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>weight</b></td>
+        <td>integer</td>
+        <td>
+          Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A node selector term, associated with the corresponding weight.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreferencematchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's labels.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreferencematchfieldsindex">matchFields</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's fields.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference.matchFields[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinity)</sup></sup>
+
+
+
+If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex">nodeSelectorTerms</a></b></td>
+        <td>[]object</td>
+        <td>
+          Required. A list of node selector terms. The terms are ORed.<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinityrequiredduringschedulingignoredduringexecution)</sup></sup>
+
+
+
+A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindexmatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's labels.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindexmatchfieldsindex">matchFields</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's fields.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index].matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index].matchFields[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity
+<sup><sup>[↩ Parent](#opampbridgespecaffinity)</sup></sup>
+
+
+
+Describes pod affinity scheduling rules (e.g. co-locate this pod in the same node, zone, etc. as some other pod(s)).
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindex">preferredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindex">requiredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinity)</sup></sup>
+
+
+
+The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm">podAffinityTerm</a></b></td>
+        <td>object</td>
+        <td>
+          Required. A pod affinity term, associated with the corresponding weight.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>weight</b></td>
+        <td>integer</td>
+        <td>
+          weight associated with matching the corresponding podAffinityTerm, in the range 1-100.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+Required. A pod affinity term, associated with the corresponding weight.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinity)</sup></sup>
+
+
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-locate
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity
+<sup><sup>[↩ Parent](#opampbridgespecaffinity)</sup></sup>
+
+
+
+Describes pod anti-affinity scheduling rules (e.g. avoid putting this pod in the same node, zone, etc. as some other pod(s)).
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindex">preferredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          The scheduler will prefer to schedule pods to nodes that satisfy the anti-affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindex">requiredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          If the anti-affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinity)</sup></sup>
+
+
+
+The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm">podAffinityTerm</a></b></td>
+        <td>object</td>
+        <td>
+          Required. A pod affinity term, associated with the corresponding weight.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>weight</b></td>
+        <td>integer</td>
+        <td>
+          weight associated with matching the corresponding podAffinityTerm, in the range 1-100.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+Required. A pod affinity term, associated with the corresponding weight.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinity)</sup></sup>
+
+
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-locate
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.env[index]
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+EnvVar represents an environment variable present in a Container.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the environment variable. Must be a C_IDENTIFIER.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          Variable references $(VAR_NAME) are expanded using the previously defined environment variables in the container and any service environment variables.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecenvindexvaluefrom">valueFrom</a></b></td>
+        <td>object</td>
+        <td>
+          Source for the environment variable's value. Cannot be used if value is not empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.env[index].valueFrom
+<sup><sup>[↩ Parent](#opampbridgespecenvindex)</sup></sup>
+
+
+
+Source for the environment variable's value. Cannot be used if value is not empty.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecenvindexvaluefromconfigmapkeyref">configMapKeyRef</a></b></td>
+        <td>object</td>
+        <td>
+          Selects a key of a ConfigMap.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecenvindexvaluefromfieldref">fieldRef</a></b></td>
+        <td>object</td>
+        <td>
+          Selects a field of the pod: supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, spec.nodeName, spec.serviceAccountName, status.hostIP, status.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecenvindexvaluefromresourcefieldref">resourceFieldRef</a></b></td>
+        <td>object</td>
+        <td>
+          Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, limits.ephemeral-storage, requests.cpu, requests.memory and requests.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecenvindexvaluefromsecretkeyref">secretKeyRef</a></b></td>
+        <td>object</td>
+        <td>
+          Selects a key of a secret in the pod's namespace<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.env[index].valueFrom.configMapKeyRef
+<sup><sup>[↩ Parent](#opampbridgespecenvindexvaluefrom)</sup></sup>
+
+
+
+Selects a key of a ConfigMap.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The key to select.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          Specify whether the ConfigMap or its key must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.env[index].valueFrom.fieldRef
+<sup><sup>[↩ Parent](#opampbridgespecenvindexvaluefrom)</sup></sup>
+
+
+
+Selects a field of the pod: supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`, spec.nodeName, spec.serviceAccountName, status.hostIP, status.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fieldPath</b></td>
+        <td>string</td>
+        <td>
+          Path of the field to select in the specified API version.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>apiVersion</b></td>
+        <td>string</td>
+        <td>
+          Version of the schema the FieldPath is written in terms of, defaults to "v1".<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.env[index].valueFrom.resourceFieldRef
+<sup><sup>[↩ Parent](#opampbridgespecenvindexvaluefrom)</sup></sup>
+
+
+
+Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, limits.ephemeral-storage, requests.cpu, requests.memory and requests.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resource</b></td>
+        <td>string</td>
+        <td>
+          Required: resource to select<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>containerName</b></td>
+        <td>string</td>
+        <td>
+          Container name: required for volumes, optional for env vars<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>divisor</b></td>
+        <td>int or string</td>
+        <td>
+          Specifies the output format of the exposed resources, defaults to "1"<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.env[index].valueFrom.secretKeyRef
+<sup><sup>[↩ Parent](#opampbridgespecenvindexvaluefrom)</sup></sup>
+
+
+
+Selects a key of a secret in the pod's namespace
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The key of the secret to select from.  Must be a valid secret key.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          Specify whether the Secret or its key must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.envFrom[index]
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+EnvFromSource represents the source of a set of ConfigMaps
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecenvfromindexconfigmapref">configMapRef</a></b></td>
+        <td>object</td>
+        <td>
+          The ConfigMap to select from<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>prefix</b></td>
+        <td>string</td>
+        <td>
+          An optional identifier to prepend to each key in the ConfigMap. Must be a C_IDENTIFIER.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecenvfromindexsecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          The Secret to select from<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.envFrom[index].configMapRef
+<sup><sup>[↩ Parent](#opampbridgespecenvfromindex)</sup></sup>
+
+
+
+The ConfigMap to select from
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          Specify whether the ConfigMap must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.envFrom[index].secretRef
+<sup><sup>[↩ Parent](#opampbridgespecenvfromindex)</sup></sup>
+
+
+
+The Secret to select from
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          Specify whether the Secret must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.podSecurityContext
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+PodSecurityContext will be set as the pod security context.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod: 
+ 1.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          fsGroupChangePolicy defines behavior of changing ownership and permission of the volume before being exposed inside Pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in SecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates that the container must run as a non-root user.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in SecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecpodsecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The SELinux context to be applied to all containers. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in SecurityContext.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecpodsecuritycontextseccompprofile">seccompProfile</a></b></td>
+        <td>object</td>
+        <td>
+          The seccomp options to use by the containers in this pod. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          A list of groups applied to the first process run in each container, in addition to the container's primary GID, the fsGroup (if specified), and group memberships defined in the container image for th<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecpodsecuritycontextsysctlsindex">sysctls</a></b></td>
+        <td>[]object</td>
+        <td>
+          Sysctls hold a list of namespaced sysctls used for the pod. Pods with unsupported sysctls (by the container runtime) might fail to launch. Note that this field cannot be set when spec.os.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecpodsecuritycontextwindowsoptions">windowsOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The Windows specific settings applied to all containers. If unspecified, the options within a container's SecurityContext will be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.podSecurityContext.seLinuxOptions
+<sup><sup>[↩ Parent](#opampbridgespecpodsecuritycontext)</sup></sup>
+
+
+
+The SELinux context to be applied to all containers. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in SecurityContext.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>level</b></td>
+        <td>string</td>
+        <td>
+          Level is SELinux level label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>role</b></td>
+        <td>string</td>
+        <td>
+          Role is a SELinux role label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Type is a SELinux type label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>user</b></td>
+        <td>string</td>
+        <td>
+          User is a SELinux user label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.podSecurityContext.seccompProfile
+<sup><sup>[↩ Parent](#opampbridgespecpodsecuritycontext)</sup></sup>
+
+
+
+The seccomp options to use by the containers in this pod. Note that this field cannot be set when spec.os.name is windows.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          type indicates which kind of seccomp profile will be applied. Valid options are: 
+ Localhost - a profile defined in a file on the node should be used.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.podSecurityContext.sysctls[index]
+<sup><sup>[↩ Parent](#opampbridgespecpodsecuritycontext)</sup></sup>
+
+
+
+Sysctl defines a kernel parameter to be set
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of a property to set<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          Value of a property to set<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.podSecurityContext.windowsOptions
+<sup><sup>[↩ Parent](#opampbridgespecpodsecuritycontext)</sup></sup>
+
+
+
+The Windows specific settings applied to all containers. If unspecified, the options within a container's SecurityContext will be used.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>gmsaCredentialSpec</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpec is where the GMSA admission webhook (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the GMSA credential spec named by the GMSACredentialSpecName field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gmsaCredentialSpecName</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpecName is the name of the GMSA credential spec to use.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>hostProcess</b></td>
+        <td>boolean</td>
+        <td>
+          HostProcess determines if a container should be run as a 'Host Process' container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUserName</b></td>
+        <td>string</td>
+        <td>
+          The UserName in Windows to run the entrypoint of the container process. Defaults to the user specified in image metadata if unspecified. May also be set in PodSecurityContext.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.ports[index]
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+ServicePort contains information on service's port.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>port</b></td>
+        <td>integer</td>
+        <td>
+          The port that will be exposed by this service.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>appProtocol</b></td>
+        <td>string</td>
+        <td>
+          The application protocol for this port. This is used as a hint for implementations to offer richer behavior for protocols that they understand. This field follows standard Kubernetes label syntax.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          The name of this port within the service. This must be a DNS_LABEL. All ports within a ServiceSpec must have unique names.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodePort</b></td>
+        <td>integer</td>
+        <td>
+          The port on each node on which this service is exposed when type is NodePort or LoadBalancer.  Usually assigned by the system.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>protocol</b></td>
+        <td>string</td>
+        <td>
+          The IP protocol for this port. Supports "TCP", "UDP", and "SCTP". Default is TCP.<br/>
+          <br/>
+            <i>Default</i>: TCP<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>targetPort</b></td>
+        <td>int or string</td>
+        <td>
+          Number or name of the port to access on the pods targeted by the service. Number must be in the range 1 to 65535. Name must be an IANA_SVC_NAME.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.resources
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+Resources to set on the OpAMPBridge pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecresourcesclaimsindex">claims</a></b></td>
+        <td>[]object</td>
+        <td>
+          Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container. 
+ This is an alpha field and requires enabling the DynamicResourceAllocation feature gate.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          Requests describes the minimum amount of compute resources required.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.resources.claims[index]
+<sup><sup>[↩ Parent](#opampbridgespecresources)</sup></sup>
+
+
+
+ResourceClaim references one entry in PodSpec.ResourceClaims.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.securityContext
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+SecurityContext will be set as the container security context.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>allowPrivilegeEscalation</b></td>
+        <td>boolean</td>
+        <td>
+          AllowPrivilegeEscalation controls whether a process can gain more privileges than its parent process. This bool directly controls if the no_new_privs flag will be set on the container process.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecsecuritycontextcapabilities">capabilities</a></b></td>
+        <td>object</td>
+        <td>
+          The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>privileged</b></td>
+        <td>boolean</td>
+        <td>
+          Run container in privileged mode. Processes in privileged containers are essentially equivalent to root on the host. Defaults to false. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>procMount</b></td>
+        <td>string</td>
+        <td>
+          procMount denotes the type of proc mount to use for the containers. The default is DefaultProcMount which uses the container runtime defaults for readonly paths and masked paths.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnlyRootFilesystem</b></td>
+        <td>boolean</td>
+        <td>
+          Whether this container has a read-only root filesystem. Default is false. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in PodSecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates that the container must run as a non-root user.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecsecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The SELinux context to be applied to the container. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in PodSecurityContext.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecsecuritycontextseccompprofile">seccompProfile</a></b></td>
+        <td>object</td>
+        <td>
+          The seccomp options to use by this container. If seccomp options are provided at both the pod & container level, the container options override the pod options.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecsecuritycontextwindowsoptions">windowsOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The Windows specific settings applied to all containers. If unspecified, the options from the PodSecurityContext will be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.securityContext.capabilities
+<sup><sup>[↩ Parent](#opampbridgespecsecuritycontext)</sup></sup>
+
+
+
+The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Note that this field cannot be set when spec.os.name is windows.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>add</b></td>
+        <td>[]string</td>
+        <td>
+          Added capabilities<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>drop</b></td>
+        <td>[]string</td>
+        <td>
+          Removed capabilities<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.securityContext.seLinuxOptions
+<sup><sup>[↩ Parent](#opampbridgespecsecuritycontext)</sup></sup>
+
+
+
+The SELinux context to be applied to the container. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in PodSecurityContext.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>level</b></td>
+        <td>string</td>
+        <td>
+          Level is SELinux level label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>role</b></td>
+        <td>string</td>
+        <td>
+          Role is a SELinux role label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Type is a SELinux type label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>user</b></td>
+        <td>string</td>
+        <td>
+          User is a SELinux user label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.securityContext.seccompProfile
+<sup><sup>[↩ Parent](#opampbridgespecsecuritycontext)</sup></sup>
+
+
+
+The seccomp options to use by this container. If seccomp options are provided at both the pod & container level, the container options override the pod options.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          type indicates which kind of seccomp profile will be applied. Valid options are: 
+ Localhost - a profile defined in a file on the node should be used.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.securityContext.windowsOptions
+<sup><sup>[↩ Parent](#opampbridgespecsecuritycontext)</sup></sup>
+
+
+
+The Windows specific settings applied to all containers. If unspecified, the options from the PodSecurityContext will be used.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>gmsaCredentialSpec</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpec is where the GMSA admission webhook (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the GMSA credential spec named by the GMSACredentialSpecName field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gmsaCredentialSpecName</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpecName is the name of the GMSA credential spec to use.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>hostProcess</b></td>
+        <td>boolean</td>
+        <td>
+          HostProcess determines if a container should be run as a 'Host Process' container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUserName</b></td>
+        <td>string</td>
+        <td>
+          The UserName in Windows to run the entrypoint of the container process. Defaults to the user specified in image metadata if unspecified. May also be set in PodSecurityContext.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.tolerations[index]
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>effect</b></td>
+        <td>string</td>
+        <td>
+          Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tolerationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.topologySpreadConstraints[index]
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+TopologySpreadConstraint specifies how to spread matching pods among the given topology.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>maxSkew</b></td>
+        <td>integer</td>
+        <td>
+          MaxSkew describes the degree to which pods may be unevenly distributed.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          TopologyKey is the key of node labels. Nodes that have a label with this key and identical values are considered to be in the same topology.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>whenUnsatisfiable</b></td>
+        <td>string</td>
+        <td>
+          WhenUnsatisfiable indicates how to deal with a pod if it doesn't satisfy the spread constraint. - DoNotSchedule (default) tells the scheduler not to schedule it.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespectopologyspreadconstraintsindexlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          LabelSelector is used to find matching pods. Pods that match this label selector are counted to determine the number of pods in their corresponding topology domain.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select the pods over which spreading will be calculated.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minDomains</b></td>
+        <td>integer</td>
+        <td>
+          MinDomains indicates a minimum number of eligible domains.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeAffinityPolicy</b></td>
+        <td>string</td>
+        <td>
+          NodeAffinityPolicy indicates how we will treat Pod's nodeAffinity/nodeSelector when calculating pod topology spread skew.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>nodeTaintsPolicy</b></td>
+        <td>string</td>
+        <td>
+          NodeTaintsPolicy indicates how we will treat node taints when calculating pod topology spread skew.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.topologySpreadConstraints[index].labelSelector
+<sup><sup>[↩ Parent](#opampbridgespectopologyspreadconstraintsindex)</sup></sup>
+
+
+
+LabelSelector is used to find matching pods. Pods that match this label selector are counted to determine the number of pods in their corresponding topology domain.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespectopologyspreadconstraintsindexlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.topologySpreadConstraints[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespectopologyspreadconstraintsindexlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumeMounts[index]
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+VolumeMount describes a mounting of a Volume within a container.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>mountPath</b></td>
+        <td>string</td>
+        <td>
+          Path within the container at which the volume should be mounted.  Must not contain ':'.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          This must match the Name of a Volume.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>mountPropagation</b></td>
+        <td>string</td>
+        <td>
+          mountPropagation determines how mounts are propagated from the host to container and the other way around. When not set, MountPropagationNone is used. This field is beta in 1.10.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          Mounted read-only if true, read-write otherwise (false or unspecified). Defaults to false.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>subPath</b></td>
+        <td>string</td>
+        <td>
+          Path within the volume from which the container's volume should be mounted. Defaults to "" (volume's root).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>subPathExpr</b></td>
+        <td>string</td>
+        <td>
+          Expanded path within the volume from which the container's volume should be mounted.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index]
+<sup><sup>[↩ Parent](#opampbridgespec)</sup></sup>
+
+
+
+Volume represents a named volume in a pod that may be accessed by any container in the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          name of the volume. Must be a DNS_LABEL and unique within the pod. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexawselasticblockstore">awsElasticBlockStore</a></b></td>
+        <td>object</td>
+        <td>
+          awsElasticBlockStore represents an AWS Disk resource that is attached to a kubelet's host machine and then exposed to the pod. More info: https://kubernetes.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexazuredisk">azureDisk</a></b></td>
+        <td>object</td>
+        <td>
+          azureDisk represents an Azure Data Disk mount on the host and bind mount to the pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexazurefile">azureFile</a></b></td>
+        <td>object</td>
+        <td>
+          azureFile represents an Azure File Service mount on the host and bind mount to the pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexcephfs">cephfs</a></b></td>
+        <td>object</td>
+        <td>
+          cephFS represents a Ceph FS mount on the host that shares a pod's lifetime<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexcinder">cinder</a></b></td>
+        <td>object</td>
+        <td>
+          cinder represents a cinder volume attached and mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexconfigmap">configMap</a></b></td>
+        <td>object</td>
+        <td>
+          configMap represents a configMap that should populate this volume<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexcsi">csi</a></b></td>
+        <td>object</td>
+        <td>
+          csi (Container Storage Interface) represents ephemeral storage that is handled by certain external CSI drivers (Beta feature).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexdownwardapi">downwardAPI</a></b></td>
+        <td>object</td>
+        <td>
+          downwardAPI represents downward API about the pod that should populate this volume<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexemptydir">emptyDir</a></b></td>
+        <td>object</td>
+        <td>
+          emptyDir represents a temporary directory that shares a pod's lifetime. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeral">ephemeral</a></b></td>
+        <td>object</td>
+        <td>
+          ephemeral represents a volume that is handled by a cluster storage driver.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexfc">fc</a></b></td>
+        <td>object</td>
+        <td>
+          fc represents a Fibre Channel resource that is attached to a kubelet's host machine and then exposed to the pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexflexvolume">flexVolume</a></b></td>
+        <td>object</td>
+        <td>
+          flexVolume represents a generic volume resource that is provisioned/attached using an exec based plugin.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexflocker">flocker</a></b></td>
+        <td>object</td>
+        <td>
+          flocker represents a Flocker volume attached to a kubelet's host machine. This depends on the Flocker control service being running<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexgcepersistentdisk">gcePersistentDisk</a></b></td>
+        <td>object</td>
+        <td>
+          gcePersistentDisk represents a GCE Disk resource that is attached to a kubelet's host machine and then exposed to the pod. More info: https://kubernetes.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexgitrepo">gitRepo</a></b></td>
+        <td>object</td>
+        <td>
+          gitRepo represents a git repository at a particular revision. DEPRECATED: GitRepo is deprecated.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexglusterfs">glusterfs</a></b></td>
+        <td>object</td>
+        <td>
+          glusterfs represents a Glusterfs mount on the host that shares a pod's lifetime. More info: https://examples.k8s.io/volumes/glusterfs/README.md<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexhostpath">hostPath</a></b></td>
+        <td>object</td>
+        <td>
+          hostPath represents a pre-existing file or directory on the host machine that is directly exposed to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexiscsi">iscsi</a></b></td>
+        <td>object</td>
+        <td>
+          iscsi represents an ISCSI Disk resource that is attached to a kubelet's host machine and then exposed to the pod. More info: https://examples.k8s.io/volumes/iscsi/README.md<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexnfs">nfs</a></b></td>
+        <td>object</td>
+        <td>
+          nfs represents an NFS mount on the host that shares a pod's lifetime More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexpersistentvolumeclaim">persistentVolumeClaim</a></b></td>
+        <td>object</td>
+        <td>
+          persistentVolumeClaimVolumeSource represents a reference to a PersistentVolumeClaim in the same namespace. More info: https://kubernetes.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexphotonpersistentdisk">photonPersistentDisk</a></b></td>
+        <td>object</td>
+        <td>
+          photonPersistentDisk represents a PhotonController persistent disk attached and mounted on kubelets host machine<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexportworxvolume">portworxVolume</a></b></td>
+        <td>object</td>
+        <td>
+          portworxVolume represents a portworx volume attached and mounted on kubelets host machine<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojected">projected</a></b></td>
+        <td>object</td>
+        <td>
+          projected items for all in one resources secrets, configmaps, and downward API<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexquobyte">quobyte</a></b></td>
+        <td>object</td>
+        <td>
+          quobyte represents a Quobyte mount on the host that shares a pod's lifetime<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexrbd">rbd</a></b></td>
+        <td>object</td>
+        <td>
+          rbd represents a Rados Block Device mount on the host that shares a pod's lifetime. More info: https://examples.k8s.io/volumes/rbd/README.md<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexscaleio">scaleIO</a></b></td>
+        <td>object</td>
+        <td>
+          scaleIO represents a ScaleIO persistent volume attached and mounted on Kubernetes nodes.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexsecret">secret</a></b></td>
+        <td>object</td>
+        <td>
+          secret represents a secret that should populate this volume. More info: https://kubernetes.io/docs/concepts/storage/volumes#secret<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexstorageos">storageos</a></b></td>
+        <td>object</td>
+        <td>
+          storageOS represents a StorageOS volume attached and mounted on Kubernetes nodes.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexvspherevolume">vsphereVolume</a></b></td>
+        <td>object</td>
+        <td>
+          vsphereVolume represents a vSphere volume attached and mounted on kubelets host machine<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].awsElasticBlockStore
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+awsElasticBlockStore represents an AWS Disk resource that is attached to a kubelet's host machine and then exposed to the pod. More info: https://kubernetes.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>volumeID</b></td>
+        <td>string</td>
+        <td>
+          volumeID is unique ID of the persistent disk resource in AWS (Amazon EBS volume). More info: https://kubernetes.io/docs/concepts/storage/volumes#awselasticblockstore<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: "ext4", "xfs", "ntfs".<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>partition</b></td>
+        <td>integer</td>
+        <td>
+          partition is the partition in the volume that you want to mount. If omitted, the default is to mount by volume name. Examples: For volume /dev/sda1, you specify the partition as "1".<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly value true will force the readOnly setting in VolumeMounts. More info: https://kubernetes.io/docs/concepts/storage/volumes#awselasticblockstore<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].azureDisk
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+azureDisk represents an Azure Data Disk mount on the host and bind mount to the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>diskName</b></td>
+        <td>string</td>
+        <td>
+          diskName is the Name of the data disk in the blob storage<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>diskURI</b></td>
+        <td>string</td>
+        <td>
+          diskURI is the URI of data disk in the blob storage<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>cachingMode</b></td>
+        <td>string</td>
+        <td>
+          cachingMode is the Host Caching mode: None, Read Only, Read Write.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is Filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>kind</b></td>
+        <td>string</td>
+        <td>
+          kind expected values are Shared: multiple blob disks per storage account  Dedicated: single blob disk per storage account  Managed: azure managed data disk (only in managed availability set).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].azureFile
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+azureFile represents an Azure File Service mount on the host and bind mount to the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          secretName is the  name of secret that contains Azure Storage Account Name and Key<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>shareName</b></td>
+        <td>string</td>
+        <td>
+          shareName is the azure share Name<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].cephfs
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+cephFS represents a Ceph FS mount on the host that shares a pod's lifetime
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>monitors</b></td>
+        <td>[]string</td>
+        <td>
+          monitors is Required: Monitors is a collection of Ceph monitors More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path is Optional: Used as the mounted root, rather than the full Ceph tree, default is /<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly is Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts. More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretFile</b></td>
+        <td>string</td>
+        <td>
+          secretFile is Optional: SecretFile is the path to key ring for User, default is /etc/ceph/user.secret More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexcephfssecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          secretRef is Optional: SecretRef is reference to the authentication secret for User, default is empty. More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>user</b></td>
+        <td>string</td>
+        <td>
+          user is optional: User is the rados user name, default is admin More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].cephfs.secretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexcephfs)</sup></sup>
+
+
+
+secretRef is Optional: SecretRef is reference to the authentication secret for User, default is empty. More info: https://examples.k8s.io/volumes/cephfs/README.md#how-to-use-it
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].cinder
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+cinder represents a cinder volume attached and mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>volumeID</b></td>
+        <td>string</td>
+        <td>
+          volumeID used to identify the volume in cinder. More info: https://examples.k8s.io/mysql-cinder-pd/README.md<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type to mount. Must be a filesystem type supported by the host operating system. Examples: "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts. More info: https://examples.k8s.io/mysql-cinder-pd/README.md<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexcindersecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          secretRef is optional: points to a secret object containing parameters used to connect to OpenStack.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].cinder.secretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexcinder)</sup></sup>
+
+
+
+secretRef is optional: points to a secret object containing parameters used to connect to OpenStack.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].configMap
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+configMap represents a configMap that should populate this volume
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>defaultMode</b></td>
+        <td>integer</td>
+        <td>
+          defaultMode is optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexconfigmapitemsindex">items</a></b></td>
+        <td>[]object</td>
+        <td>
+          items if unspecified, each key-value pair in the Data field of the referenced ConfigMap will be projected into the volume as a file whose name is the key and content is the value.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          optional specify whether the ConfigMap or its keys must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].configMap.items[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexconfigmap)</sup></sup>
+
+
+
+Maps a string key to a path within a volume.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the key to project.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path is the relative path of the file to map the key to. May not be an absolute path. May not contain the path element '..'. May not start with the string '..'.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>mode</b></td>
+        <td>integer</td>
+        <td>
+          mode is Optional: mode bits used to set permissions on this file. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].csi
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+csi (Container Storage Interface) represents ephemeral storage that is handled by certain external CSI drivers (Beta feature).
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>driver</b></td>
+        <td>string</td>
+        <td>
+          driver is the name of the CSI driver that handles this volume. Consult with your admin for the correct name as registered in the cluster.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType to mount. Ex. "ext4", "xfs", "ntfs". If not provided, the empty value is passed to the associated CSI driver which will determine the default filesystem to apply.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexcsinodepublishsecretref">nodePublishSecretRef</a></b></td>
+        <td>object</td>
+        <td>
+          nodePublishSecretRef is a reference to the secret object containing sensitive information to pass to the CSI driver to complete the CSI NodePublishVolume and NodeUnpublishVolume calls.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly specifies a read-only configuration for the volume. Defaults to false (read/write).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>volumeAttributes</b></td>
+        <td>map[string]string</td>
+        <td>
+          volumeAttributes stores driver-specific properties that are passed to the CSI driver. Consult your driver's documentation for supported values.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].csi.nodePublishSecretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexcsi)</sup></sup>
+
+
+
+nodePublishSecretRef is a reference to the secret object containing sensitive information to pass to the CSI driver to complete the CSI NodePublishVolume and NodeUnpublishVolume calls.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].downwardAPI
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+downwardAPI represents downward API about the pod that should populate this volume
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>defaultMode</b></td>
+        <td>integer</td>
+        <td>
+          Optional: mode bits to use on created files by default. Must be a Optional: mode bits used to set permissions on created files by default.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexdownwardapiitemsindex">items</a></b></td>
+        <td>[]object</td>
+        <td>
+          Items is a list of downward API volume file<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].downwardAPI.items[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexdownwardapi)</sup></sup>
+
+
+
+DownwardAPIVolumeFile represents information to create the file containing the pod field
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          Required: Path is  the relative path name of the file to be created. Must not be absolute or contain the '..' path. Must be utf-8 encoded. The first item of the relative path must not start with '..'<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexdownwardapiitemsindexfieldref">fieldRef</a></b></td>
+        <td>object</td>
+        <td>
+          Required: Selects a field of the pod: only annotations, labels, name and namespace are supported.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mode</b></td>
+        <td>integer</td>
+        <td>
+          Optional: mode bits used to set permissions on this file, must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexdownwardapiitemsindexresourcefieldref">resourceFieldRef</a></b></td>
+        <td>object</td>
+        <td>
+          Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].downwardAPI.items[index].fieldRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexdownwardapiitemsindex)</sup></sup>
+
+
+
+Required: Selects a field of the pod: only annotations, labels, name and namespace are supported.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fieldPath</b></td>
+        <td>string</td>
+        <td>
+          Path of the field to select in the specified API version.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>apiVersion</b></td>
+        <td>string</td>
+        <td>
+          Version of the schema the FieldPath is written in terms of, defaults to "v1".<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].downwardAPI.items[index].resourceFieldRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexdownwardapiitemsindex)</sup></sup>
+
+
+
+Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resource</b></td>
+        <td>string</td>
+        <td>
+          Required: resource to select<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>containerName</b></td>
+        <td>string</td>
+        <td>
+          Container name: required for volumes, optional for env vars<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>divisor</b></td>
+        <td>int or string</td>
+        <td>
+          Specifies the output format of the exposed resources, defaults to "1"<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].emptyDir
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+emptyDir represents a temporary directory that shares a pod's lifetime. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>medium</b></td>
+        <td>string</td>
+        <td>
+          medium represents what type of storage medium should back this directory. The default is "" which means to use the node's default medium. Must be an empty string (default) or Memory.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sizeLimit</b></td>
+        <td>int or string</td>
+        <td>
+          sizeLimit is the total amount of local storage required for this EmptyDir volume. The size limit is also applicable for memory medium.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+ephemeral represents a volume that is handled by a cluster storage driver.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplate">volumeClaimTemplate</a></b></td>
+        <td>object</td>
+        <td>
+          Will be used to create a stand-alone PVC to provision the volume. The pod in which this EphemeralVolumeSource is embedded will be the owner of the PVC, i.e.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeral)</sup></sup>
+
+
+
+Will be used to create a stand-alone PVC to provision the volume. The pod in which this EphemeralVolumeSource is embedded will be the owner of the PVC, i.e.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespec">spec</a></b></td>
+        <td>object</td>
+        <td>
+          The specification for the PersistentVolumeClaim. The entire content is copied unchanged into the PVC that gets created from this template.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplatemetadata">metadata</a></b></td>
+        <td>object</td>
+        <td>
+          May contain labels and annotations that will be copied into the PVC when creating it. No other fields are allowed and will be rejected during validation.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate.spec
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeralvolumeclaimtemplate)</sup></sup>
+
+
+
+The specification for the PersistentVolumeClaim. The entire content is copied unchanged into the PVC that gets created from this template.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>accessModes</b></td>
+        <td>[]string</td>
+        <td>
+          accessModes contains the desired access modes the volume should have. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#access-modes-1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespecdatasource">dataSource</a></b></td>
+        <td>object</td>
+        <td>
+          dataSource field can be used to specify either: * An existing VolumeSnapshot object (snapshot.storage.k8s.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespecdatasourceref">dataSourceRef</a></b></td>
+        <td>object</td>
+        <td>
+          dataSourceRef specifies the object from which to populate the volume with data, if a non-empty volume is desired.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespecresources">resources</a></b></td>
+        <td>object</td>
+        <td>
+          resources represents the minimum resources the volume should have.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespecselector">selector</a></b></td>
+        <td>object</td>
+        <td>
+          selector is a label query over volumes to consider for binding.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>storageClassName</b></td>
+        <td>string</td>
+        <td>
+          storageClassName is the name of the StorageClass required by the claim. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#class-1<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          volumeAttributesClassName may be used to set the VolumeAttributesClass used by this claim.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>volumeMode</b></td>
+        <td>string</td>
+        <td>
+          volumeMode defines what type of volume is required by the claim. Value of Filesystem is implied when not included in claim spec.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>volumeName</b></td>
+        <td>string</td>
+        <td>
+          volumeName is the binding reference to the PersistentVolume backing this claim.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate.spec.dataSource
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespec)</sup></sup>
+
+
+
+dataSource field can be used to specify either: * An existing VolumeSnapshot object (snapshot.storage.k8s.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>kind</b></td>
+        <td>string</td>
+        <td>
+          Kind is the type of resource being referenced<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name is the name of resource being referenced<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>apiGroup</b></td>
+        <td>string</td>
+        <td>
+          APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate.spec.dataSourceRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespec)</sup></sup>
+
+
+
+dataSourceRef specifies the object from which to populate the volume with data, if a non-empty volume is desired.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>kind</b></td>
+        <td>string</td>
+        <td>
+          Kind is the type of resource being referenced<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name is the name of resource being referenced<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>apiGroup</b></td>
+        <td>string</td>
+        <td>
+          APIGroup is the group for the resource being referenced. If APIGroup is not specified, the specified Kind must be in the core API group. For any other third-party types, APIGroup is required.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          Namespace is the namespace of resource being referenced Note that when a namespace is specified, a gateway.networking.k8s.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate.spec.resources
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespec)</sup></sup>
+
+
+
+resources represents the minimum resources the volume should have.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>limits</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>requests</b></td>
+        <td>map[string]int or string</td>
+        <td>
+          Requests describes the minimum amount of compute resources required.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate.spec.selector
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespec)</sup></sup>
+
+
+
+selector is a label query over volumes to consider for binding.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespecselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate.spec.selector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeralvolumeclaimtemplatespecselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].ephemeral.volumeClaimTemplate.metadata
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexephemeralvolumeclaimtemplate)</sup></sup>
+
+
+
+May contain labels and annotations that will be copied into the PVC when creating it. No other fields are allowed and will be rejected during validation.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>annotations</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>finalizers</b></td>
+        <td>[]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>labels</b></td>
+        <td>map[string]string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespace</b></td>
+        <td>string</td>
+        <td>
+          <br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].fc
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+fc represents a Fibre Channel resource that is attached to a kubelet's host machine and then exposed to the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>lun</b></td>
+        <td>integer</td>
+        <td>
+          lun is Optional: FC target lun number<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly is Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>targetWWNs</b></td>
+        <td>[]string</td>
+        <td>
+          targetWWNs is Optional: FC target worldwide names (WWNs)<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>wwids</b></td>
+        <td>[]string</td>
+        <td>
+          wwids Optional: FC volume world wide identifiers (wwids) Either wwids or combination of targetWWNs and lun must be set, but not both simultaneously.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].flexVolume
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+flexVolume represents a generic volume resource that is provisioned/attached using an exec based plugin.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>driver</b></td>
+        <td>string</td>
+        <td>
+          driver is the name of the driver to use for this volume.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs", "ntfs". The default filesystem depends on FlexVolume script.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>options</b></td>
+        <td>map[string]string</td>
+        <td>
+          options is Optional: this field holds extra command options if any.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly is Optional: defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexflexvolumesecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          secretRef is Optional: secretRef is reference to the secret object containing sensitive information to pass to the plugin scripts. This may be empty if no secret object is specified.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].flexVolume.secretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexflexvolume)</sup></sup>
+
+
+
+secretRef is Optional: secretRef is reference to the secret object containing sensitive information to pass to the plugin scripts. This may be empty if no secret object is specified.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].flocker
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+flocker represents a Flocker volume attached to a kubelet's host machine. This depends on the Flocker control service being running
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>datasetName</b></td>
+        <td>string</td>
+        <td>
+          datasetName is Name of the dataset stored as metadata -> name on the dataset for Flocker should be considered as deprecated<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>datasetUUID</b></td>
+        <td>string</td>
+        <td>
+          datasetUUID is the UUID of the dataset. This is unique identifier of a Flocker dataset<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].gcePersistentDisk
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+gcePersistentDisk represents a GCE Disk resource that is attached to a kubelet's host machine and then exposed to the pod. More info: https://kubernetes.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pdName</b></td>
+        <td>string</td>
+        <td>
+          pdName is unique name of the PD resource in GCE. Used to identify the disk in GCE. More info: https://kubernetes.io/docs/concepts/storage/volumes#gcepersistentdisk<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: "ext4", "xfs", "ntfs".<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>partition</b></td>
+        <td>integer</td>
+        <td>
+          partition is the partition in the volume that you want to mount. If omitted, the default is to mount by volume name. Examples: For volume /dev/sda1, you specify the partition as "1".<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly here will force the ReadOnly setting in VolumeMounts. Defaults to false. More info: https://kubernetes.io/docs/concepts/storage/volumes#gcepersistentdisk<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].gitRepo
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+gitRepo represents a git repository at a particular revision. DEPRECATED: GitRepo is deprecated.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>repository</b></td>
+        <td>string</td>
+        <td>
+          repository is the URL<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>directory</b></td>
+        <td>string</td>
+        <td>
+          directory is the target directory name. Must not contain or start with '..'.  If '.' is supplied, the volume directory will be the git repository.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>revision</b></td>
+        <td>string</td>
+        <td>
+          revision is the commit hash for the specified revision.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].glusterfs
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+glusterfs represents a Glusterfs mount on the host that shares a pod's lifetime. More info: https://examples.k8s.io/volumes/glusterfs/README.md
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>endpoints</b></td>
+        <td>string</td>
+        <td>
+          endpoints is the endpoint name that details Glusterfs topology. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path is the Glusterfs volume path. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly here will force the Glusterfs volume to be mounted with read-only permissions. Defaults to false. More info: https://examples.k8s.io/volumes/glusterfs/README.md#create-a-pod<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].hostPath
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+hostPath represents a pre-existing file or directory on the host machine that is directly exposed to the container.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path of the directory on the host. If the path is a symlink, it will follow the link to the real path. More info: https://kubernetes.io/docs/concepts/storage/volumes#hostpath<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          type for HostPath Volume Defaults to "" More info: https://kubernetes.io/docs/concepts/storage/volumes#hostpath<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].iscsi
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+iscsi represents an ISCSI Disk resource that is attached to a kubelet's host machine and then exposed to the pod. More info: https://examples.k8s.io/volumes/iscsi/README.md
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>iqn</b></td>
+        <td>string</td>
+        <td>
+          iqn is the target iSCSI Qualified Name.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>lun</b></td>
+        <td>integer</td>
+        <td>
+          lun represents iSCSI Target Lun number.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>targetPortal</b></td>
+        <td>string</td>
+        <td>
+          targetPortal is iSCSI Target Portal. The Portal is either an IP or ip_addr:port if the port is other than default (typically TCP ports 860 and 3260).<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>chapAuthDiscovery</b></td>
+        <td>boolean</td>
+        <td>
+          chapAuthDiscovery defines whether support iSCSI Discovery CHAP authentication<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>chapAuthSession</b></td>
+        <td>boolean</td>
+        <td>
+          chapAuthSession defines whether support iSCSI Session CHAP authentication<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: "ext4", "xfs", "ntfs".<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>initiatorName</b></td>
+        <td>string</td>
+        <td>
+          initiatorName is the custom iSCSI Initiator Name.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>iscsiInterface</b></td>
+        <td>string</td>
+        <td>
+          iscsiInterface is the interface Name that uses an iSCSI transport. Defaults to 'default' (tcp).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>portals</b></td>
+        <td>[]string</td>
+        <td>
+          portals is the iSCSI Target Portal List. The portal is either an IP or ip_addr:port if the port is other than default (typically TCP ports 860 and 3260).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly here will force the ReadOnly setting in VolumeMounts. Defaults to false.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexiscsisecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          secretRef is the CHAP Secret for iSCSI target and initiator authentication<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].iscsi.secretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexiscsi)</sup></sup>
+
+
+
+secretRef is the CHAP Secret for iSCSI target and initiator authentication
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].nfs
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+nfs represents an NFS mount on the host that shares a pod's lifetime More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path that is exported by the NFS server. More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>server</b></td>
+        <td>string</td>
+        <td>
+          server is the hostname or IP address of the NFS server. More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly here will force the NFS export to be mounted with read-only permissions. Defaults to false. More info: https://kubernetes.io/docs/concepts/storage/volumes#nfs<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].persistentVolumeClaim
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+persistentVolumeClaimVolumeSource represents a reference to a PersistentVolumeClaim in the same namespace. More info: https://kubernetes.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>claimName</b></td>
+        <td>string</td>
+        <td>
+          claimName is the name of a PersistentVolumeClaim in the same namespace as the pod using this volume. More info: https://kubernetes.io/docs/concepts/storage/persistent-volumes#persistentvolumeclaims<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly Will force the ReadOnly setting in VolumeMounts. Default false.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].photonPersistentDisk
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+photonPersistentDisk represents a PhotonController persistent disk attached and mounted on kubelets host machine
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>pdID</b></td>
+        <td>string</td>
+        <td>
+          pdID is the ID that identifies Photon Controller persistent disk<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].portworxVolume
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+portworxVolume represents a portworx volume attached and mounted on kubelets host machine
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>volumeID</b></td>
+        <td>string</td>
+        <td>
+          volumeID uniquely identifies a Portworx volume<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fSType represents the filesystem type to mount Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs". Implicitly inferred to be "ext4" if unspecified.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+projected items for all in one resources secrets, configmaps, and downward API
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>defaultMode</b></td>
+        <td>integer</td>
+        <td>
+          defaultMode are the mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindex">sources</a></b></td>
+        <td>[]object</td>
+        <td>
+          sources is the list of volume projections<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojected)</sup></sup>
+
+
+
+Projection that may be projected along with other supported volume types
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          ClusterTrustBundle allows a pod to access the `.spec.trustBundle` field of ClusterTrustBundle objects in an auto-updating file. 
+ Alpha, gated by the ClusterTrustBundleProjection feature gate.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
+        <td>object</td>
+        <td>
+          configMap information about the configMap data to project<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexdownwardapi">downwardAPI</a></b></td>
+        <td>object</td>
+        <td>
+          downwardAPI information about the downwardAPI data to project<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexsecret">secret</a></b></td>
+        <td>object</td>
+        <td>
+          secret information about the secret data to project<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexserviceaccounttoken">serviceAccountToken</a></b></td>
+        <td>object</td>
+        <td>
+          serviceAccountToken is information about the serviceAccountToken data to project<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].clusterTrustBundle
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindex)</sup></sup>
+
+
+
+ClusterTrustBundle allows a pod to access the `.spec.trustBundle` field of ClusterTrustBundle objects in an auto-updating file. 
+ Alpha, gated by the ClusterTrustBundleProjection feature gate.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          Relative path from the volume root to write the bundle.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          Select all ClusterTrustBundles that match this label selector.  Only has effect if signerName is set.  Mutually-exclusive with name.  If unset, interpreted as "match nothing".<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Select a single ClusterTrustBundle by object name.  Mutually-exclusive with signerName and labelSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          If true, don't block pod startup if the referenced ClusterTrustBundle(s) aren't available.  If using name, then the named ClusterTrustBundle is allowed not to exist.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          Select all ClusterTrustBundles that match this signer name. Mutually-exclusive with name.  The contents of all selected ClusterTrustBundles will be unified and deduplicated.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindexclustertrustbundle)</sup></sup>
+
+
+
+Select all ClusterTrustBundles that match this label selector.  Only has effect if signerName is set.  Mutually-exclusive with name.  If unset, interpreted as "match nothing".
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindexclustertrustbundlelabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].configMap
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindex)</sup></sup>
+
+
+
+configMap information about the configMap data to project
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexconfigmapitemsindex">items</a></b></td>
+        <td>[]object</td>
+        <td>
+          items if unspecified, each key-value pair in the Data field of the referenced ConfigMap will be projected into the volume as a file whose name is the key and content is the value.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          optional specify whether the ConfigMap or its keys must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].configMap.items[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindexconfigmap)</sup></sup>
+
+
+
+Maps a string key to a path within a volume.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the key to project.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path is the relative path of the file to map the key to. May not be an absolute path. May not contain the path element '..'. May not start with the string '..'.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>mode</b></td>
+        <td>integer</td>
+        <td>
+          mode is Optional: mode bits used to set permissions on this file. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].downwardAPI
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindex)</sup></sup>
+
+
+
+downwardAPI information about the downwardAPI data to project
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexdownwardapiitemsindex">items</a></b></td>
+        <td>[]object</td>
+        <td>
+          Items is a list of DownwardAPIVolume file<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].downwardAPI.items[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindexdownwardapi)</sup></sup>
+
+
+
+DownwardAPIVolumeFile represents information to create the file containing the pod field
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          Required: Path is  the relative path name of the file to be created. Must not be absolute or contain the '..' path. Must be utf-8 encoded. The first item of the relative path must not start with '..'<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexdownwardapiitemsindexfieldref">fieldRef</a></b></td>
+        <td>object</td>
+        <td>
+          Required: Selects a field of the pod: only annotations, labels, name and namespace are supported.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mode</b></td>
+        <td>integer</td>
+        <td>
+          Optional: mode bits used to set permissions on this file, must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexdownwardapiitemsindexresourcefieldref">resourceFieldRef</a></b></td>
+        <td>object</td>
+        <td>
+          Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].downwardAPI.items[index].fieldRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindexdownwardapiitemsindex)</sup></sup>
+
+
+
+Required: Selects a field of the pod: only annotations, labels, name and namespace are supported.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fieldPath</b></td>
+        <td>string</td>
+        <td>
+          Path of the field to select in the specified API version.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>apiVersion</b></td>
+        <td>string</td>
+        <td>
+          Version of the schema the FieldPath is written in terms of, defaults to "v1".<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].downwardAPI.items[index].resourceFieldRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindexdownwardapiitemsindex)</sup></sup>
+
+
+
+Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, requests.cpu and requests.memory) are currently supported.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>resource</b></td>
+        <td>string</td>
+        <td>
+          Required: resource to select<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>containerName</b></td>
+        <td>string</td>
+        <td>
+          Container name: required for volumes, optional for env vars<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>divisor</b></td>
+        <td>int or string</td>
+        <td>
+          Specifies the output format of the exposed resources, defaults to "1"<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].secret
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindex)</sup></sup>
+
+
+
+secret information about the secret data to project
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opampbridgespecvolumesindexprojectedsourcesindexsecretitemsindex">items</a></b></td>
+        <td>[]object</td>
+        <td>
+          items if unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          optional field specify whether the Secret or its key must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].secret.items[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindexsecret)</sup></sup>
+
+
+
+Maps a string key to a path within a volume.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the key to project.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path is the relative path of the file to map the key to. May not be an absolute path. May not contain the path element '..'. May not start with the string '..'.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>mode</b></td>
+        <td>integer</td>
+        <td>
+          mode is Optional: mode bits used to set permissions on this file. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].projected.sources[index].serviceAccountToken
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexprojectedsourcesindex)</sup></sup>
+
+
+
+serviceAccountToken is information about the serviceAccountToken data to project
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path is the path relative to the mount point of the file to project the token into.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>audience</b></td>
+        <td>string</td>
+        <td>
+          audience is the intended audience of the token. A recipient of a token must identify itself with an identifier specified in the audience of the token, and otherwise should reject the token.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>expirationSeconds</b></td>
+        <td>integer</td>
+        <td>
+          expirationSeconds is the requested duration of validity of the service account token. As the token approaches expiration, the kubelet volume plugin will proactively rotate the service account token.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].quobyte
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+quobyte represents a Quobyte mount on the host that shares a pod's lifetime
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>registry</b></td>
+        <td>string</td>
+        <td>
+          registry represents a single or multiple Quobyte Registry services specified as a string as host:port pair (multiple entries are separated with commas) which acts as the central registry for volumes<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>volume</b></td>
+        <td>string</td>
+        <td>
+          volume is a string that references an already created Quobyte volume by name.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>group</b></td>
+        <td>string</td>
+        <td>
+          group to map volume access to Default is no group<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly here will force the Quobyte volume to be mounted with read-only permissions. Defaults to false.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>tenant</b></td>
+        <td>string</td>
+        <td>
+          tenant owning the given Quobyte volume in the Backend Used with dynamically provisioned Quobyte volumes, value is set by the plugin<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>user</b></td>
+        <td>string</td>
+        <td>
+          user to map volume access to Defaults to serivceaccount user<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].rbd
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+rbd represents a Rados Block Device mount on the host that shares a pod's lifetime. More info: https://examples.k8s.io/volumes/rbd/README.md
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>image</b></td>
+        <td>string</td>
+        <td>
+          image is the rados image name. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>monitors</b></td>
+        <td>[]string</td>
+        <td>
+          monitors is a collection of Ceph monitors. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type of the volume that you want to mount. Tip: Ensure that the filesystem type is supported by the host operating system. Examples: "ext4", "xfs", "ntfs".<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>keyring</b></td>
+        <td>string</td>
+        <td>
+          keyring is the path to key ring for RBDUser. Default is /etc/ceph/keyring. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>pool</b></td>
+        <td>string</td>
+        <td>
+          pool is the rados pool name. Default is rbd. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly here will force the ReadOnly setting in VolumeMounts. Defaults to false. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexrbdsecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          secretRef is name of the authentication secret for RBDUser. If provided overrides keyring. Default is nil. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>user</b></td>
+        <td>string</td>
+        <td>
+          user is the rados user name. Default is admin. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].rbd.secretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexrbd)</sup></sup>
+
+
+
+secretRef is name of the authentication secret for RBDUser. If provided overrides keyring. Default is nil. More info: https://examples.k8s.io/volumes/rbd/README.md#how-to-use-it
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].scaleIO
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+scaleIO represents a ScaleIO persistent volume attached and mounted on Kubernetes nodes.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>gateway</b></td>
+        <td>string</td>
+        <td>
+          gateway is the host address of the ScaleIO API Gateway.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexscaleiosecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          secretRef references to the secret for ScaleIO user and other sensitive information. If this is not provided, Login operation will fail.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>system</b></td>
+        <td>string</td>
+        <td>
+          system is the name of the storage system as configured in ScaleIO.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs", "ntfs". Default is "xfs".<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>protectionDomain</b></td>
+        <td>string</td>
+        <td>
+          protectionDomain is the name of the ScaleIO Protection Domain for the configured storage.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>sslEnabled</b></td>
+        <td>boolean</td>
+        <td>
+          sslEnabled Flag enable/disable SSL communication with Gateway, default false<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>storageMode</b></td>
+        <td>string</td>
+        <td>
+          storageMode indicates whether the storage for a volume should be ThickProvisioned or ThinProvisioned. Default is ThinProvisioned.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>storagePool</b></td>
+        <td>string</td>
+        <td>
+          storagePool is the ScaleIO Storage Pool associated with the protection domain.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>volumeName</b></td>
+        <td>string</td>
+        <td>
+          volumeName is the name of a volume already created in the ScaleIO system that is associated with this volume source.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].scaleIO.secretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexscaleio)</sup></sup>
+
+
+
+secretRef references to the secret for ScaleIO user and other sensitive information. If this is not provided, Login operation will fail.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].secret
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+secret represents a secret that should populate this volume. More info: https://kubernetes.io/docs/concepts/storage/volumes#secret
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>defaultMode</b></td>
+        <td>integer</td>
+        <td>
+          defaultMode is Optional: mode bits used to set permissions on created files by default. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexsecretitemsindex">items</a></b></td>
+        <td>[]object</td>
+        <td>
+          items If unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          optional field specify whether the Secret or its keys must be defined<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>secretName</b></td>
+        <td>string</td>
+        <td>
+          secretName is the name of the secret in the pod's namespace to use. More info: https://kubernetes.io/docs/concepts/storage/volumes#secret<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].secret.items[index]
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexsecret)</sup></sup>
+
+
+
+Maps a string key to a path within a volume.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the key to project.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          path is the relative path of the file to map the key to. May not be an absolute path. May not contain the path element '..'. May not start with the string '..'.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>mode</b></td>
+        <td>integer</td>
+        <td>
+          mode is Optional: mode bits used to set permissions on this file. Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].storageos
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+storageOS represents a StorageOS volume attached and mounted on Kubernetes nodes.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is the filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnly</b></td>
+        <td>boolean</td>
+        <td>
+          readOnly defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opampbridgespecvolumesindexstorageossecretref">secretRef</a></b></td>
+        <td>object</td>
+        <td>
+          secretRef specifies the secret to use for obtaining the StorageOS API credentials.  If not specified, default values will be attempted.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>volumeName</b></td>
+        <td>string</td>
+        <td>
+          volumeName is the human-readable name of the StorageOS volume.  Volume names are only unique within a namespace.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>volumeNamespace</b></td>
+        <td>string</td>
+        <td>
+          volumeNamespace specifies the scope of the volume within StorageOS.  If no namespace is specified then the Pod's namespace will be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].storageos.secretRef
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindexstorageos)</sup></sup>
+
+
+
+secretRef specifies the secret to use for obtaining the StorageOS API credentials.  If not specified, default values will be attempted.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names TODO: Add other useful fields. apiVersion, kind, uid?<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.spec.volumes[index].vsphereVolume
+<sup><sup>[↩ Parent](#opampbridgespecvolumesindex)</sup></sup>
+
+
+
+vsphereVolume represents a vSphere volume attached and mounted on kubelets host machine
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>volumePath</b></td>
+        <td>string</td>
+        <td>
+          volumePath is the path that identifies vSphere volume vmdk<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>fsType</b></td>
+        <td>string</td>
+        <td>
+          fsType is filesystem type to mount. Must be a filesystem type supported by the host operating system. Ex. "ext4", "xfs", "ntfs". Implicitly inferred to be "ext4" if unspecified.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>storagePolicyID</b></td>
+        <td>string</td>
+        <td>
+          storagePolicyID is the storage Policy Based Management (SPBM) profile ID associated with the StoragePolicyName.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>storagePolicyName</b></td>
+        <td>string</td>
+        <td>
+          storagePolicyName is the storage Policy Based Management (SPBM) profile name.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpAMPBridge.status
+<sup><sup>[↩ Parent](#opampbridge)</sup></sup>
+
+
+
+OpAMPBridgeStatus defines the observed state of OpAMPBridge.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>version</b></td>
+        <td>string</td>
+        <td>
+          Version of the managed OpAMP Bridge (operand)<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
 ## OpenTelemetryCollector
 <sup><sup>[↩ Parent](#opentelemetryiov1alpha1 )</sup></sup>
 
@@ -3693,6 +9640,13 @@ OpenTelemetryCollectorSpec defines the desired state of OpenTelemetryCollector.
         <td>[]object</td>
         <td>
           ConfigMaps is a list of ConfigMaps in the same namespace as the OpenTelemetryCollector object, which shall be mounted into the Collector Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecdeploymentupdatestrategy">deploymentUpdateStrategy</a></b></td>
+        <td>object</td>
+        <td>
+          UpdateStrategy represents the strategy the operator will take replacing existing Deployment pods with new pods https://kubernetes.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -3875,6 +9829,13 @@ OpenTelemetryCollectorSpec defines the desired state of OpenTelemetryCollector.
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>shareProcessNamespace</b></td>
+        <td>boolean</td>
+        <td>
+          ShareProcessNamespace indicates if the pod's containers should share process namespace.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#opentelemetrycollectorspectargetallocator">targetAllocator</a></b></td>
         <td>object</td>
         <td>
@@ -3902,6 +9863,13 @@ OpenTelemetryCollectorSpec defines the desired state of OpenTelemetryCollector.
         <td>[]object</td>
         <td>
           TopologySpreadConstraints embedded kubernetes pod configuration option, controls how pods are spread across your cluster among failure-domains such as regions, zones, nodes, and other user-defined top<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecupdatestrategy">updateStrategy</a></b></td>
+        <td>object</td>
+        <td>
+          UpdateStrategy represents the strategy the operator will take replacing existing DaemonSet pods with new pods https://kubernetes.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -4546,6 +10514,13 @@ PostStart is called immediately after a container is created. If the handler fai
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecadditionalcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          Sleep represents the duration that the container should sleep before being terminated.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#opentelemetrycollectorspecadditionalcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -4672,6 +10647,35 @@ HTTPHeader describes a custom header to be used in HTTP probes
 </table>
 
 
+### OpenTelemetryCollector.spec.additionalContainers[index].lifecycle.postStart.sleep
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecadditionalcontainersindexlifecyclepoststart)</sup></sup>
+
+
+
+Sleep represents the duration that the container should sleep before being terminated.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          Seconds is the number of seconds to sleep.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
 ### OpenTelemetryCollector.spec.additionalContainers[index].lifecycle.postStart.tcpSocket
 <sup><sup>[↩ Parent](#opentelemetrycollectorspecadditionalcontainersindexlifecyclepoststart)</sup></sup>
 
@@ -4734,6 +10738,13 @@ PreStop is called immediately before a container is terminated due to an API req
         <td>object</td>
         <td>
           HTTPGet specifies the http request to perform.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecadditionalcontainersindexlifecycleprestopsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          Sleep represents the duration that the container should sleep before being terminated.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -4857,6 +10868,35 @@ HTTPHeader describes a custom header to be used in HTTP probes
         <td>string</td>
         <td>
           The header field value<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.additionalContainers[index].lifecycle.preStop.sleep
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecadditionalcontainersindexlifecycleprestop)</sup></sup>
+
+
+
+Sleep represents the duration that the container should sleep before being terminated.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          Seconds is the number of seconds to sleep.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
         </td>
         <td>true</td>
       </tr></tbody>
@@ -6754,7 +12794,21 @@ Required. A pod affinity term, associated with the corresponding weight.
         <td><b><a href="#opentelemetrycollectorspecaffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector">labelSelector</a></b></td>
         <td>object</td>
         <td>
-          A label query over a set of resources, in this case pods.<br/>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -6780,7 +12834,7 @@ Required. A pod affinity term, associated with the corresponding weight.
 
 
 
-A label query over a set of resources, in this case pods.
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -6952,7 +13006,21 @@ Defines a set of pods (namely those matching the labelSelector relative to the g
         <td><b><a href="#opentelemetrycollectorspecaffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector">labelSelector</a></b></td>
         <td>object</td>
         <td>
-          A label query over a set of resources, in this case pods.<br/>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -6978,7 +13046,7 @@ Defines a set of pods (namely those matching the labelSelector relative to the g
 
 
 
-A label query over a set of resources, in this case pods.
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -7220,7 +13288,21 @@ Required. A pod affinity term, associated with the corresponding weight.
         <td><b><a href="#opentelemetrycollectorspecaffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector">labelSelector</a></b></td>
         <td>object</td>
         <td>
-          A label query over a set of resources, in this case pods.<br/>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -7246,7 +13328,7 @@ Required. A pod affinity term, associated with the corresponding weight.
 
 
 
-A label query over a set of resources, in this case pods.
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -7418,7 +13500,21 @@ Defines a set of pods (namely those matching the labelSelector relative to the g
         <td><b><a href="#opentelemetrycollectorspecaffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector">labelSelector</a></b></td>
         <td>object</td>
         <td>
-          A label query over a set of resources, in this case pods.<br/>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -7444,7 +13540,7 @@ Defines a set of pods (namely those matching the labelSelector relative to the g
 
 
 
-A label query over a set of resources, in this case pods.
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -8130,6 +14226,74 @@ target specifies the target value for the given metric
 </table>
 
 
+### OpenTelemetryCollector.spec.deploymentUpdateStrategy
+<sup><sup>[↩ Parent](#opentelemetrycollectorspec)</sup></sup>
+
+
+
+UpdateStrategy represents the strategy the operator will take replacing existing Deployment pods with new pods https://kubernetes.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspecdeploymentupdatestrategyrollingupdate">rollingUpdate</a></b></td>
+        <td>object</td>
+        <td>
+          Rolling update config params. Present only if DeploymentStrategyType = RollingUpdate. --- TODO: Update this to follow our convention for oneOf, whatever we decide it to be.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Type of deployment. Can be "Recreate" or "RollingUpdate". Default is RollingUpdate.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.deploymentUpdateStrategy.rollingUpdate
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecdeploymentupdatestrategy)</sup></sup>
+
+
+
+Rolling update config params. Present only if DeploymentStrategyType = RollingUpdate. --- TODO: Update this to follow our convention for oneOf, whatever we decide it to be.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>maxSurge</b></td>
+        <td>int or string</td>
+        <td>
+          The maximum number of pods that can be scheduled above the desired number of pods. Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>int or string</td>
+        <td>
+          The maximum number of pods that can be unavailable during the update. Value can be an absolute number (ex: 5) or a percentage of desired pods (ex: 10%).<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### OpenTelemetryCollector.spec.env[index]
 <sup><sup>[↩ Parent](#opentelemetrycollectorspec)</sup></sup>
 
@@ -8551,7 +14715,7 @@ Ingress is used to specify how OpenTelemetry Collector is exposed. This function
         <td>
           Type default value is: "" Supported types are: ingress, route<br/>
           <br/>
-            <i>Enum</i>: ingress, route<br/>
+            <i>Enum</i>: ingress, route, aws<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -9229,6 +15393,13 @@ PostStart is called immediately after a container is created. If the handler fai
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecinitcontainersindexlifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          Sleep represents the duration that the container should sleep before being terminated.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#opentelemetrycollectorspecinitcontainersindexlifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -9355,6 +15526,35 @@ HTTPHeader describes a custom header to be used in HTTP probes
 </table>
 
 
+### OpenTelemetryCollector.spec.initContainers[index].lifecycle.postStart.sleep
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecinitcontainersindexlifecyclepoststart)</sup></sup>
+
+
+
+Sleep represents the duration that the container should sleep before being terminated.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          Seconds is the number of seconds to sleep.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
 ### OpenTelemetryCollector.spec.initContainers[index].lifecycle.postStart.tcpSocket
 <sup><sup>[↩ Parent](#opentelemetrycollectorspecinitcontainersindexlifecyclepoststart)</sup></sup>
 
@@ -9417,6 +15617,13 @@ PreStop is called immediately before a container is terminated due to an API req
         <td>object</td>
         <td>
           HTTPGet specifies the http request to perform.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecinitcontainersindexlifecycleprestopsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          Sleep represents the duration that the container should sleep before being terminated.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -9540,6 +15747,35 @@ HTTPHeader describes a custom header to be used in HTTP probes
         <td>string</td>
         <td>
           The header field value<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.initContainers[index].lifecycle.preStop.sleep
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecinitcontainersindexlifecycleprestop)</sup></sup>
+
+
+
+Sleep represents the duration that the container should sleep before being terminated.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          Seconds is the number of seconds to sleep.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
         </td>
         <td>true</td>
       </tr></tbody>
@@ -11035,6 +17271,13 @@ PostStart is called immediately after a container is created. If the handler fai
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspeclifecyclepoststartsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          Sleep represents the duration that the container should sleep before being terminated.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#opentelemetrycollectorspeclifecyclepoststarttcpsocket">tcpSocket</a></b></td>
         <td>object</td>
         <td>
@@ -11161,6 +17404,35 @@ HTTPHeader describes a custom header to be used in HTTP probes
 </table>
 
 
+### OpenTelemetryCollector.spec.lifecycle.postStart.sleep
+<sup><sup>[↩ Parent](#opentelemetrycollectorspeclifecyclepoststart)</sup></sup>
+
+
+
+Sleep represents the duration that the container should sleep before being terminated.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          Seconds is the number of seconds to sleep.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
 ### OpenTelemetryCollector.spec.lifecycle.postStart.tcpSocket
 <sup><sup>[↩ Parent](#opentelemetrycollectorspeclifecyclepoststart)</sup></sup>
 
@@ -11223,6 +17495,13 @@ PreStop is called immediately before a container is terminated due to an API req
         <td>object</td>
         <td>
           HTTPGet specifies the http request to perform.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspeclifecycleprestopsleep">sleep</a></b></td>
+        <td>object</td>
+        <td>
+          Sleep represents the duration that the container should sleep before being terminated.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -11346,6 +17625,35 @@ HTTPHeader describes a custom header to be used in HTTP probes
         <td>string</td>
         <td>
           The header field value<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.lifecycle.preStop.sleep
+<sup><sup>[↩ Parent](#opentelemetrycollectorspeclifecycleprestop)</sup></sup>
+
+
+
+Sleep represents the duration that the container should sleep before being terminated.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>seconds</b></td>
+        <td>integer</td>
+        <td>
+          Seconds is the number of seconds to sleep.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
         </td>
         <td>true</td>
       </tr></tbody>
@@ -11504,10 +17812,17 @@ Metrics defines the metrics configuration for operands.
         </tr>
     </thead>
     <tbody><tr>
+        <td><b>DisablePrometheusAnnotations</b></td>
+        <td>boolean</td>
+        <td>
+          DisablePrometheusAnnotations controls the automatic addition of default Prometheus annotations ('prometheus.io/scrape', 'prometheus.io/port', and 'prometheus.io/path')<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>enableMetrics</b></td>
         <td>boolean</td>
         <td>
-          EnableMetrics specifies if ServiceMonitor should be created for the OpenTelemetry Collector and Prometheus Exporters. The operator.observability.<br/>
+          EnableMetrics specifies if ServiceMonitor or PodMonitor(for sidecar mode) should be created for the service managed by the OpenTelemetry Operator. The operator.observability.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -12230,12 +18545,20 @@ TargetAllocator indicates a value which determines whether to spawn a target all
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinity">affinity</a></b></td>
+        <td>object</td>
+        <td>
+          If specified, indicates the pod's scheduling constraints<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>allocationStrategy</b></td>
         <td>enum</td>
         <td>
-          AllocationStrategy determines which strategy the target allocator should use for allocation. The current options are least-weighted and consistent-hashing. The default option is least-weighted<br/>
+          AllocationStrategy determines which strategy the target allocator should use for allocation. The current options are least-weighted and consistent-hashing. The default option is consistent-hashing<br/>
           <br/>
             <i>Enum</i>: least-weighted, consistent-hashing<br/>
+            <i>Default</i>: consistent-hashing<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -12257,6 +18580,8 @@ TargetAllocator indicates a value which determines whether to spawn a target all
         <td>string</td>
         <td>
           FilterStrategy determines how to filter targets before allocating them among the collectors. The only current option is relabel-config (drops targets based on prom relabel_config).<br/>
+          <br/>
+            <i>Default</i>: relabel-config<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -12271,6 +18596,27 @@ TargetAllocator indicates a value which determines whether to spawn a target all
         <td>map[string]string</td>
         <td>
           NodeSelector to schedule OpenTelemetry TargetAllocator pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorobservability">observability</a></b></td>
+        <td>object</td>
+        <td>
+          ObservabilitySpec defines how telemetry data gets handled.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorpoddisruptionbudget">podDisruptionBudget</a></b></td>
+        <td>object</td>
+        <td>
+          PodDisruptionBudget specifies the pod disruption budget configuration to use for the target allocator workload.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorpodsecuritycontext">podSecurityContext</a></b></td>
+        <td>object</td>
+        <td>
+          PodSecurityContext configures the pod security context for the targetallocator.<br/>
         </td>
         <td>false</td>
       </tr><tr>
@@ -12297,6 +18643,13 @@ TargetAllocator indicates a value which determines whether to spawn a target all
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorsecuritycontext">securityContext</a></b></td>
+        <td>object</td>
+        <td>
+          SecurityContext configures the container security context for the targetallocator.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>serviceAccount</b></td>
         <td>string</td>
         <td>
@@ -12315,6 +18668,1364 @@ TargetAllocator indicates a value which determines whether to spawn a target all
         <td>[]object</td>
         <td>
           TopologySpreadConstraints embedded kubernetes pod configuration option, controls how pods are spread across your cluster among failure-domains such as regions, zones, nodes, and other user-defined top<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocator)</sup></sup>
+
+
+
+If specified, indicates the pod's scheduling constraints
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinity">nodeAffinity</a></b></td>
+        <td>object</td>
+        <td>
+          Describes node affinity scheduling rules for the pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinity">podAffinity</a></b></td>
+        <td>object</td>
+        <td>
+          Describes pod affinity scheduling rules (e.g. co-locate this pod in the same node, zone, etc. as some other pod(s)).<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinity">podAntiAffinity</a></b></td>
+        <td>object</td>
+        <td>
+          Describes pod anti-affinity scheduling rules (e.g. avoid putting this pod in the same node, zone, etc. as some other pod(s)).<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinity)</sup></sup>
+
+
+
+Describes node affinity scheduling rules for the pod.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindex">preferredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinityrequiredduringschedulingignoredduringexecution">requiredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>object</td>
+        <td>
+          If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinity)</sup></sup>
+
+
+
+An empty preferred scheduling term matches all objects with implicit weight 0 (i.e. it's a no-op). A null preferred scheduling term matches no objects (i.e. is also a no-op).
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference">preference</a></b></td>
+        <td>object</td>
+        <td>
+          A node selector term, associated with the corresponding weight.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>weight</b></td>
+        <td>integer</td>
+        <td>
+          Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A node selector term, associated with the corresponding weight.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreferencematchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's labels.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreferencematchfieldsindex">matchFields</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's fields.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].preference.matchFields[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinitypreferredduringschedulingignoredduringexecutionindexpreference)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinity)</sup></sup>
+
+
+
+If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex">nodeSelectorTerms</a></b></td>
+        <td>[]object</td>
+        <td>
+          Required. A list of node selector terms. The terms are ORed.<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinityrequiredduringschedulingignoredduringexecution)</sup></sup>
+
+
+
+A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindexmatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's labels.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindexmatchfieldsindex">matchFields</a></b></td>
+        <td>[]object</td>
+        <td>
+          A list of node selector requirements by node's fields.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index].matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[index].matchFields[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitynodeaffinityrequiredduringschedulingignoredduringexecutionnodeselectortermsindex)</sup></sup>
+
+
+
+A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          The label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinity)</sup></sup>
+
+
+
+Describes pod affinity scheduling rules (e.g. co-locate this pod in the same node, zone, etc. as some other pod(s)).
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindex">preferredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          The scheduler will prefer to schedule pods to nodes that satisfy the affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindex">requiredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          If the affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinity)</sup></sup>
+
+
+
+The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm">podAffinityTerm</a></b></td>
+        <td>object</td>
+        <td>
+          Required. A pod affinity term, associated with the corresponding weight.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>weight</b></td>
+        <td>integer</td>
+        <td>
+          weight associated with matching the corresponding podAffinityTerm, in the range 1-100.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+Required. A pod affinity term, associated with the corresponding weight.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinity)</sup></sup>
+
+
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-locate
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinity)</sup></sup>
+
+
+
+Describes pod anti-affinity scheduling rules (e.g. avoid putting this pod in the same node, zone, etc. as some other pod(s)).
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindex">preferredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          The scheduler will prefer to schedule pods to nodes that satisfy the anti-affinity expressions specified by this field, but it may choose a node that violates one or more of the expressions.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindex">requiredDuringSchedulingIgnoredDuringExecution</a></b></td>
+        <td>[]object</td>
+        <td>
+          If the anti-affinity requirements specified by this field are not met at scheduling time, the pod will not be scheduled onto the node.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinity)</sup></sup>
+
+
+
+The weights of all of the matched WeightedPodAffinityTerm fields are added per-node to find the most preferred node(s)
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm">podAffinityTerm</a></b></td>
+        <td>object</td>
+        <td>
+          Required. A pod affinity term, associated with the corresponding weight.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>weight</b></td>
+        <td>integer</td>
+        <td>
+          weight associated with matching the corresponding podAffinityTerm, in the range 1-100.<br/>
+          <br/>
+            <i>Format</i>: int32<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+Required. A pod affinity term, associated with the corresponding weight.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinityterm)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution[index].podAffinityTerm.namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinitypreferredduringschedulingignoredduringexecutionindexpodaffinitytermnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinity)</sup></sup>
+
+
+
+Defines a set of pods (namely those matching the labelSelector relative to the given namespace(s)) that this pod should be co-located (affinity) or not co-located (anti-affinity) with, where co-locate
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>topologyKey</b></td>
+        <td>string</td>
+        <td>
+          This pod should be co-located (affinity) or not co-located (anti-affinity) with the pods matching the labelSelector in the specified namespaces, where co-located is defined as running on a node whose <br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>mismatchLabelKeys</b></td>
+        <td>[]string</td>
+        <td>
+          MismatchLabelKeys is a set of pod label keys to select which pods will be taken into consideration.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector">namespaceSelector</a></b></td>
+        <td>object</td>
+        <td>
+          A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>namespaces</b></td>
+        <td>[]string</td>
+        <td>
+          namespaces specifies a static list of namespace names that the term applies to. The term is applied to the union of the namespaces listed in this field and the ones selected by namespaceSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexlabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindex)</sup></sup>
+
+
+
+A label query over the set of namespaces that the term applies to. The term is applied to the union of the namespaces selected by this field and the ones listed in the namespaces field.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution[index].namespaceSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatoraffinitypodantiaffinityrequiredduringschedulingignoredduringexecutionindexnamespaceselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -12567,6 +20278,363 @@ Selects a key of a secret in the pod's namespace
 </table>
 
 
+### OpenTelemetryCollector.spec.targetAllocator.observability
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocator)</sup></sup>
+
+
+
+ObservabilitySpec defines how telemetry data gets handled.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorobservabilitymetrics">metrics</a></b></td>
+        <td>object</td>
+        <td>
+          Metrics defines the metrics configuration for operands.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.observability.metrics
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorobservability)</sup></sup>
+
+
+
+Metrics defines the metrics configuration for operands.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>DisablePrometheusAnnotations</b></td>
+        <td>boolean</td>
+        <td>
+          DisablePrometheusAnnotations controls the automatic addition of default Prometheus annotations ('prometheus.io/scrape', 'prometheus.io/port', and 'prometheus.io/path')<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>enableMetrics</b></td>
+        <td>boolean</td>
+        <td>
+          EnableMetrics specifies if ServiceMonitor or PodMonitor(for sidecar mode) should be created for the service managed by the OpenTelemetry Operator. The operator.observability.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.podDisruptionBudget
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocator)</sup></sup>
+
+
+
+PodDisruptionBudget specifies the pod disruption budget configuration to use for the target allocator workload.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>int or string</td>
+        <td>
+          An eviction is allowed if at most "maxUnavailable" pods selected by "selector" are unavailable after the eviction, i.e. even in absence of the evicted pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>minAvailable</b></td>
+        <td>int or string</td>
+        <td>
+          An eviction is allowed if at least "minAvailable" pods selected by "selector" will still be available after the eviction, i.e. even in the absence of the evicted pod.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.podSecurityContext
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocator)</sup></sup>
+
+
+
+PodSecurityContext configures the pod security context for the targetallocator.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>fsGroup</b></td>
+        <td>integer</td>
+        <td>
+          A special supplemental group that applies to all containers in a pod. Some volume types allow the Kubelet to change the ownership of that volume to be owned by the pod: 
+ 1.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>fsGroupChangePolicy</b></td>
+        <td>string</td>
+        <td>
+          fsGroupChangePolicy defines behavior of changing ownership and permission of the volume before being exposed inside Pod.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in SecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates that the container must run as a non-root user.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in SecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorpodsecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The SELinux context to be applied to all containers. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in SecurityContext.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorpodsecuritycontextseccompprofile">seccompProfile</a></b></td>
+        <td>object</td>
+        <td>
+          The seccomp options to use by the containers in this pod. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>supplementalGroups</b></td>
+        <td>[]integer</td>
+        <td>
+          A list of groups applied to the first process run in each container, in addition to the container's primary GID, the fsGroup (if specified), and group memberships defined in the container image for th<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorpodsecuritycontextsysctlsindex">sysctls</a></b></td>
+        <td>[]object</td>
+        <td>
+          Sysctls hold a list of namespaced sysctls used for the pod. Pods with unsupported sysctls (by the container runtime) might fail to launch. Note that this field cannot be set when spec.os.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorpodsecuritycontextwindowsoptions">windowsOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The Windows specific settings applied to all containers. If unspecified, the options within a container's SecurityContext will be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.podSecurityContext.seLinuxOptions
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorpodsecuritycontext)</sup></sup>
+
+
+
+The SELinux context to be applied to all containers. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in SecurityContext.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>level</b></td>
+        <td>string</td>
+        <td>
+          Level is SELinux level label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>role</b></td>
+        <td>string</td>
+        <td>
+          Role is a SELinux role label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Type is a SELinux type label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>user</b></td>
+        <td>string</td>
+        <td>
+          User is a SELinux user label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.podSecurityContext.seccompProfile
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorpodsecuritycontext)</sup></sup>
+
+
+
+The seccomp options to use by the containers in this pod. Note that this field cannot be set when spec.os.name is windows.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          type indicates which kind of seccomp profile will be applied. Valid options are: 
+ Localhost - a profile defined in a file on the node should be used.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.podSecurityContext.sysctls[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorpodsecuritycontext)</sup></sup>
+
+
+
+Sysctl defines a kernel parameter to be set
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Name of a property to set<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          Value of a property to set<br/>
+        </td>
+        <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.podSecurityContext.windowsOptions
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorpodsecuritycontext)</sup></sup>
+
+
+
+The Windows specific settings applied to all containers. If unspecified, the options within a container's SecurityContext will be used.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>gmsaCredentialSpec</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpec is where the GMSA admission webhook (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the GMSA credential spec named by the GMSACredentialSpecName field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gmsaCredentialSpecName</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpecName is the name of the GMSA credential spec to use.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>hostProcess</b></td>
+        <td>boolean</td>
+        <td>
+          HostProcess determines if a container should be run as a 'Host Process' container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUserName</b></td>
+        <td>string</td>
+        <td>
+          The UserName in Windows to run the entrypoint of the container process. Defaults to the user specified in image metadata if unspecified. May also be set in PodSecurityContext.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### OpenTelemetryCollector.spec.targetAllocator.prometheusCR
 <sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocator)</sup></sup>
 
@@ -12684,6 +20752,272 @@ ResourceClaim references one entry in PodSpec.ResourceClaims.
           Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.<br/>
         </td>
         <td>true</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.securityContext
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocator)</sup></sup>
+
+
+
+SecurityContext configures the container security context for the targetallocator.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>allowPrivilegeEscalation</b></td>
+        <td>boolean</td>
+        <td>
+          AllowPrivilegeEscalation controls whether a process can gain more privileges than its parent process. This bool directly controls if the no_new_privs flag will be set on the container process.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorsecuritycontextcapabilities">capabilities</a></b></td>
+        <td>object</td>
+        <td>
+          The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>privileged</b></td>
+        <td>boolean</td>
+        <td>
+          Run container in privileged mode. Processes in privileged containers are essentially equivalent to root on the host. Defaults to false. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>procMount</b></td>
+        <td>string</td>
+        <td>
+          procMount denotes the type of proc mount to use for the containers. The default is DefaultProcMount which uses the container runtime defaults for readonly paths and masked paths.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>readOnlyRootFilesystem</b></td>
+        <td>boolean</td>
+        <td>
+          Whether this container has a read-only root filesystem. Default is false. Note that this field cannot be set when spec.os.name is windows.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsGroup</b></td>
+        <td>integer</td>
+        <td>
+          The GID to run the entrypoint of the container process. Uses runtime default if unset. May also be set in PodSecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsNonRoot</b></td>
+        <td>boolean</td>
+        <td>
+          Indicates that the container must run as a non-root user.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUser</b></td>
+        <td>integer</td>
+        <td>
+          The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext.<br/>
+          <br/>
+            <i>Format</i>: int64<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorsecuritycontextselinuxoptions">seLinuxOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The SELinux context to be applied to the container. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in PodSecurityContext.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorsecuritycontextseccompprofile">seccompProfile</a></b></td>
+        <td>object</td>
+        <td>
+          The seccomp options to use by this container. If seccomp options are provided at both the pod & container level, the container options override the pod options.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspectargetallocatorsecuritycontextwindowsoptions">windowsOptions</a></b></td>
+        <td>object</td>
+        <td>
+          The Windows specific settings applied to all containers. If unspecified, the options from the PodSecurityContext will be used.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.securityContext.capabilities
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorsecuritycontext)</sup></sup>
+
+
+
+The capabilities to add/drop when running containers. Defaults to the default set of capabilities granted by the container runtime. Note that this field cannot be set when spec.os.name is windows.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>add</b></td>
+        <td>[]string</td>
+        <td>
+          Added capabilities<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>drop</b></td>
+        <td>[]string</td>
+        <td>
+          Removed capabilities<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.securityContext.seLinuxOptions
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorsecuritycontext)</sup></sup>
+
+
+
+The SELinux context to be applied to the container. If unspecified, the container runtime will allocate a random SELinux context for each container.  May also be set in PodSecurityContext.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>level</b></td>
+        <td>string</td>
+        <td>
+          Level is SELinux level label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>role</b></td>
+        <td>string</td>
+        <td>
+          Role is a SELinux role label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Type is a SELinux type label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>user</b></td>
+        <td>string</td>
+        <td>
+          User is a SELinux user label that applies to the container.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.securityContext.seccompProfile
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorsecuritycontext)</sup></sup>
+
+
+
+The seccomp options to use by this container. If seccomp options are provided at both the pod & container level, the container options override the pod options.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          type indicates which kind of seccomp profile will be applied. Valid options are: 
+ Localhost - a profile defined in a file on the node should be used.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>localhostProfile</b></td>
+        <td>string</td>
+        <td>
+          localhostProfile indicates a profile defined in a file on the node should be used. The profile must be preconfigured on the node to work.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.targetAllocator.securityContext.windowsOptions
+<sup><sup>[↩ Parent](#opentelemetrycollectorspectargetallocatorsecuritycontext)</sup></sup>
+
+
+
+The Windows specific settings applied to all containers. If unspecified, the options from the PodSecurityContext will be used.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>gmsaCredentialSpec</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpec is where the GMSA admission webhook (https://github.com/kubernetes-sigs/windows-gmsa) inlines the contents of the GMSA credential spec named by the GMSACredentialSpecName field.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>gmsaCredentialSpecName</b></td>
+        <td>string</td>
+        <td>
+          GMSACredentialSpecName is the name of the GMSA credential spec to use.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>hostProcess</b></td>
+        <td>boolean</td>
+        <td>
+          HostProcess determines if a container should be run as a 'Host Process' container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>runAsUserName</b></td>
+        <td>string</td>
+        <td>
+          The UserName in Windows to run the entrypoint of the container process. Defaults to the user specified in image metadata if unspecified. May also be set in PodSecurityContext.<br/>
+        </td>
+        <td>false</td>
       </tr></tbody>
 </table>
 
@@ -13112,6 +21446,74 @@ A label selector requirement is a selector that contains values, a key, and an o
 </table>
 
 
+### OpenTelemetryCollector.spec.updateStrategy
+<sup><sup>[↩ Parent](#opentelemetrycollectorspec)</sup></sup>
+
+
+
+UpdateStrategy represents the strategy the operator will take replacing existing DaemonSet pods with new pods https://kubernetes.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspecupdatestrategyrollingupdate">rollingUpdate</a></b></td>
+        <td>object</td>
+        <td>
+          Rolling update config params. Present only if type = "RollingUpdate". --- TODO: Update this to follow our convention for oneOf, whatever we decide it to be. Same as Deployment `strategy.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>type</b></td>
+        <td>string</td>
+        <td>
+          Type of daemon set update. Can be "RollingUpdate" or "OnDelete". Default is RollingUpdate.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.updateStrategy.rollingUpdate
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecupdatestrategy)</sup></sup>
+
+
+
+Rolling update config params. Present only if type = "RollingUpdate". --- TODO: Update this to follow our convention for oneOf, whatever we decide it to be. Same as Deployment `strategy.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>maxSurge</b></td>
+        <td>int or string</td>
+        <td>
+          The maximum number of nodes with an existing available DaemonSet pod that can have an updated DaemonSet pod during during an update.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>maxUnavailable</b></td>
+        <td>int or string</td>
+        <td>
+          The maximum number of DaemonSet pods that can be unavailable during the update.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### OpenTelemetryCollector.spec.volumeClaimTemplates[index]
 <sup><sup>[↩ Parent](#opentelemetrycollectorspec)</sup></sup>
 
@@ -13281,6 +21683,13 @@ spec defines the desired characteristics of a volume requested by a pod author. 
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          volumeAttributesClassName may be used to set the VolumeAttributesClass used by this claim.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -13404,14 +21813,6 @@ resources represents the minimum resources the volume should have.
         </tr>
     </thead>
     <tbody><tr>
-        <td><b><a href="#opentelemetrycollectorspecvolumeclaimtemplatesindexspecresourcesclaimsindex">claims</a></b></td>
-        <td>[]object</td>
-        <td>
-          Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container. 
- This is an alpha field and requires enabling the DynamicResourceAllocation feature gate.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -13425,33 +21826,6 @@ resources represents the minimum resources the volume should have.
           Requests describes the minimum amount of compute resources required.<br/>
         </td>
         <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### OpenTelemetryCollector.spec.volumeClaimTemplates[index].spec.resources.claims[index]
-<sup><sup>[↩ Parent](#opentelemetrycollectorspecvolumeclaimtemplatesindexspecresources)</sup></sup>
-
-
-
-ResourceClaim references one entry in PodSpec.ResourceClaims.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.<br/>
-        </td>
-        <td>true</td>
       </tr></tbody>
 </table>
 
@@ -13583,6 +21957,20 @@ status represents the current information/status of a persistent volume claim. R
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>currentVolumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          currentVolumeAttributesClassName is the current name of the VolumeAttributesClass the PVC is using.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecvolumeclaimtemplatesindexstatusmodifyvolumestatus">modifyVolumeStatus</a></b></td>
+        <td>object</td>
+        <td>
+          ModifyVolumeStatus represents the status object of ControllerModifyVolume operation. When this is unset, there is no ModifyVolume operation being attempted.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>phase</b></td>
         <td>string</td>
         <td>
@@ -13653,6 +22041,40 @@ PersistentVolumeClaimCondition contains details about state of pvc
         <td>string</td>
         <td>
           reason is a unique, this should be a short, machine understandable string that gives the reason for condition's last transition.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.volumeClaimTemplates[index].status.modifyVolumeStatus
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecvolumeclaimtemplatesindexstatus)</sup></sup>
+
+
+
+ModifyVolumeStatus represents the status object of ControllerModifyVolume operation. When this is unset, there is no ModifyVolume operation being attempted.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>status</b></td>
+        <td>string</td>
+        <td>
+          status is the status of the ControllerModifyVolume operation.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>targetVolumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          targetVolumeAttributesClassName is the name of the VolumeAttributesClass the PVC currently being reconciled<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -14758,6 +23180,13 @@ The specification for the PersistentVolumeClaim. The entire content is copied un
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b>volumeAttributesClassName</b></td>
+        <td>string</td>
+        <td>
+          volumeAttributesClassName may be used to set the VolumeAttributesClass used by this claim.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>volumeMode</b></td>
         <td>string</td>
         <td>
@@ -14881,14 +23310,6 @@ resources represents the minimum resources the volume should have.
         </tr>
     </thead>
     <tbody><tr>
-        <td><b><a href="#opentelemetrycollectorspecvolumesindexephemeralvolumeclaimtemplatespecresourcesclaimsindex">claims</a></b></td>
-        <td>[]object</td>
-        <td>
-          Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container. 
- This is an alpha field and requires enabling the DynamicResourceAllocation feature gate.<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>limits</b></td>
         <td>map[string]int or string</td>
         <td>
@@ -14902,33 +23323,6 @@ resources represents the minimum resources the volume should have.
           Requests describes the minimum amount of compute resources required.<br/>
         </td>
         <td>false</td>
-      </tr></tbody>
-</table>
-
-
-### OpenTelemetryCollector.spec.volumes[index].ephemeral.volumeClaimTemplate.spec.resources.claims[index]
-<sup><sup>[↩ Parent](#opentelemetrycollectorspecvolumesindexephemeralvolumeclaimtemplatespecresources)</sup></sup>
-
-
-
-ResourceClaim references one entry in PodSpec.ResourceClaims.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>name</b></td>
-        <td>string</td>
-        <td>
-          Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.<br/>
-        </td>
-        <td>true</td>
       </tr></tbody>
 </table>
 
@@ -15731,6 +24125,14 @@ Projection that may be projected along with other supported volume types
         </tr>
     </thead>
     <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspecvolumesindexprojectedsourcesindexclustertrustbundle">clusterTrustBundle</a></b></td>
+        <td>object</td>
+        <td>
+          ClusterTrustBundle allows a pod to access the `.spec.trustBundle` field of ClusterTrustBundle objects in an auto-updating file. 
+ Alpha, gated by the ClusterTrustBundleProjection feature gate.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#opentelemetrycollectorspecvolumesindexprojectedsourcesindexconfigmap">configMap</a></b></td>
         <td>object</td>
         <td>
@@ -15756,6 +24158,137 @@ Projection that may be projected along with other supported volume types
         <td>object</td>
         <td>
           serviceAccountToken is information about the serviceAccountToken data to project<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.volumes[index].projected.sources[index].clusterTrustBundle
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecvolumesindexprojectedsourcesindex)</sup></sup>
+
+
+
+ClusterTrustBundle allows a pod to access the `.spec.trustBundle` field of ClusterTrustBundle objects in an auto-updating file. 
+ Alpha, gated by the ClusterTrustBundleProjection feature gate.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>path</b></td>
+        <td>string</td>
+        <td>
+          Relative path from the volume root to write the bundle.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b><a href="#opentelemetrycollectorspecvolumesindexprojectedsourcesindexclustertrustbundlelabelselector">labelSelector</a></b></td>
+        <td>object</td>
+        <td>
+          Select all ClusterTrustBundles that match this label selector.  Only has effect if signerName is set.  Mutually-exclusive with name.  If unset, interpreted as "match nothing".<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Select a single ClusterTrustBundle by object name.  Mutually-exclusive with signerName and labelSelector.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>optional</b></td>
+        <td>boolean</td>
+        <td>
+          If true, don't block pod startup if the referenced ClusterTrustBundle(s) aren't available.  If using name, then the named ClusterTrustBundle is allowed not to exist.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>signerName</b></td>
+        <td>string</td>
+        <td>
+          Select all ClusterTrustBundles that match this signer name. Mutually-exclusive with name.  The contents of all selected ClusterTrustBundles will be unified and deduplicated.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecvolumesindexprojectedsourcesindexclustertrustbundle)</sup></sup>
+
+
+
+Select all ClusterTrustBundles that match this label selector.  Only has effect if signerName is set.  Mutually-exclusive with name.  If unset, interpreted as "match nothing".
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b><a href="#opentelemetrycollectorspecvolumesindexprojectedsourcesindexclustertrustbundlelabelselectormatchexpressionsindex">matchExpressions</a></b></td>
+        <td>[]object</td>
+        <td>
+          matchExpressions is a list of label selector requirements. The requirements are ANDed.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>matchLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          matchLabels is a map of {key,value} pairs.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### OpenTelemetryCollector.spec.volumes[index].projected.sources[index].clusterTrustBundle.labelSelector.matchExpressions[index]
+<sup><sup>[↩ Parent](#opentelemetrycollectorspecvolumesindexprojectedsourcesindexclustertrustbundlelabelselector)</sup></sup>
+
+
+
+A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>key</b></td>
+        <td>string</td>
+        <td>
+          key is the label key that the selector applies to.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>operator</b></td>
+        <td>string</td>
+        <td>
+          operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>values</b></td>
+        <td>[]string</td>
+        <td>
+          values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty.<br/>
         </td>
         <td>false</td>
       </tr></tbody>

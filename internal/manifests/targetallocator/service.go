@@ -27,7 +27,7 @@ func Service(params manifests.Params) *corev1.Service {
 	name := naming.TAService(params.OtelCol.Name)
 	labels := Labels(params.OtelCol, name)
 
-	selector := Labels(params.OtelCol, name)
+	selector := SelectorLabels(params.OtelCol)
 
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
@@ -40,7 +40,7 @@ func Service(params manifests.Params) *corev1.Service {
 			Ports: []corev1.ServicePort{{
 				Name:       "targetallocation",
 				Port:       80,
-				TargetPort: intstr.FromInt(8080),
+				TargetPort: intstr.FromString("http"),
 			}},
 		},
 	}

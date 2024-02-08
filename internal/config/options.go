@@ -17,12 +17,12 @@ package config
 import (
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/go-logr/logr"
 
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
 	"github.com/open-telemetry/opentelemetry-operator/internal/version"
-	"github.com/open-telemetry/opentelemetry-operator/pkg/autodetect"
 )
 
 // Option represents one specific configuration option.
@@ -41,23 +41,18 @@ type options struct {
 	autoInstrumentationNginxImage       string
 	collectorImage                      string
 	collectorConfigMapEntry             string
+	createRBACPermissions               bool
 	targetAllocatorConfigMapEntry       string
+	operatorOpAMPBridgeConfigMapEntry   string
 	targetAllocatorImage                string
 	operatorOpAMPBridgeImage            string
-	onOpenShiftRoutesChange             changeHandler
+	openshiftRoutesAvailability         openshift.RoutesAvailability
 	labelsFilter                        []string
-	openshiftRoutes                     openshiftRoutesStore
-	autoDetectFrequency                 time.Duration
 }
 
 func WithAutoDetect(a autodetect.AutoDetect) Option {
 	return func(o *options) {
 		o.autoDetect = a
-	}
-}
-func WithAutoDetectFrequency(t time.Duration) Option {
-	return func(o *options) {
-		o.autoDetectFrequency = t
 	}
 }
 func WithTargetAllocatorImage(s string) Option {
@@ -80,28 +75,24 @@ func WithCollectorConfigMapEntry(s string) Option {
 		o.collectorConfigMapEntry = s
 	}
 }
+func WithCreateRBACPermissions(s bool) Option {
+	return func(o *options) {
+		o.createRBACPermissions = s
+	}
+}
 func WithTargetAllocatorConfigMapEntry(s string) Option {
 	return func(o *options) {
 		o.targetAllocatorConfigMapEntry = s
 	}
 }
+func WithOperatorOpAMPBridgeConfigMapEntry(s string) Option {
+	return func(o *options) {
+		o.operatorOpAMPBridgeConfigMapEntry = s
+	}
+}
 func WithLogger(logger logr.Logger) Option {
 	return func(o *options) {
 		o.logger = logger
-	}
-}
-
-func WithOnOpenShiftRoutesChangeCallback(f func() error) Option {
-	return func(o *options) {
-		if o.onOpenShiftRoutesChange == nil {
-			o.onOpenShiftRoutesChange = newOnChange()
-		}
-		o.onOpenShiftRoutesChange.Register(f)
-	}
-}
-func WithPlatform(ora autodetect.OpenShiftRoutesAvailability) Option {
-	return func(o *options) {
-		o.openshiftRoutes.Set(ora)
 	}
 }
 func WithVersion(v version.Version) Option {
@@ -149,6 +140,12 @@ func WithAutoInstrumentationApacheHttpdImage(s string) Option {
 func WithAutoInstrumentationNginxImage(s string) Option {
 	return func(o *options) {
 		o.autoInstrumentationNginxImage = s
+	}
+}
+
+func WithOpenShiftRoutesAvailability(os openshift.RoutesAvailability) Option {
+	return func(o *options) {
+		o.openshiftRoutesAvailability = os
 	}
 }
 
