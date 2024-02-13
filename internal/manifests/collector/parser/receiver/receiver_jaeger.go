@@ -134,8 +134,8 @@ func (j *JaegerReceiverParser) ParserName() string {
 }
 
 // mydecisive.
-// PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
-func (j *JaegerReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+// CompPortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (j *JaegerReceiverParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
 	var portsUrlPaths = []parser.PortUrlPaths{}
 
 	for _, protocol := range []struct {
@@ -210,7 +210,7 @@ func (j *JaegerReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 				UrlPaths: urlPaths})
 		}
 	}
-	return portsUrlPaths, nil
+	return parser.CompPortUrlPaths{j.name: portsUrlPaths}, nil
 }
 
 func init() {
