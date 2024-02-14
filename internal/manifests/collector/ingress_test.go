@@ -17,7 +17,6 @@ package collector
 import (
 	_ "embed"
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -317,7 +316,7 @@ func TestDesiredIngresses(t *testing.T) {
 
 		pathType := networkingv1.PathTypePrefix
 
-		assert.True(t, reflect.DeepEqual(&networkingv1.Ingress{
+		assert.Equal(t, &networkingv1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        naming.Ingress(params.OtelCol.Name),
 				Namespace:   ns,
@@ -420,7 +419,7 @@ func TestDesiredIngresses(t *testing.T) {
 					},
 				},
 			},
-		}, got))
+		}, got)
 	})
 	t.Run("aws alb controller missing mapping", func(t *testing.T) {
 		var (
@@ -451,7 +450,7 @@ func TestDesiredIngresses(t *testing.T) {
 
 		pathType := networkingv1.PathTypePrefix
 
-		assert.True(t, reflect.DeepEqual(&networkingv1.Ingress{
+		assert.Equal(t, &networkingv1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        naming.Ingress(params.OtelCol.Name),
 				Namespace:   ns,
@@ -533,6 +532,6 @@ func TestDesiredIngresses(t *testing.T) {
 					},
 				},
 			},
-		}, got))
+		}, got)
 	})
 }

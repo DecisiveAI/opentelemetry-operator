@@ -82,7 +82,7 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 			}
 			switch params.OtelCol.Spec.Ingress.RuleType {
 			case v1alpha1.IngressRuleTypePath, "":
-				if (params.OtelCol.Spec.Ingress.CollectorEndpoints != nil) || (len(params.OtelCol.Spec.Ingress.CollectorEndpoints) == 0) {
+				if params.OtelCol.Spec.Ingress.CollectorEndpoints != nil || len(params.OtelCol.Spec.Ingress.CollectorEndpoints) == 0 {
 					rules = createPathIngressRulesUrlPaths(params.Log, params.OtelCol.Name, params.OtelCol.Spec.Ingress.CollectorEndpoints, compPortsEndpoints)
 				} else {
 					return nil, errors.New("empty components to hostnames mapping")
@@ -101,7 +101,7 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 		return nil, nil
 	}
 
-	if (rules == nil) || (len(rules) == 0) {
+	if rules == nil || len(rules) == 0 {
 		params.Log.V(1).Info(
 			"could not configure any ingress rules for the instance's configuration, skipping ingress",
 			"instance.name", params.OtelCol.Name,

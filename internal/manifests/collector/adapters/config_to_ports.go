@@ -204,11 +204,6 @@ func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, con
 		}
 		maps.Copy(compPortsUrlPaths, rcvrPortsUrlPaths)
 	}
-
-	//sort.Slice(portsUrlPaths, func(i, j int) bool {
-	//	return portsUrlPaths[i].Port.Name < portsUrlPaths[j].Port.Name
-	//})
-
 	return compPortsUrlPaths, nil
 }
 

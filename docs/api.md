@@ -14676,8 +14676,7 @@ Ingress is used to specify how OpenTelemetry Collector is exposed. This function
         <td><b>collectorEndpoints</b></td>
         <td>map[string]string</td>
         <td>
-          mydecisive, CollectorEndpoints should contain dns names for all collectors endpoints (grpc receivers) mapped to receivers names e.g. : 
- otlp/1: otlp1.grpc.some.domain otlp/2: otlp2.grpc.some.domain<br/>
+          mydecisive, CollectorEndpoints should contain dns names for all collectors endpoints (grpc receivers) mapped to receivers names e.g. : otlp/1: otlp1.grpc.some.domain otlp/2: otlp2.grpc.some.domain<br/>
         </td>
         <td>false</td>
       </tr><tr>
