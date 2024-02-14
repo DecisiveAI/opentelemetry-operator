@@ -12,6 +12,99 @@ The operator manages:
 
 * [API docs](./docs/api.md)
 
+## Mydecisive.ai modifications
+
+Were made to support AWS ELB (both ALB and NLB) as Ingress controller for collector's receivers endpoints, and satisfy AWS Load Balancer Controller requirements for Ingress and Service resources.
+New Ingress type `aws` has been added, and it needs to be set in the collector's Custom Resource:
+```yaml
+spec:
+  ingress:
+    type: aws
+```
+
+### non-gRPC flow
+Operator creates one Service resource per collector, containing rules for all `non-grpc` receivers or listeners (if any).
+For all `non-grpc` (http, tcp, udp) receivers (or receiver listeners) one Network Load Balancer (`NLB`) instance.
+The NLB would contain multiple Listener (one per receiver), listening on its own port. Thus, incoming data flow can be routed to different collector's receiver using port number.
+SSL certificate ARN needs to be set in the Custom Resource for the collector:
+```yaml
+metadata:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:${REGION}:${ACCOUNT}:certificate/${AWS_CERT_ID}
+```
+
+
+### gRPC flow
+Operator creates one Ingress resource per collector containing rules for all `grpc`  receivers or listeners (if any).
+For `grpc` receivers  one instance of Application Load Balancer (`ALB`) will be provisioned.
+ALB would have just one Listener for all the receivers, so additional efforts to manage routing are required.
+Ingress resource would have both `host` and `path` values in it: 
+```yaml
+spec:
+  rules:
+  - host: loki-1.grpc.endpoint.collector.domain
+    http:
+      paths:
+      - backend:
+          service:
+            name: my-collector-collector-behind-ingress
+            port:
+              name: loki-1-grpc
+        path: /logproto.Pusher
+        pathType: Prefix
+  - host: loki-2.grpc.endpoint.collector.domain
+    http:
+      paths:
+      - backend:
+          service:
+            name: my-collector-collector-behind-ingress
+            port:
+              name: loki-2-grpc
+        path: /logproto.Pusher
+        pathType: Prefix
+  - host: otlp.grpc.endpoint.collector.domain
+    http:
+      paths:
+      - backend:
+          service:
+            name: my-collector-collector-behind-ingress
+            port:
+              name: otlp-grpc
+        path: /opentelemetry.proto.collector.logs.v1.LogsService
+        pathType: Prefix
+      - backend:
+          service:
+            name: my-collector-collector-behind-ingress
+            port:
+              name: otlp-grpc
+        path: /opentelemetry.proto.collector.traces.v1.TracesService
+        pathType: Prefix
+      - backend:
+          service:
+            name: my-collector-collector-behind-ingress
+            port:
+              name: otlp-grpc
+        path: /opentelemetry.proto.collector.metrics.v1.MetricsService
+        pathType: Prefix
+```
+Where `host` values are taken from the component-to-host mapping within collector Custom Resource:
+```yaml
+spec:
+  ingress:
+    collectorEndpoints:
+      loki/1: loki-1.grpc.endpoint.collector.domain
+      loki/2: loki-2.grpc.endpoint.collector.domain
+      otlp: otlp.grpc.endpoint.collector.domain
+```
+This mapping is supposed to be in sync with the collector config.
+Wildcard SSL certificate ARN (or multiple cert ARNs, coma separated) needs to be set in the Custom Resource for the collector:
+```yaml
+spec:
+ingress:
+  annotations:
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:${REGION}:${ACCOUNT}:certificate/${AWS_CERT_ID_1},arn:aws:acm:${REGION}:${ACCOUNT}:certificate/${AWS_CERT_ID_2}
+```
+
 ## Helm Charts
 
 You can install Opentelemetry Operator via [Helm Chart](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-operator) from the opentelemetry-helm-charts repository. More information is available in [here](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-operator).
