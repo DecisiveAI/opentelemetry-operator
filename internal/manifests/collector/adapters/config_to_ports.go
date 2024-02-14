@@ -16,6 +16,7 @@ package adapters
 
 import (
 	"fmt"
+	"maps"
 	"net"
 	"sort"
 	"strconv"
@@ -146,7 +147,7 @@ func ConfigToPorts(logger logr.Logger, config map[interface{}]interface{}) ([]co
 
 // mydecisive.
 // ConfigToComponentPortsEndpoints converts the incoming configuration object into a set of service ports + endpoints required by the receivers.
-func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, config map[interface{}]interface{}) ([]parser.PortUrlPaths, error) {
+func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, config map[interface{}]interface{}) (parser.CompPortUrlPaths, error) {
 	componentsProperty, ok := config[fmt.Sprintf("%ss", cType.String())]
 	if !ok {
 		return nil, fmt.Errorf("no %ss available as part of the configuration", cType)
@@ -163,7 +164,7 @@ func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, con
 		return nil, fmt.Errorf("no enabled %ss available as part of the configuration", cType)
 	}
 
-	portsUrlPaths := []parser.PortUrlPaths{}
+	compPortsUrlPaths := parser.CompPortUrlPaths{}
 	for key, val := range components {
 		// This check will pass only the enabled receivers,
 		// then only the related ports will be opened.
@@ -193,7 +194,7 @@ func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, con
 			continue
 		}
 
-		rcvrPortsUrlPaths, err := cmptParser.PortsUrlPaths()
+		rcvrPortsUrlPaths, err := cmptParser.CompPortsUrlPaths()
 		if err != nil {
 			// should we break the process and return an error, or just ignore this faulty parser
 			// and let the other parsers add their ports to the service? right now, the best
@@ -201,15 +202,9 @@ func ConfigToComponentPortsUrlPaths(logger logr.Logger, cType ComponentType, con
 			logger.Error(err, "parser for '%s' has returned an error: %w", cmptName, err)
 			continue
 		}
-
-		portsUrlPaths = append(portsUrlPaths, rcvrPortsUrlPaths...)
+		maps.Copy(compPortsUrlPaths, rcvrPortsUrlPaths)
 	}
-
-	sort.Slice(portsUrlPaths, func(i, j int) bool {
-		return portsUrlPaths[i].Port.Name < portsUrlPaths[j].Port.Name
-	})
-
-	return portsUrlPaths, nil
+	return compPortsUrlPaths, nil
 }
 
 // ConfigToMetricsPort gets the port number for the metrics endpoint from the collector config if it has been set.

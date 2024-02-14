@@ -58,8 +58,8 @@ func NewLokiReceiverParser(logger logr.Logger, name string, config map[interface
 }
 
 // mydecisive
-// PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
-func (o *LokiReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+// CompPortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (o *LokiReceiverParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
 	var portsUrlPaths = []parser.PortUrlPaths{}
 
 	for _, protocol := range []struct {
@@ -128,7 +128,7 @@ func (o *LokiReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 			}
 		}
 	}
-	return portsUrlPaths, nil
+	return parser.CompPortUrlPaths{o.name: portsUrlPaths}, nil
 }
 
 // Ports returns all the service ports for all protocols in this parser.

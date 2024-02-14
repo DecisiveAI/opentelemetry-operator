@@ -2417,6 +2417,14 @@ spec:
                     description: 'Annotations to add to ingress. e.g. ''cert-manager.io/cluster-issuer:
                       "letsencrypt"'''
                     type: object
+                  collectorEndpoints:
+                    additionalProperties:
+                      type: string
+                    description: 'mydecisive, CollectorEndpoints should contain dns
+                      names for all collectors endpoints (grpc receivers) mapped to
+                      receivers names e.g. : otlp/1: otlp1.grpc.some.domain otlp/2:
+                      otlp2.grpc.some.domain'
+                    type: object
                   hostname:
                     description: Hostname by which the ingress proxy can be reached.
                     type: string

@@ -82,6 +82,14 @@ type Ingress struct {
 	// type "route" is used.
 	// +optional
 	Route OpenShiftRoute `json:"route,omitempty"`
+
+	// mydecisive,
+	// CollectorEndpoints should contain dns names for all collectors endpoints (grpc receivers)
+	// mapped to receivers names e.g. :
+	// otlp/1: otlp1.grpc.some.domain
+	// otlp/2: otlp2.grpc.some.domain
+	// +optional
+	CollectorEndpoints map[string]string `json:"collectorEndpoints,omitempty"`
 }
 
 // OpenShiftRoute defines openshift route specific settings.

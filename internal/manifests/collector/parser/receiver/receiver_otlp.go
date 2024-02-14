@@ -132,8 +132,8 @@ func (o *OTLPReceiverParser) ParserName() string {
 }
 
 // mydecisive.
-// PortsUrlPaths returns all the service ports for all protocols in this parser.
-func (o *OTLPReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
+// CompPortsUrlPaths returns all the service ports for all protocols in this parser.
+func (o *OTLPReceiverParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
 	portsUrlPaths := []parser.PortUrlPaths{}
 
 	for _, protocol := range []struct {
@@ -221,7 +221,7 @@ func (o *OTLPReceiverParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
 			}
 		}
 	}
-	return portsUrlPaths, nil
+	return parser.CompPortUrlPaths{o.name: portsUrlPaths}, nil
 }
 
 func init() {

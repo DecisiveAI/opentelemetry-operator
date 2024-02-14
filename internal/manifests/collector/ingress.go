@@ -15,7 +15,9 @@
 package collector
 
 import (
+	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 
@@ -50,17 +52,27 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 		} // v1alpha1.IngressTypeNginx
 	case v1alpha1.IngressTypeAws:
 		{
-			portsEndpoints, err := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
+			compPortsEndpoints, err := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
 			if err != nil {
 				return nil, err
 			}
-			for _, portEndpoints := range portsEndpoints {
-				if *portEndpoints.Port.AppProtocol == "grpc" {
-					portsEndpoints = append(portsEndpoints, portEndpoints)
+			for comp, portsEndpoints := range compPortsEndpoints {
+				// deleting all non-grpc ports
+				for i := len(portsEndpoints) - 1; i >= 0; i-- {
+					if portsEndpoints[i].Port.AppProtocol == nil || (portsEndpoints[i].Port.AppProtocol != nil && *portsEndpoints[i].Port.AppProtocol != "grpc") {
+						portsEndpoints = append(portsEndpoints[:i], portsEndpoints[i+1:]...)
+					}
+				}
+				// if component does not have grpc ports, delete it from the result map
+				if len(portsEndpoints) > 0 {
+					compPortsEndpoints[comp] = portsEndpoints
+				} else {
+					delete(compPortsEndpoints, comp)
+
 				}
 			}
 			// if we have no ports, we don't need a ingress entry
-			if len(portsEndpoints) == 0 {
+			if len(compPortsEndpoints) == 0 {
 				params.Log.V(1).Info(
 					"the instance's configuration didn't yield any ports to open, skipping ingress",
 					"instance.name", params.OtelCol.Name,
@@ -70,7 +82,11 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 			}
 			switch params.OtelCol.Spec.Ingress.RuleType {
 			case v1alpha1.IngressRuleTypePath, "":
-				rules = []networkingv1.IngressRule{createPathIngressRulesUrlPaths(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, portsEndpoints)}
+				if params.OtelCol.Spec.Ingress.CollectorEndpoints == nil || len(params.OtelCol.Spec.Ingress.CollectorEndpoints) == 0 {
+					return nil, errors.New("empty components to hostnames mapping")
+				} else {
+					rules = createPathIngressRulesUrlPaths(params.Log, params.OtelCol.Name, params.OtelCol.Spec.Ingress.CollectorEndpoints, compPortsEndpoints)
+				}
 			case v1alpha1.IngressRuleTypeSubdomain:
 				params.Log.V(1).Info("Only  IngressRuleType = \"path\" is supported for AWS",
 					"ingress.type", v1alpha1.IngressTypeAws,
@@ -84,6 +100,19 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 	default:
 		return nil, nil
 	}
+
+	if rules == nil || len(rules) == 0 {
+		params.Log.V(1).Info(
+			"could not configure any ingress rules for the instance's configuration, skipping ingress",
+			"instance.name", params.OtelCol.Name,
+			"instance.namespace", params.OtelCol.Namespace,
+		)
+		return nil, nil
+	}
+
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i].Host < rules[j].Host
+	})
 
 	return &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
@@ -169,40 +198,51 @@ func createSubdomainIngressRules(otelcol string, hostname string, ports []corev1
 }
 
 // mydecisive.
-func createPathIngressRulesUrlPaths(otelcol string, hostname string, portsUrlPaths []parser.PortUrlPaths) networkingv1.IngressRule {
+func createPathIngressRulesUrlPaths(logger logr.Logger, otelcol string, colEndpoints map[string]string, compPortsUrlPaths parser.CompPortUrlPaths) []networkingv1.IngressRule {
 	pathType := networkingv1.PathTypePrefix
-	var totalPaths = 0
-	for _, portUrlPaths := range portsUrlPaths {
-		totalPaths += len(portUrlPaths.UrlPaths)
-	}
-	paths := make([]networkingv1.HTTPIngressPath, totalPaths)
-	var i = 0
-	for _, portUrlPaths := range portsUrlPaths {
-		portName := naming.PortName(portUrlPaths.Port.Name, portUrlPaths.Port.Port)
-		for _, endpoint := range portUrlPaths.UrlPaths {
-			paths[i] = networkingv1.HTTPIngressPath{
-				Path:     endpoint,
-				PathType: &pathType,
-				Backend: networkingv1.IngressBackend{
-					Service: &networkingv1.IngressServiceBackend{
-						Name: naming.BehindIngressService(otelcol),
-						Port: networkingv1.ServiceBackendPort{
-							Name: portName,
+	var ingressRules []networkingv1.IngressRule
+	for comp, portsUrlPaths := range compPortsUrlPaths {
+		var totalPaths = 0
+		for _, portUrlPaths := range portsUrlPaths {
+			totalPaths += len(portUrlPaths.UrlPaths)
+		}
+		paths := make([]networkingv1.HTTPIngressPath, totalPaths)
+		var i = 0
+		for _, portUrlPaths := range portsUrlPaths {
+			portName := naming.PortName(portUrlPaths.Port.Name, portUrlPaths.Port.Port)
+			for _, endpoint := range portUrlPaths.UrlPaths {
+				paths[i] = networkingv1.HTTPIngressPath{
+					Path:     endpoint,
+					PathType: &pathType,
+					Backend: networkingv1.IngressBackend{
+						Service: &networkingv1.IngressServiceBackend{
+							Name: naming.BehindIngressService(otelcol),
+							Port: networkingv1.ServiceBackendPort{
+								Name: portName,
+							},
 						},
 					},
-				},
+				}
+				i++
 			}
-			i++
+			if host, ok := colEndpoints[comp]; ok {
+				ingressRule := networkingv1.IngressRule{
+					Host: host,
+					IngressRuleValue: networkingv1.IngressRuleValue{
+						HTTP: &networkingv1.HTTPIngressRuleValue{
+							Paths: paths,
+						},
+					},
+				}
+				ingressRules = append(ingressRules, ingressRule)
+			} else {
+				err := errors.New("missing or invalid mapping")
+				logger.V(1).Error(err, "missing or invalid mapping for", "component", comp)
+				continue
+			}
 		}
 	}
-	return networkingv1.IngressRule{
-		Host: hostname,
-		IngressRuleValue: networkingv1.IngressRuleValue{
-			HTTP: &networkingv1.HTTPIngressRuleValue{
-				Paths: paths,
-			},
-		},
-	}
+	return ingressRules
 }
 
 func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) ([]corev1.ServicePort, error) {
@@ -239,18 +279,18 @@ func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryColle
 }
 
 // mydecisive.
-func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) ([]parser.PortUrlPaths, error) {
+func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) (parser.CompPortUrlPaths, error) {
 	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
 	if err != nil {
 		logger.Error(err, "couldn't extract the configuration from the context")
 		return nil, err
 	}
 
-	portsUrlPaths, err := adapters.ConfigToComponentPortsUrlPaths(logger, adapters.ComponentTypeReceiver, configFromString)
+	compPortsUrlPaths, err := adapters.ConfigToComponentPortsUrlPaths(logger, adapters.ComponentTypeReceiver, configFromString)
 	if err != nil {
 		logger.Error(err, "couldn't build the ingress for this instance")
 		return nil, err
 	}
 
-	return portsUrlPaths, nil
+	return compPortsUrlPaths, nil
 }

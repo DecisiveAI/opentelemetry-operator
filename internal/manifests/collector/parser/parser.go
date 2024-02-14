@@ -25,7 +25,7 @@ type ComponentPortParser interface {
 
 	//mydecisive
 	// PortsUrlPaths returns the service ports + URL paths parsed based on the receiver's configuration
-	PortsUrlPaths() ([]PortUrlPaths, error)
+	CompPortsUrlPaths() (CompPortUrlPaths, error)
 
 	// ParserName returns the name of this parser
 	ParserName() string
@@ -36,6 +36,10 @@ type PortUrlPaths struct {
 	Port     corev1.ServicePort
 	UrlPaths []string
 }
+
+// mydecisive.
+// we map a list of PortUrlPaths to component names they belong.
+type CompPortUrlPaths map[string][]PortUrlPaths
 
 // Builder specifies the signature required for parser builders.
 type Builder func(logr.Logger, string, map[interface{}]interface{}) ComponentPortParser
