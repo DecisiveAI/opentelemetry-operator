@@ -17,10 +17,10 @@ package collector
 import (
 	_ "embed"
 	"fmt"
-	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"reflect"
 	"testing"
 
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
@@ -316,8 +316,8 @@ func TestDesiredIngresses(t *testing.T) {
 
 		pathType := networkingv1.PathTypePrefix
 
-		assert.True(t, cmp.Equal(&networkingv1.Ingress{
-			//assert.Equal(t, &networkingv1.Ingress{
+		assert.True(t, reflect.DeepEqual(&networkingv1.Ingress{
+			//assert.True(t, cmp.Equal(&networkingv1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        naming.Ingress(params.OtelCol.Name),
 				Namespace:   ns,
@@ -365,6 +365,120 @@ func TestDesiredIngresses(t *testing.T) {
 												Name: "test-collector-behind-ingress",
 												Port: networkingv1.ServiceBackendPort{
 													Name: "loki-2-grpc",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Host: "otlp.grpc.endpoint.collector.domain",
+						IngressRuleValue: networkingv1.IngressRuleValue{
+							HTTP: &networkingv1.HTTPIngressRuleValue{
+								Paths: []networkingv1.HTTPIngressPath{
+									{
+										Path:     "/opentelemetry.proto.collector.logs.v1.LogsService",
+										PathType: &pathType,
+										Backend: networkingv1.IngressBackend{
+											Service: &networkingv1.IngressServiceBackend{
+												Name: "test-collector-behind-ingress",
+												Port: networkingv1.ServiceBackendPort{
+													Name: "otlp-grpc",
+												},
+											},
+										},
+									},
+									{
+										Path:     "/opentelemetry.proto.collector.traces.v1.TracesService",
+										PathType: &pathType,
+										Backend: networkingv1.IngressBackend{
+											Service: &networkingv1.IngressServiceBackend{
+												Name: "test-collector-behind-ingress",
+												Port: networkingv1.ServiceBackendPort{
+													Name: "otlp-grpc",
+												},
+											},
+										},
+									},
+									{
+										Path:     "/opentelemetry.proto.collector.metrics.v1.MetricsService",
+										PathType: &pathType,
+										Backend: networkingv1.IngressBackend{
+											Service: &networkingv1.IngressServiceBackend{
+												Name: "test-collector-behind-ingress",
+												Port: networkingv1.ServiceBackendPort{
+													Name: "otlp-grpc",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}, got))
+	})
+	t.Run("aws alb controller missing mapping", func(t *testing.T) {
+		var (
+			ns               = "test"
+			ingressClassName = "alb"
+		)
+
+		params, err := newParams("something:tag", testFileIngressAws)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		params.OtelCol.Namespace = ns
+		params.OtelCol.Spec.Ingress = v1alpha1.Ingress{
+			Type:             v1alpha1.IngressTypeAws,
+			Annotations:      map[string]string{"some.key": "some.value"},
+			IngressClassName: &ingressClassName,
+		}
+		// remove loki/2 mapping
+		params.OtelCol.Spec.Ingress.CollectorEndpoints = map[string]string{
+			"loki/1": "loki-1.grpc.endpoint.collector.domain",
+			"otlp":   "otlp.grpc.endpoint.collector.domain",
+		}
+
+		got, err := Ingress(params)
+
+		assert.NoError(t, err)
+
+		pathType := networkingv1.PathTypePrefix
+
+		assert.True(t, reflect.DeepEqual(&networkingv1.Ingress{
+			//assert.True(t, cmp.Equal(&networkingv1.Ingress{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        naming.Ingress(params.OtelCol.Name),
+				Namespace:   ns,
+				Annotations: params.OtelCol.Spec.Ingress.Annotations,
+				Labels: map[string]string{
+					"app.kubernetes.io/name":       naming.Ingress(params.OtelCol.Name),
+					"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", params.OtelCol.Namespace, params.OtelCol.Name),
+					"app.kubernetes.io/managed-by": "opentelemetry-operator",
+				},
+			},
+			Spec: networkingv1.IngressSpec{
+				IngressClassName: &ingressClassName,
+				Rules: []networkingv1.IngressRule{
+					{
+						Host: "loki-1.grpc.endpoint.collector.domain",
+						IngressRuleValue: networkingv1.IngressRuleValue{
+							HTTP: &networkingv1.HTTPIngressRuleValue{
+								Paths: []networkingv1.HTTPIngressPath{
+									{
+										Path:     "/logproto.Pusher",
+										PathType: &pathType,
+										Backend: networkingv1.IngressBackend{
+											Service: &networkingv1.IngressServiceBackend{
+												Name: "test-collector-behind-ingress",
+												Port: networkingv1.ServiceBackendPort{
+													Name: "loki-1-grpc",
 												},
 											},
 										},

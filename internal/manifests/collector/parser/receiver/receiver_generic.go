@@ -76,7 +76,7 @@ func (g *GenericReceiver) ParserName() string {
 	return g.parserName
 }
 
-// decisive.
+// mydecisive.
 // CompPortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
 func (g *GenericReceiver) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
 	var compPortUrlPaths = parser.CompPortUrlPaths{}

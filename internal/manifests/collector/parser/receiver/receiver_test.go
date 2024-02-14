@@ -153,8 +153,10 @@ func (m *mockParser) ParserName() string {
 }
 
 // mydecisive.
-func (g *mockParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
-	return []parser.PortUrlPaths{}, nil
+// CompPortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (g *mockParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
+	var compPortUrlPaths = parser.CompPortUrlPaths{}
+	return compPortUrlPaths, nil
 }
 
 func TestSkipPortsForScrapers(t *testing.T) {

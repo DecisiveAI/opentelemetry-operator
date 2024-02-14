@@ -291,8 +291,9 @@ func (m *mockParser) ParserName() string {
 	return "__mock-adapters"
 }
 
-// decisive
-// PortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
-func (g *mockParser) PortsUrlPaths() ([]parser.PortUrlPaths, error) {
-	return []parser.PortUrlPaths{}, nil
+// mydecisive.
+// CompPortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
+func (g *mockParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
+	var compPortUrlPaths = parser.CompPortUrlPaths{}
+	return compPortUrlPaths, nil
 }

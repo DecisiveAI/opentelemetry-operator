@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
+	"sort"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -107,6 +108,10 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 		)
 		return nil, nil
 	}
+
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i].Host < rules[j].Host
+	})
 
 	return &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
