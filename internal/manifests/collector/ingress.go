@@ -82,10 +82,10 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 			}
 			switch params.OtelCol.Spec.Ingress.RuleType {
 			case v1alpha1.IngressRuleTypePath, "":
-				if params.OtelCol.Spec.Ingress.CollectorEndpoints != nil || len(params.OtelCol.Spec.Ingress.CollectorEndpoints) == 0 {
-					rules = createPathIngressRulesUrlPaths(params.Log, params.OtelCol.Name, params.OtelCol.Spec.Ingress.CollectorEndpoints, compPortsEndpoints)
-				} else {
+				if params.OtelCol.Spec.Ingress.CollectorEndpoints == nil || len(params.OtelCol.Spec.Ingress.CollectorEndpoints) == 0 {
 					return nil, errors.New("empty components to hostnames mapping")
+				} else {
+					rules = createPathIngressRulesUrlPaths(params.Log, params.OtelCol.Name, params.OtelCol.Spec.Ingress.CollectorEndpoints, compPortsEndpoints)
 				}
 			case v1alpha1.IngressRuleTypeSubdomain:
 				params.Log.V(1).Info("Only  IngressRuleType = \"path\" is supported for AWS",
