@@ -17,8 +17,9 @@ package collector
 import (
 	"errors"
 	"fmt"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	"sort"
+
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"

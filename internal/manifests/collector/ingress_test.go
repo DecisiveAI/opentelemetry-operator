@@ -17,11 +17,12 @@ package collector
 import (
 	_ "embed"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"reflect"
-	"testing"
 
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
 	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
@@ -317,7 +318,6 @@ func TestDesiredIngresses(t *testing.T) {
 		pathType := networkingv1.PathTypePrefix
 
 		assert.True(t, reflect.DeepEqual(&networkingv1.Ingress{
-			//assert.True(t, cmp.Equal(&networkingv1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        naming.Ingress(params.OtelCol.Name),
 				Namespace:   ns,
@@ -452,7 +452,6 @@ func TestDesiredIngresses(t *testing.T) {
 		pathType := networkingv1.PathTypePrefix
 
 		assert.True(t, reflect.DeepEqual(&networkingv1.Ingress{
-			//assert.True(t, cmp.Equal(&networkingv1.Ingress{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        naming.Ingress(params.OtelCol.Name),
 				Namespace:   ns,
