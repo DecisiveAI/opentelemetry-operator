@@ -26,9 +26,9 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/webhook/podmutation"
-	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/internal/webhook/podmutation"
+	"github.com/decisiveai/opentelemetry-operator/pkg/featuregate"
 )
 
 var (

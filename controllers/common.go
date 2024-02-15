@@ -28,10 +28,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/opampbridge"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/opampbridge"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator"
 )
 
 func isNamespaceScoped(obj client.Object) bool {

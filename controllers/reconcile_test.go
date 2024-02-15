@@ -39,13 +39,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	k8sreconcile "sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/controllers"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
-	ta "github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator/adapters"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/controllers"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	ta "github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator/adapters"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 const (

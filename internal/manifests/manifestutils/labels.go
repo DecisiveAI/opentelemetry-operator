@@ -20,7 +20,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 func isFilteredLabel(label string, filterLabels []string) bool {

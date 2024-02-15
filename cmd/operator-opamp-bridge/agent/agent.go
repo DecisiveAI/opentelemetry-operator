@@ -30,10 +30,10 @@ import (
 	"k8s.io/utils/clock"
 	"sigs.k8s.io/yaml"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/config"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/metrics"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/config"
+	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/metrics"
+	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
 )
 
 type Agent struct {

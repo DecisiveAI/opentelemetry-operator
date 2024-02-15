@@ -22,7 +22,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
 
 	"github.com/stretchr/testify/assert"
 

@@ -19,8 +19,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 var _ parser.ComponentPortParser = &PrometheusExporterParser{}

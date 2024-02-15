@@ -20,9 +20,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 var logger = logf.Log.WithName("unit-tests")

@@ -32,8 +32,8 @@ import (
 	"github.com/stretchr/testify/require"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/config"
-	allocatorWatcher "github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/watcher"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/config"
+	allocatorWatcher "github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/watcher"
 )
 
 func TestDiscovery(t *testing.T) {

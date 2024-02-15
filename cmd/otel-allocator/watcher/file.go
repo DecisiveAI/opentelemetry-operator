@@ -22,7 +22,7 @@ import (
 	"github.com/go-logr/logr"
 	promconfig "github.com/prometheus/prometheus/config"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/config"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/config"
 )
 
 var _ Watcher = &FileWatcher{}

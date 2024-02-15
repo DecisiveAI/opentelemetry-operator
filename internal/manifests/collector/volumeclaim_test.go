@@ -22,8 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	. "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	. "github.com/decisiveai/opentelemetry-operator/internal/manifests/collector"
 )
 
 func TestVolumeClaimAllowsUserToAdd(t *testing.T) {

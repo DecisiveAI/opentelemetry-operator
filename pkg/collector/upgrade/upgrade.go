@@ -25,8 +25,8 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/version"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/internal/version"
 )
 
 type VersionUpgrade struct {

@@ -42,7 +42,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	fcache "k8s.io/client-go/tools/cache/testing"
 
-	allocatorconfig "github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/config"
+	allocatorconfig "github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/config"
 )
 
 func TestLoadConfig(t *testing.T) {

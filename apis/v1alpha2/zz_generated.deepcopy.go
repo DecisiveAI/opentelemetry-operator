@@ -20,7 +20,7 @@
 package v1alpha2
 
 import (
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
 	"k8s.io/api/autoscaling/v2"
 	"k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"

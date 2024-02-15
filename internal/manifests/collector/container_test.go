@@ -24,9 +24,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
-	. "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	. "github.com/decisiveai/opentelemetry-operator/internal/manifests/collector"
 )
 
 var logger = logf.Log.WithName("unit-tests")

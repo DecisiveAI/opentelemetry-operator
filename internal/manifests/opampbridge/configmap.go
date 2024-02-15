@@ -22,9 +22,9 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 func ConfigMap(params manifests.Params) (*corev1.ConfigMap, error) {

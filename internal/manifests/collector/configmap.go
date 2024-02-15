@@ -18,9 +18,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 func ConfigMap(params manifests.Params) (*corev1.ConfigMap, error) {

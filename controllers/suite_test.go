@@ -47,13 +47,13 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/testdata"
-	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/testdata"
+	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
 	// +kubebuilder:scaffold:imports
 )
 

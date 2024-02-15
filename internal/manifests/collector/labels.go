@@ -18,8 +18,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 func isFilteredLabel(label string, filterLabels []string) bool {
