@@ -15,9 +15,9 @@
 package targetallocator
 
 import (
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 // Labels return the common labels to all TargetAllocator objects that are part of a managed OpenTelemetryCollector.

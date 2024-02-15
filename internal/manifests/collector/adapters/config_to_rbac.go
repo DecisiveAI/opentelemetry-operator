@@ -18,7 +18,7 @@ import (
 	"github.com/go-logr/logr"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser/processor"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser/processor"
 )
 
 // ConfigToRBAC parses the OpenTelemetry Collector configuration and checks what RBAC resources are needed to be created.

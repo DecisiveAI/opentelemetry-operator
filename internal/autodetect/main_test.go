@@ -25,8 +25,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
 )
 
 func TestDetectPlatformBasedOnAvailableAPIGroups(t *testing.T) {

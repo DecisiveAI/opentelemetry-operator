@@ -30,7 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/allocation"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/allocation"
 )
 
 var logger = logf.Log.WithName("collector-unit-tests")

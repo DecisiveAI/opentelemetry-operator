@@ -15,8 +15,8 @@
 package server
 
 import (
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/allocation"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/target"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/allocation"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/target"
 )
 
 var _ allocation.Allocator = &mockAllocator{}

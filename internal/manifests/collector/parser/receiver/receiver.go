@@ -26,8 +26,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 // registry holds a record of all known receiver parsers.

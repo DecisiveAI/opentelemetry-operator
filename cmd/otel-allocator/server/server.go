@@ -34,8 +34,8 @@ import (
 	promconfig "github.com/prometheus/prometheus/config"
 	"gopkg.in/yaml.v2"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/allocation"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/target"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/allocation"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/target"
 )
 
 var (

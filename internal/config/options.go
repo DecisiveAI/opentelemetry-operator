@@ -20,9 +20,9 @@ import (
 
 	"github.com/go-logr/logr"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/open-telemetry/opentelemetry-operator/internal/version"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/decisiveai/opentelemetry-operator/internal/version"
 )
 
 // Option represents one specific configuration option.
