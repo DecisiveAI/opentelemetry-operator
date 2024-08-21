@@ -21,10 +21,10 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 const (
@@ -33,8 +33,8 @@ const (
 )
 
 // add a new sidecar container to the given pod, based on the given OpenTelemetryCollector.
-func add(cfg config.Config, logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector, pod corev1.Pod, attributes []corev1.EnvVar) (corev1.Pod, error) {
-	otelColCfg, err := collector.ReplaceConfig(otelcol)
+func add(cfg config.Config, logger logr.Logger, otelcol v1beta1.OpenTelemetryCollector, pod corev1.Pod, attributes []corev1.EnvVar) (corev1.Pod, error) {
+	otelColCfg, err := collector.ReplaceConfig(otelcol, nil)
 	if err != nil {
 		return pod, err
 	}
@@ -59,9 +59,9 @@ func add(cfg config.Config, logger logr.Logger, otelcol v1alpha1.OpenTelemetryCo
 }
 
 // remove the sidecar container from the given pod.
-func remove(pod corev1.Pod) (corev1.Pod, error) {
+func remove(pod corev1.Pod) corev1.Pod {
 	if !existsIn(pod) {
-		return pod, nil
+		return pod
 	}
 
 	var containers []corev1.Container
@@ -71,7 +71,7 @@ func remove(pod corev1.Pod) (corev1.Pod, error) {
 		}
 	}
 	pod.Spec.Containers = containers
-	return pod, nil
+	return pod
 }
 
 // existsIn checks whether a sidecar container exists in the given pod.

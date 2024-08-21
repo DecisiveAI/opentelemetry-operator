@@ -23,13 +23,24 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/ptr"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
+
+var testNamespace = corev1.Namespace{
+	ObjectMeta: metav1.ObjectMeta{
+		Name: "ns",
+	},
+}
 
 var defaultVolumeLimitSize = resource.MustParse("200Mi")
 
@@ -180,6 +191,14 @@ func TestSDKInjection(t *testing.T) {
 									Value: "https://collector:4317",
 								},
 								{
+									Name: "OTEL_RESOURCE_ATTRIBUTES_POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
 									Name: "OTEL_RESOURCE_ATTRIBUTES_NODE_NAME",
 									ValueFrom: &corev1.EnvVarSource{
 										FieldRef: &corev1.ObjectFieldSelector{
@@ -201,7 +220,7 @@ func TestSDKInjection(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=application-name,k8s.deployment.name=my-deployment,k8s.deployment.uid=depuid,k8s.namespace.name=project1,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=app,k8s.pod.uid=pod-uid,k8s.replicaset.name=my-replicaset,k8s.replicaset.uid=rsuid,service.instance.id=project1.app.application-name,service.version=latest",
+									Value: "k8s.container.name=application-name,k8s.deployment.name=my-deployment,k8s.deployment.uid=depuid,k8s.namespace.name=project1,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),k8s.pod.uid=pod-uid,k8s.replicaset.name=my-replicaset,k8s.replicaset.uid=rsuid,service.instance.id=project1.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).application-name,service.version=latest",
 								},
 							},
 						},
@@ -290,6 +309,14 @@ func TestSDKInjection(t *testing.T) {
 									Value: "always_on",
 								},
 								{
+									Name: "OTEL_RESOURCE_ATTRIBUTES_POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
 									Name: "OTEL_RESOURCE_ATTRIBUTES_NODE_NAME",
 									ValueFrom: &corev1.EnvVarSource{
 										FieldRef: &corev1.ObjectFieldSelector{
@@ -299,7 +326,7 @@ func TestSDKInjection(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "foo=bar,k8s.container.name=other,service.version=explicitly_set,fromcr=val,k8s.namespace.name=project1,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=app",
+									Value: "foo=bar,k8s.container.name=other,service.version=explicitly_set,fromcr=val,k8s.namespace.name=project1,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
 								},
 							},
 						},
@@ -360,6 +387,14 @@ func TestSDKInjection(t *testing.T) {
 									Value: "my-deployment",
 								},
 								{
+									Name: "OTEL_RESOURCE_ATTRIBUTES_POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
 									Name: "OTEL_RESOURCE_ATTRIBUTES_NODE_NAME",
 									ValueFrom: &corev1.EnvVarSource{
 										FieldRef: &corev1.ObjectFieldSelector{
@@ -369,7 +404,7 @@ func TestSDKInjection(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=application-name,k8s.deployment.name=my-deployment,k8s.namespace.name=project1,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=app,k8s.pod.uid=pod-uid,k8s.replicaset.name=my-replicaset,service.instance.id=project1.app.application-name,service.version=latest",
+									Value: "k8s.container.name=application-name,k8s.deployment.name=my-deployment,k8s.namespace.name=project1,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),k8s.pod.uid=pod-uid,k8s.replicaset.name=my-replicaset,service.instance.id=project1.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).application-name,service.version=latest",
 								},
 							},
 						},
@@ -473,6 +508,120 @@ func TestSDKInjection(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Resource attribute propagate",
+			inst: v1alpha1.Instrumentation{
+				Spec: v1alpha1.InstrumentationSpec{
+					Exporter: v1alpha1.Exporter{
+						Endpoint: "https://collector:4317",
+					},
+					Resource: v1alpha1.Resource{
+						Attributes: map[string]string{
+							"fromcr": "val",
+						},
+					},
+					Propagators: []v1alpha1.Propagator{"jaeger"},
+					Sampler: v1alpha1.Sampler{
+						Type:     "parentbased_traceidratio",
+						Argument: "0.25",
+					},
+				},
+			},
+			pod: corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Annotations: map[string]string{
+						"resource.opentelemetry.io/fromtest": "val",
+						"resource.opentelemetry.io/foo":      "test",
+					},
+					Namespace: "project1",
+					Name:      "app",
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Image: "app:latest",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "OTEL_SERVICE_NAME",
+									Value: "explicitly_set",
+								},
+								{
+									Name:  "OTEL_EXPORTER_OTLP_ENDPOINT",
+									Value: "explicitly_set",
+								},
+								{
+									Name:  "OTEL_PROPAGATORS",
+									Value: "b3",
+								},
+								{
+									Name:  "OTEL_TRACES_SAMPLER",
+									Value: "always_on",
+								},
+								{
+									Name:  "OTEL_RESOURCE_ATTRIBUTES",
+									Value: "foo=bar,k8s.container.name=other,service.version=explicitly_set,",
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "project1",
+					Name:      "app",
+					Annotations: map[string]string{
+						"resource.opentelemetry.io/fromtest": "val",
+						"resource.opentelemetry.io/foo":      "test",
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Image: "app:latest",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "OTEL_SERVICE_NAME",
+									Value: "explicitly_set",
+								},
+								{
+									Name:  "OTEL_EXPORTER_OTLP_ENDPOINT",
+									Value: "explicitly_set",
+								},
+								{
+									Name:  "OTEL_PROPAGATORS",
+									Value: "b3",
+								},
+								{
+									Name:  "OTEL_TRACES_SAMPLER",
+									Value: "always_on",
+								},
+								{
+									Name: "OTEL_RESOURCE_ATTRIBUTES_POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
+									Name: "OTEL_RESOURCE_ATTRIBUTES_NODE_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "spec.nodeName",
+										},
+									},
+								},
+								{
+									Name:  "OTEL_RESOURCE_ATTRIBUTES",
+									Value: "foo=bar,k8s.container.name=other,service.version=explicitly_set,foo=test,fromcr=val,fromtest=val,k8s.namespace.name=project1,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -506,8 +655,9 @@ func TestInjectJava(t *testing.T) {
 	inj := sdkInjector{
 		logger: logr.Discard(),
 	}
+	config := config.New()
 	pod := inj.inject(context.Background(), insts,
-		corev1.Namespace{},
+		testNamespace,
 		corev1.Pod{
 			Spec: corev1.PodSpec{
 				Containers: []corev1.Container{
@@ -517,7 +667,7 @@ func TestInjectJava(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, config)
 	assert.Equal(t, corev1.Pod{
 		Spec: corev1.PodSpec{
 			Volumes: []corev1.Volume{
@@ -554,8 +704,24 @@ func TestInjectJava(t *testing.T) {
 					},
 					Env: []corev1.EnvVar{
 						{
+							Name: "OTEL_NODE_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.hostIP",
+								},
+							},
+						},
+						{
+							Name: "OTEL_POD_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.podIP",
+								},
+							},
+						},
+						{
 							Name:  "JAVA_TOOL_OPTIONS",
-							Value: javaJVMArgument,
+							Value: javaAgent,
 						},
 						{
 							Name:  "OTEL_SERVICE_NAME",
@@ -583,7 +749,7 @@ func TestInjectJava(t *testing.T) {
 						},
 						{
 							Name:  "OTEL_RESOURCE_ATTRIBUTES",
-							Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.version=latest",
+							Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app,service.version=latest",
 						},
 					},
 				},
@@ -610,8 +776,9 @@ func TestInjectNodeJS(t *testing.T) {
 	inj := sdkInjector{
 		logger: logr.Discard(),
 	}
+	config := config.New()
 	pod := inj.inject(context.Background(), insts,
-		corev1.Namespace{},
+		testNamespace,
 		corev1.Pod{
 			Spec: corev1.PodSpec{
 				Containers: []corev1.Container{
@@ -621,7 +788,7 @@ func TestInjectNodeJS(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, config)
 	assert.Equal(t, corev1.Pod{
 		Spec: corev1.PodSpec{
 			Volumes: []corev1.Volume{
@@ -638,7 +805,7 @@ func TestInjectNodeJS(t *testing.T) {
 				{
 					Name:    nodejsInitContainerName,
 					Image:   "img:1",
-					Command: []string{"cp", "-a", "/autoinstrumentation/.", nodejsInstrMountPath},
+					Command: []string{"cp", "-r", "/autoinstrumentation/.", nodejsInstrMountPath},
 					VolumeMounts: []corev1.VolumeMount{{
 						Name:      nodejsVolumeName,
 						MountPath: nodejsInstrMountPath,
@@ -657,6 +824,22 @@ func TestInjectNodeJS(t *testing.T) {
 						},
 					},
 					Env: []corev1.EnvVar{
+						{
+							Name: "OTEL_NODE_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.hostIP",
+								},
+							},
+						},
+						{
+							Name: "OTEL_POD_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.podIP",
+								},
+							},
+						},
 						{
 							Name:  "NODE_OPTIONS",
 							Value: nodeRequireArgument,
@@ -687,7 +870,7 @@ func TestInjectNodeJS(t *testing.T) {
 						},
 						{
 							Name:  "OTEL_RESOURCE_ATTRIBUTES",
-							Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.version=latest",
+							Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app,service.version=latest",
 						},
 					},
 				},
@@ -714,8 +897,9 @@ func TestInjectPython(t *testing.T) {
 	inj := sdkInjector{
 		logger: logr.Discard(),
 	}
+	config := config.New()
 	pod := inj.inject(context.Background(), insts,
-		corev1.Namespace{},
+		testNamespace,
 		corev1.Pod{
 			Spec: corev1.PodSpec{
 				Containers: []corev1.Container{
@@ -725,7 +909,7 @@ func TestInjectPython(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, config)
 	assert.Equal(t, corev1.Pod{
 		Spec: corev1.PodSpec{
 			Volumes: []corev1.Volume{
@@ -742,7 +926,7 @@ func TestInjectPython(t *testing.T) {
 				{
 					Name:    pythonInitContainerName,
 					Image:   "img:1",
-					Command: []string{"cp", "-a", "/autoinstrumentation/.", pythonInstrMountPath},
+					Command: []string{"cp", "-r", "/autoinstrumentation/.", pythonInstrMountPath},
 					VolumeMounts: []corev1.VolumeMount{{
 						Name:      pythonVolumeName,
 						MountPath: pythonInstrMountPath,
@@ -760,6 +944,22 @@ func TestInjectPython(t *testing.T) {
 						},
 					},
 					Env: []corev1.EnvVar{
+						{
+							Name: "OTEL_NODE_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.hostIP",
+								},
+							},
+						},
+						{
+							Name: "OTEL_POD_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.podIP",
+								},
+							},
+						},
 						{
 							Name:  "PYTHONPATH",
 							Value: fmt.Sprintf("%s:%s", pythonPathPrefix, pythonPathSuffix),
@@ -806,7 +1006,7 @@ func TestInjectPython(t *testing.T) {
 						},
 						{
 							Name:  "OTEL_RESOURCE_ATTRIBUTES",
-							Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.version=latest",
+							Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app,service.version=latest",
 						},
 					},
 				},
@@ -832,8 +1032,9 @@ func TestInjectDotNet(t *testing.T) {
 	inj := sdkInjector{
 		logger: logr.Discard(),
 	}
+	config := config.New()
 	pod := inj.inject(context.Background(), insts,
-		corev1.Namespace{},
+		testNamespace,
 		corev1.Pod{
 			Spec: corev1.PodSpec{
 				Containers: []corev1.Container{
@@ -843,7 +1044,7 @@ func TestInjectDotNet(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, config)
 	assert.Equal(t, corev1.Pod{
 		Spec: corev1.PodSpec{
 			Volumes: []corev1.Volume{
@@ -860,7 +1061,7 @@ func TestInjectDotNet(t *testing.T) {
 				{
 					Name:    dotnetInitContainerName,
 					Image:   "img:1",
-					Command: []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+					Command: []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 					VolumeMounts: []corev1.VolumeMount{{
 						Name:      dotnetVolumeName,
 						MountPath: dotnetInstrMountPath,
@@ -878,6 +1079,22 @@ func TestInjectDotNet(t *testing.T) {
 						},
 					},
 					Env: []corev1.EnvVar{
+						{
+							Name: "OTEL_NODE_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.hostIP",
+								},
+							},
+						},
+						{
+							Name: "OTEL_POD_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.podIP",
+								},
+							},
+						},
 						{
 							Name:  envDotNetCoreClrEnableProfiling,
 							Value: dotNetCoreClrEnableProfilingEnabled,
@@ -932,7 +1149,7 @@ func TestInjectDotNet(t *testing.T) {
 						},
 						{
 							Name:  "OTEL_RESOURCE_ATTRIBUTES",
-							Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.version=latest",
+							Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app,service.version=latest",
 						},
 					},
 				},
@@ -951,6 +1168,7 @@ func TestInjectGo(t *testing.T) {
 		insts    languageInstrumentations
 		pod      corev1.Pod
 		expected corev1.Pod
+		config   config.Config
 	}{
 		{
 			name: "shared process namespace disabled",
@@ -1067,6 +1285,22 @@ func TestInjectGo(t *testing.T) {
 							},
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_GO_AUTO_TARGET_EXE",
 									Value: "foo",
 								},
@@ -1093,7 +1327,7 @@ func TestInjectGo(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.version=latest",
+									Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app,service.version=latest",
 								},
 							},
 						},
@@ -1168,6 +1402,22 @@ func TestInjectGo(t *testing.T) {
 							},
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_GO_AUTO_TARGET_EXE",
 									Value: "foo",
 								},
@@ -1194,7 +1444,7 @@ func TestInjectGo(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.version=latest",
+									Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app,service.version=latest",
 								},
 							},
 						},
@@ -1219,7 +1469,7 @@ func TestInjectGo(t *testing.T) {
 			inj := sdkInjector{
 				logger: logr.Discard(),
 			}
-			pod := inj.inject(context.Background(), test.insts, corev1.Namespace{}, test.pod)
+			pod := inj.inject(context.Background(), test.insts, testNamespace, test.pod, test.config)
 			assert.Equal(t, test.expected, pod)
 		})
 	}
@@ -1232,6 +1482,7 @@ func TestInjectApacheHttpd(t *testing.T) {
 		insts    languageInstrumentations
 		pod      corev1.Pod
 		expected corev1.Pod
+		config   config.Config
 	}{
 		{
 			name: "injection enabled, exporter set",
@@ -1295,11 +1546,11 @@ func TestInjectApacheHttpd(t *testing.T) {
 							Image:   "img:1",
 							Command: []string{"/bin/sh", "-c"},
 							Args: []string{
-								"cp -r /opt/opentelemetry/* /opt/opentelemetry-webserver/agent && export agentLogDir=$(echo \"/opt/opentelemetry-webserver/agent/logs\" | sed 's,/,\\\\/,g') && cat /opt/opentelemetry-webserver/agent/conf/appdynamics_sdk_log4cxx.xml.template | sed 's/__agent_log_dir__/'${agentLogDir}'/g'  > /opt/opentelemetry-webserver/agent/conf/appdynamics_sdk_log4cxx.xml &&echo \"$OTEL_APACHE_AGENT_CONF\" > /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && sed -i 's/<<SID-PLACEHOLDER>>/'${APACHE_SERVICE_INSTANCE_ID}'/g' /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && echo 'Include /usr/local/apache2/conf/opentemetry_agent.conf' >> /opt/opentelemetry-webserver/source-conf/httpd.conf"},
+								"cp -r /opt/opentelemetry/* /opt/opentelemetry-webserver/agent && export agentLogDir=$(echo \"/opt/opentelemetry-webserver/agent/logs\" | sed 's,/,\\\\/,g') && cat /opt/opentelemetry-webserver/agent/conf/opentelemetry_sdk_log4cxx.xml.template | sed 's/__agent_log_dir__/'${agentLogDir}'/g'  > /opt/opentelemetry-webserver/agent/conf/opentelemetry_sdk_log4cxx.xml &&echo \"$OTEL_APACHE_AGENT_CONF\" > /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && sed -i 's/<<SID-PLACEHOLDER>>/'${APACHE_SERVICE_INSTANCE_ID}'/g' /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && echo 'Include /usr/local/apache2/conf/opentemetry_agent.conf' >> /opt/opentelemetry-webserver/source-conf/httpd.conf"},
 							Env: []corev1.EnvVar{
 								{
 									Name:  apacheAttributesEnvVar,
-									Value: "\n#Load the Otel Webserver SDK\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_common.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_resources.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_trace.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_otlp_recordable.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_exporter_ostream_span.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_exporter_otlp_grpc.so\n#Load the Otel ApacheModule SDK\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_webserver_sdk.so\n#Load the Apache Module. In this example for Apache 2.4\n#LoadModule otel_apache_module /opt/opentelemetry-webserver/agent/WebServerModule/Apache/libmod_apache_otel.so\n#Load the Apache Module. In this example for Apache 2.2\n#LoadModule otel_apache_module /opt/opentelemetry-webserver/agent/WebServerModule/Apache/libmod_apache_otel22.so\nLoadModule otel_apache_module /opt/opentelemetry-webserver/agent/WebServerModule/Apache/libmod_apache_otel.so\n#Attributes\nApacheModuleEnabled ON\nApacheModuleOtelExporterEndpoint https://collector:4318\nApacheModuleOtelSpanExporter otlp\nApacheModuleResolveBackends  ON\nApacheModuleServiceInstanceId <<SID-PLACEHOLDER>>\nApacheModuleServiceName app\nApacheModuleServiceNamespace apache-httpd\nApacheModuleTraceAsError  ON\n",
+									Value: "\n#Load the Otel Webserver SDK\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_common.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_resources.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_trace.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_otlp_recordable.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_exporter_ostream_span.so\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_exporter_otlp_grpc.so\n#Load the Otel ApacheModule SDK\nLoadFile /opt/opentelemetry-webserver/agent/sdk_lib/lib/libopentelemetry_webserver_sdk.so\n#Load the Apache Module. In this example for Apache 2.4\n#LoadModule otel_apache_module /opt/opentelemetry-webserver/agent/WebServerModule/Apache/libmod_apache_otel.so\n#Load the Apache Module. In this example for Apache 2.2\n#LoadModule otel_apache_module /opt/opentelemetry-webserver/agent/WebServerModule/Apache/libmod_apache_otel22.so\nLoadModule otel_apache_module /opt/opentelemetry-webserver/agent/WebServerModule/Apache/libmod_apache_otel.so\n#Attributes\nApacheModuleEnabled ON\nApacheModuleOtelExporterEndpoint https://collector:4318\nApacheModuleOtelSpanExporter otlp\nApacheModuleResolveBackends  ON\nApacheModuleServiceInstanceId <<SID-PLACEHOLDER>>\nApacheModuleServiceName app\nApacheModuleServiceNamespace ns\nApacheModuleTraceAsError  ON\n",
 								},
 								{Name: apacheServiceInstanceIdEnvVar,
 									ValueFrom: &corev1.EnvVarSource{
@@ -1336,6 +1587,22 @@ func TestInjectApacheHttpd(t *testing.T) {
 							},
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_SERVICE_NAME",
 									Value: "app",
 								},
@@ -1361,7 +1628,7 @@ func TestInjectApacheHttpd(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 						},
@@ -1376,7 +1643,7 @@ func TestInjectApacheHttpd(t *testing.T) {
 				logger: logr.Discard(),
 			}
 
-			pod := inj.inject(context.Background(), test.insts, corev1.Namespace{}, test.pod)
+			pod := inj.inject(context.Background(), test.insts, testNamespace, test.pod, test.config)
 			assert.Equal(t, test.expected, pod)
 		})
 	}
@@ -1389,6 +1656,7 @@ func TestInjectNginx(t *testing.T) {
 		insts    languageInstrumentations
 		pod      corev1.Pod
 		expected corev1.Pod
+		config   config.Config
 	}{
 		{
 			name: "injection enabled, exporter set",
@@ -1461,7 +1729,7 @@ func TestInjectNginx(t *testing.T) {
 							Env: []corev1.EnvVar{
 								{
 									Name:  nginxAttributesEnvVar,
-									Value: "NginxModuleEnabled ON;\nNginxModuleOtelExporterEndpoint http://otlp-endpoint:4317;\nNginxModuleOtelMaxQueueSize 4096;\nNginxModuleOtelSpanExporter otlp;\nNginxModuleResolveBackends ON;\nNginxModuleServiceInstanceId <<SID-PLACEHOLDER>>;\nNginxModuleServiceName my-nginx-6c44bcbdd;\nNginxModuleServiceNamespace nginx;\nNginxModuleTraceAsError ON;\n",
+									Value: "NginxModuleEnabled ON;\nNginxModuleOtelExporterEndpoint http://otlp-endpoint:4317;\nNginxModuleOtelMaxQueueSize 4096;\nNginxModuleOtelSpanExporter otlp;\nNginxModuleResolveBackends ON;\nNginxModuleServiceInstanceId <<SID-PLACEHOLDER>>;\nNginxModuleServiceName my-nginx-6c44bcbdd;\nNginxModuleServiceNamespace ns;\nNginxModuleTraceAsError ON;\n",
 								},
 								{
 									Name:  "OTEL_NGINX_I13N_SCRIPT",
@@ -1503,6 +1771,22 @@ func TestInjectNginx(t *testing.T) {
 							},
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "LD_LIBRARY_PATH",
 									Value: "/opt/opentelemetry-webserver/agent/sdk_lib/lib",
 								},
@@ -1515,6 +1799,14 @@ func TestInjectNginx(t *testing.T) {
 									Value: "http://otlp-endpoint:4317",
 								},
 								{
+									Name: "OTEL_RESOURCE_ATTRIBUTES_POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
 									Name: "OTEL_RESOURCE_ATTRIBUTES_NODE_NAME",
 									ValueFrom: &corev1.EnvVarSource{
 										FieldRef: &corev1.ObjectFieldSelector{
@@ -1524,7 +1816,7 @@ func TestInjectNginx(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=my-nginx-6c44bcbdd",
+									Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 						},
@@ -1538,7 +1830,7 @@ func TestInjectNginx(t *testing.T) {
 			inj := sdkInjector{
 				logger: logr.Discard(),
 			}
-			pod := inj.inject(context.Background(), test.insts, corev1.Namespace{}, test.pod)
+			pod := inj.inject(context.Background(), test.insts, testNamespace, test.pod, test.config)
 			assert.Equal(t, test.expected, pod)
 		})
 	}
@@ -1559,8 +1851,9 @@ func TestInjectSdkOnly(t *testing.T) {
 	inj := sdkInjector{
 		logger: logr.Discard(),
 	}
+	config := config.New()
 	pod := inj.inject(context.Background(), insts,
-		corev1.Namespace{},
+		testNamespace,
 		corev1.Pod{
 			Spec: corev1.PodSpec{
 				Containers: []corev1.Container{
@@ -1570,7 +1863,7 @@ func TestInjectSdkOnly(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, config)
 	assert.Equal(t, corev1.Pod{
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
@@ -1578,6 +1871,22 @@ func TestInjectSdkOnly(t *testing.T) {
 					Name:  "app",
 					Image: "app:latest",
 					Env: []corev1.EnvVar{
+						{
+							Name: "OTEL_NODE_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.hostIP",
+								},
+							},
+						},
+						{
+							Name: "OTEL_POD_IP",
+							ValueFrom: &corev1.EnvVarSource{
+								FieldRef: &corev1.ObjectFieldSelector{
+									FieldPath: "status.podIP",
+								},
+							},
+						},
 						{
 							Name:  "OTEL_SERVICE_NAME",
 							Value: "app",
@@ -1604,11 +1913,312 @@ func TestInjectSdkOnly(t *testing.T) {
 						},
 						{
 							Name:  "OTEL_RESOURCE_ATTRIBUTES",
-							Value: "k8s.container.name=app,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.version=latest",
+							Value: "k8s.container.name=app,k8s.namespace.name=ns,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=ns.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app,service.version=latest",
 						},
 					},
 				},
 			},
 		},
 	}, pod)
+}
+
+func TestParentResourceLabels(t *testing.T) {
+	ns := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-parent-resource-labels",
+		},
+	}
+	err := k8sClient.Create(context.Background(), &ns)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name              string
+		prepare           func()
+		podObjectMeta     metav1.ObjectMeta
+		expectedResources map[attribute.Key]string
+	}{
+		{
+			name:              "from orphan pod",
+			podObjectMeta:     metav1.ObjectMeta{},
+			expectedResources: map[attribute.Key]string{},
+		},
+		{
+			name: "from replicaset",
+			podObjectMeta: metav1.ObjectMeta{
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion: "apps/v1",
+						Kind:       "ReplicaSet",
+						Name:       "my-rs",
+						UID:        "my-rs-uid",
+					},
+				},
+			},
+			expectedResources: map[attribute.Key]string{
+				semconv.K8SReplicaSetNameKey: "my-rs",
+				semconv.K8SReplicaSetUIDKey:  "my-rs-uid",
+			},
+		},
+		{
+			name: "from deployment",
+			prepare: func() {
+				err := k8sClient.Create(context.Background(), &appsv1.ReplicaSet{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "my-deploy-rs",
+						Namespace: ns.Name,
+						OwnerReferences: []metav1.OwnerReference{
+							{ // from Deployment
+								APIVersion: "apps/v1",
+								Kind:       "Deployment",
+								Name:       "my-deploy",
+								UID:        "my-deploy-uid",
+							},
+						},
+					},
+					Spec: appsv1.ReplicaSetSpec{
+						Replicas: ptr.To[int32](0),
+						Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"app": "my-deploy"}},
+						Template: corev1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app": "my-deploy"}},
+							Spec: corev1.PodSpec{
+								Containers: []corev1.Container{{Name: "con", Image: "img:1"}},
+							},
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			podObjectMeta: metav1.ObjectMeta{
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion: "apps/v1",
+						Kind:       "ReplicaSet",
+						Name:       "my-deploy-rs",
+						UID:        "my-deploy-rs-uid",
+					},
+				},
+			},
+			expectedResources: map[attribute.Key]string{
+				semconv.K8SReplicaSetNameKey: "my-deploy-rs",
+				semconv.K8SReplicaSetUIDKey:  "my-deploy-rs-uid",
+				semconv.K8SDeploymentNameKey: "my-deploy",
+				semconv.K8SDeploymentUIDKey:  "my-deploy-uid",
+			},
+		},
+		{
+			name: "from job",
+			podObjectMeta: metav1.ObjectMeta{
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion: "batch/v1",
+						Kind:       "Job",
+						Name:       "my-job",
+						UID:        "my-job-uid",
+					},
+				},
+			},
+			expectedResources: map[attribute.Key]string{
+				semconv.K8SJobNameKey: "my-job",
+				semconv.K8SJobUIDKey:  "my-job-uid",
+			},
+		},
+		{
+			name: "from cronjob",
+			prepare: func() {
+				err := k8sClient.Create(context.Background(), &batchv1.Job{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "my-cronjob-job",
+						Namespace: ns.Name,
+						OwnerReferences: []metav1.OwnerReference{
+							{ // from CronJob
+								APIVersion: "batch/v1",
+								Kind:       "CronJob",
+								Name:       "my-cronjob",
+								UID:        "my-cronjob-uid",
+							},
+						},
+					},
+					Spec: batchv1.JobSpec{
+						Suspend: ptr.To[bool](true),
+						Template: corev1.PodTemplateSpec{
+							Spec: corev1.PodSpec{
+								RestartPolicy: corev1.RestartPolicyNever,
+								Containers:    []corev1.Container{{Name: "con", Image: "img:1"}},
+							},
+						},
+					},
+				})
+				require.NoError(t, err)
+			},
+			podObjectMeta: metav1.ObjectMeta{
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion: "batch/v1",
+						Kind:       "Job",
+						Name:       "my-cronjob-job",
+						UID:        "my-cronjob-job-uid",
+					},
+				},
+			},
+			expectedResources: map[attribute.Key]string{
+				semconv.K8SJobNameKey:     "my-cronjob-job",
+				semconv.K8SJobUIDKey:      "my-cronjob-job-uid",
+				semconv.K8SCronJobNameKey: "my-cronjob",
+				semconv.K8SCronJobUIDKey:  "my-cronjob-uid",
+			},
+		},
+		{
+			name: "from statefulset",
+			podObjectMeta: metav1.ObjectMeta{
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion: "apps/v1",
+						Kind:       "StatefulSet",
+						Name:       "my-statefulset",
+						UID:        "my-statefulset-uid",
+					},
+				},
+			},
+			expectedResources: map[attribute.Key]string{
+				semconv.K8SStatefulSetNameKey: "my-statefulset",
+				semconv.K8SStatefulSetUIDKey:  "my-statefulset-uid",
+			},
+		},
+		{
+			name: "from daemonset",
+			podObjectMeta: metav1.ObjectMeta{
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						APIVersion: "apps/v1",
+						Kind:       "DaemonSet",
+						Name:       "my-daemonset",
+						UID:        "my-daemonset-uid",
+					},
+				},
+			},
+			expectedResources: map[attribute.Key]string{
+				semconv.K8SDaemonSetNameKey: "my-daemonset",
+				semconv.K8SDaemonSetUIDKey:  "my-daemonset-uid",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.prepare != nil {
+				test.prepare()
+			}
+
+			k8sResources := map[attribute.Key]string{}
+			inj := sdkInjector{
+				client: k8sClient,
+				logger: logr.Discard(),
+			}
+			inj.addParentResourceLabels(context.Background(), true, ns, test.podObjectMeta, k8sResources)
+
+			for k, v := range test.expectedResources {
+				assert.Equal(t, v, k8sResources[k])
+			}
+		})
+	}
+}
+
+func TestChooseServiceName(t *testing.T) {
+	tests := []struct {
+		name                string
+		resources           map[string]string
+		index               int
+		expectedServiceName string
+	}{
+		{
+			name:                "first container",
+			resources:           map[string]string{},
+			index:               0,
+			expectedServiceName: "1st",
+		},
+		{
+			name:                "second container",
+			resources:           map[string]string{},
+			index:               1,
+			expectedServiceName: "2nd",
+		},
+		{
+			name: "from pod",
+			resources: map[string]string{
+				string(semconv.K8SPodNameKey): "my-pod",
+			},
+			index:               0,
+			expectedServiceName: "my-pod",
+		},
+		{
+			name: "from replicaset",
+			resources: map[string]string{
+				string(semconv.K8SReplicaSetNameKey): "my-rs",
+				string(semconv.K8SPodNameKey):        "my-rs-pod",
+			},
+			index:               0,
+			expectedServiceName: "my-rs",
+		},
+		{
+			name: "from deployment",
+			resources: map[string]string{
+				string(semconv.K8SDeploymentNameKey): "my-deploy",
+				string(semconv.K8SReplicaSetNameKey): "my-deploy-rs",
+				string(semconv.K8SPodNameKey):        "my-deploy-rs-pod",
+			},
+			index:               0,
+			expectedServiceName: "my-deploy",
+		},
+		{
+			name: "from cronjob",
+			resources: map[string]string{
+				string(semconv.K8SCronJobNameKey): "my-cronjob",
+				string(semconv.K8SJobNameKey):     "my-cronjob-job",
+				string(semconv.K8SPodNameKey):     "my-cronjob-job-pod",
+			},
+			index:               0,
+			expectedServiceName: "my-cronjob",
+		},
+		{
+			name: "from job",
+			resources: map[string]string{
+				string(semconv.K8SJobNameKey): "my-job",
+				string(semconv.K8SPodNameKey): "my-job-pod",
+			},
+			index:               0,
+			expectedServiceName: "my-job",
+		},
+		{
+			name: "from statefulset",
+			resources: map[string]string{
+				string(semconv.K8SStatefulSetNameKey): "my-statefulset",
+				string(semconv.K8SPodNameKey):         "my-statefulset-pod",
+			},
+			index:               0,
+			expectedServiceName: "my-statefulset",
+		},
+		{
+			name: "from daemonset",
+			resources: map[string]string{
+				string(semconv.K8SDaemonSetNameKey): "my-daemonset",
+				string(semconv.K8SPodNameKey):       "my-daemonset-pod",
+			},
+			index:               0,
+			expectedServiceName: "my-daemonset",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			serviceName := chooseServiceName(corev1.Pod{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{Name: "1st"},
+						{Name: "2nd"},
+					},
+				},
+			}, test.resources, test.index)
+
+			assert.Equal(t, test.expectedServiceName, serviceName)
+		})
+	}
 }

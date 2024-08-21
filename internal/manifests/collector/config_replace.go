@@ -19,13 +19,13 @@ import (
 
 	promconfig "github.com/prometheus/prometheus/config"
 	_ "github.com/prometheus/prometheus/discovery/install" // Package install has the side-effect of registering all builtin.
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/adapters"
-	ta "github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator/adapters"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
-	"github.com/decisiveai/opentelemetry-operator/pkg/featuregate"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/adapters"
+	ta "github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator/adapters"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 type targetAllocator struct {
@@ -42,59 +42,46 @@ type Config struct {
 	TargetAllocConfig *targetAllocator   `yaml:"target_allocator,omitempty"`
 }
 
-func ReplaceConfig(instance v1alpha1.OpenTelemetryCollector) (string, error) {
-	// Check if TargetAllocator is enabled, if not, return the original config
-	if !instance.Spec.TargetAllocator.Enabled {
-		return instance.Spec.Config, nil
+func ReplaceConfig(otelcol v1beta1.OpenTelemetryCollector, targetAllocator *v1alpha1.TargetAllocator) (string, error) {
+	collectorSpec := otelcol.Spec
+	taEnabled := targetAllocator != nil
+	cfgStr, err := collectorSpec.Config.Yaml()
+	if err != nil {
+		return "", err
+	}
+	// Check if TargetAllocator is present, if not, return the original config
+	if !taEnabled {
+		return cfgStr, nil
 	}
 
-	config, err := adapters.ConfigFromString(instance.Spec.Config)
+	config, err := adapters.ConfigFromString(cfgStr)
 	if err != nil {
 		return "", err
 	}
 
-	promCfgMap, getCfgPromErr := ta.ConfigToPromConfig(instance.Spec.Config)
+	promCfgMap, getCfgPromErr := ta.ConfigToPromConfig(cfgStr)
 	if getCfgPromErr != nil {
 		return "", getCfgPromErr
 	}
 
-	validateCfgPromErr := ta.ValidatePromConfig(promCfgMap, instance.Spec.TargetAllocator.Enabled, featuregate.EnableTargetAllocatorRewrite.IsEnabled())
+	validateCfgPromErr := ta.ValidatePromConfig(promCfgMap, taEnabled)
 	if validateCfgPromErr != nil {
 		return "", validateCfgPromErr
 	}
 
-	if featuregate.EnableTargetAllocatorRewrite.IsEnabled() {
-		// To avoid issues caused by Prometheus validation logic, which fails regex validation when it encounters
-		// $$ in the prom config, we update the YAML file directly without marshaling and unmarshalling.
-		updPromCfgMap, getCfgPromErr := ta.AddTAConfigToPromConfig(promCfgMap, naming.TAService(instance.Name))
-		if getCfgPromErr != nil {
-			return "", getCfgPromErr
-		}
-
-		// type coercion checks are handled in the AddTAConfigToPromConfig method above
-		config["receivers"].(map[interface{}]interface{})["prometheus"] = updPromCfgMap
-
-		out, updCfgMarshalErr := yaml.Marshal(config)
-		if updCfgMarshalErr != nil {
-			return "", updCfgMarshalErr
-		}
-
-		return string(out), nil
-	}
-
 	// To avoid issues caused by Prometheus validation logic, which fails regex validation when it encounters
 	// $$ in the prom config, we update the YAML file directly without marshaling and unmarshalling.
-	updPromCfgMap, err := ta.AddHTTPSDConfigToPromConfig(promCfgMap, naming.TAService(instance.Name))
-	if err != nil {
-		return "", err
+	updPromCfgMap, getCfgPromErr := ta.AddTAConfigToPromConfig(promCfgMap, naming.TAService(targetAllocator.Name), targetAllocator.Namespace)
+	if getCfgPromErr != nil {
+		return "", getCfgPromErr
 	}
 
-	// type coercion checks are handled in the ConfigToPromConfig method above
+	// type coercion checks are handled in the AddTAConfigToPromConfig method above
 	config["receivers"].(map[interface{}]interface{})["prometheus"] = updPromCfgMap
 
-	out, err := yaml.Marshal(config)
-	if err != nil {
-		return "", err
+	out, updCfgMarshalErr := yaml.Marshal(config)
+	if updCfgMarshalErr != nil {
+		return "", updCfgMarshalErr
 	}
 
 	return string(out), nil

@@ -20,12 +20,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 )
 
 var (
@@ -47,10 +48,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	if err = v1alpha1.AddToScheme(testScheme); err != nil {
-		fmt.Printf("failed to register scheme: %v", err)
-		os.Exit(1)
-	}
+	utilruntime.Must(v1alpha1.AddToScheme(testScheme))
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: testScheme})
 	if err != nil {

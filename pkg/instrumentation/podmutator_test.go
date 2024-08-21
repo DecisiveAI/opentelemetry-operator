@@ -22,18 +22,15 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	colfeaturegate "go.opentelemetry.io/collector/featuregate"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/pkg/featuregate"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
 
 func TestMutatePod(t *testing.T) {
-	mutator := NewMutator(logr.Discard(), k8sClient, record.NewFakeRecorder(100))
-	require.NotNil(t, mutator)
 
 	true := true
 	zero := int64(0)
@@ -46,6 +43,7 @@ func TestMutatePod(t *testing.T) {
 		inst            v1alpha1.Instrumentation
 		ns              corev1.Namespace
 		setFeatureGates func(t *testing.T)
+		config          config.Config
 	}{
 		{
 			name: "javaagent injection, true",
@@ -155,6 +153,22 @@ func TestMutatePod(t *testing.T) {
 							Name: "app",
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_JAVAAGENT_DEBUG",
 									Value: "true",
 								},
@@ -168,7 +182,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_TRACES_EXPORTER",
@@ -216,7 +230,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.namespace.name=javaagent,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=javaagent,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=javaagent.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -229,6 +243,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(),
 		},
 		{
 			name: "javaagent injection multiple containers, true",
@@ -343,6 +358,22 @@ func TestMutatePod(t *testing.T) {
 							Name: "app1",
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_JAVAAGENT_DEBUG",
 									Value: "true",
 								},
@@ -356,7 +387,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_TRACES_EXPORTER",
@@ -404,7 +435,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app1,k8s.namespace.name=javaagent-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app1,k8s.namespace.name=javaagent-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=javaagent-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -417,6 +448,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_JAVAAGENT_DEBUG",
 									Value: "true",
@@ -431,7 +478,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_TRACES_EXPORTER",
@@ -479,7 +526,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app2,k8s.namespace.name=javaagent-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app2,k8s.namespace.name=javaagent-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=javaagent-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -492,6 +539,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(),
 		},
 		{
 			name: "javaagent injection feature gate disabled",
@@ -581,13 +629,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableJavaAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableJavaAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableJavaAutoInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableJavaInstrumentation(false)),
 		},
 		{
 			name: "nodejs injection, true",
@@ -677,7 +719,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    nodejsInitContainerName,
 							Image:   "otel/nodejs:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", nodejsInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", nodejsInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      nodejsVolumeName,
 								MountPath: nodejsInstrMountPath,
@@ -688,6 +730,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_NODEJS_DEBUG",
 									Value: "true",
@@ -742,7 +800,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.namespace.name=nodejs,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=nodejs,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=nodejs.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -755,6 +813,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnableNodeJSInstrumentation(true)),
 		},
 		{
 			name: "nodejs injection multiple containers, true",
@@ -849,7 +908,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    nodejsInitContainerName,
 							Image:   "otel/nodejs:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", nodejsInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", nodejsInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      nodejsVolumeName,
 								MountPath: nodejsInstrMountPath,
@@ -860,6 +919,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_NODEJS_DEBUG",
 									Value: "true",
@@ -914,7 +989,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app1,k8s.namespace.name=nodejs-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app1,k8s.namespace.name=nodejs-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=nodejs-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -927,6 +1002,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_NODEJS_DEBUG",
 									Value: "true",
@@ -981,7 +1072,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app2,k8s.namespace.name=nodejs-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app2,k8s.namespace.name=nodejs-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=nodejs-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -994,6 +1085,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnableNodeJSInstrumentation(true)),
 		},
 		{
 			name: "nodejs injection feature gate disabled",
@@ -1075,13 +1167,6 @@ func TestMutatePod(t *testing.T) {
 						},
 					},
 				},
-			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableNodeJSAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableNodeJSAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableNodeJSAutoInstrumentationSupport.ID(), originalVal))
-				})
 			},
 		},
 		{
@@ -1176,7 +1261,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    pythonInitContainerName,
 							Image:   "otel/python:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", pythonInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", pythonInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      pythonVolumeName,
 								MountPath: pythonInstrMountPath,
@@ -1187,6 +1272,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -1253,7 +1354,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.namespace.name=python,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=python,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=python.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -1266,6 +1367,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnablePythonInstrumentation(true)),
 		},
 		{
 			name: "python injection multiple containers, true",
@@ -1364,7 +1466,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    pythonInitContainerName,
 							Image:   "otel/python:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", pythonInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", pythonInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      pythonVolumeName,
 								MountPath: pythonInstrMountPath,
@@ -1375,6 +1477,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -1441,7 +1559,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app1,k8s.namespace.name=python-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app1,k8s.namespace.name=python-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=python-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -1454,6 +1572,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -1520,7 +1654,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app2,k8s.namespace.name=python-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app2,k8s.namespace.name=python-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=python-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -1533,6 +1667,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnablePythonInstrumentation(true)),
 		},
 		{
 			name: "python injection feature gate disabled",
@@ -1618,13 +1753,6 @@ func TestMutatePod(t *testing.T) {
 						},
 					},
 				},
-			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnablePythonAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnablePythonAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnablePythonAutoInstrumentationSupport.ID(), originalVal))
-				})
 			},
 		},
 		{
@@ -1713,7 +1841,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    dotnetInitContainerName,
 							Image:   "otel/dotnet:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      dotnetVolumeName,
 								MountPath: dotnetInstrMountPath,
@@ -1724,6 +1852,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -1798,7 +1942,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.namespace.name=dotnet,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=dotnet,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=dotnet.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -1811,6 +1955,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnableDotNetInstrumentation(true)),
 		},
 		{
 			name: "dotnet injection, by namespace annotations",
@@ -1892,7 +2037,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    dotnetInitContainerName,
 							Image:   "otel/dotnet:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      dotnetVolumeName,
 								MountPath: dotnetInstrMountPath,
@@ -1903,6 +2048,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -1977,7 +2138,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.namespace.name=dotnet-by-namespace-annotation,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=dotnet-by-namespace-annotation,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=dotnet-by-namespace-annotation.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -1990,6 +2151,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnableDotNetInstrumentation(true)),
 		},
 		{
 			name: "dotnet injection multiple containers, true",
@@ -2080,7 +2242,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    dotnetInitContainerName,
 							Image:   "otel/dotnet:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      dotnetVolumeName,
 								MountPath: dotnetInstrMountPath,
@@ -2091,6 +2253,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -2165,7 +2343,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app1,k8s.namespace.name=dotnet-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app1,k8s.namespace.name=dotnet-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=dotnet-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -2178,6 +2356,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "app2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -2252,7 +2446,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app2,k8s.namespace.name=dotnet-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app2,k8s.namespace.name=dotnet-multiple-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=dotnet-multiple-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -2265,6 +2459,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnableDotNetInstrumentation(true)),
 		},
 		{
 			name: "dotnet injection feature gate disabled",
@@ -2343,13 +2538,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableDotnetAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableDotnetAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableDotnetAutoInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableDotNetInstrumentation(false)),
 		},
 		{
 			name: "go injection, true",
@@ -2443,6 +2632,22 @@ func TestMutatePod(t *testing.T) {
 							},
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_GO_AUTO_TARGET_EXE",
 									Value: "/app",
 								},
@@ -2492,7 +2697,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.namespace.name=go,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=go,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=go.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 						},
@@ -2509,19 +2714,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableGoAutoInstrumentationSupport.IsEnabled()
-				mtVal := featuregate.EnableMultiInstrumentationSupport.IsEnabled()
-
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), true))
-
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableGoAutoInstrumentationSupport.ID(), true))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableGoAutoInstrumentationSupport.ID(), originalVal))
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), mtVal))
-
-				})
-			},
+			config: config.New(config.WithEnableGoInstrumentation(true)),
 		},
 		{
 			name: "go injection feature gate disabled",
@@ -2602,6 +2795,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(config.WithEnableGoInstrumentation(false)),
 		},
 		{
 			name: "apache httpd injection, true",
@@ -2680,7 +2874,7 @@ func TestMutatePod(t *testing.T) {
 							Image:   "otel/apache-httpd:1",
 							Command: []string{"/bin/sh", "-c"},
 							Args: []string{
-								"cp -r /opt/opentelemetry/* /opt/opentelemetry-webserver/agent && export agentLogDir=$(echo \"/opt/opentelemetry-webserver/agent/logs\" | sed 's,/,\\\\/,g') && cat /opt/opentelemetry-webserver/agent/conf/appdynamics_sdk_log4cxx.xml.template | sed 's/__agent_log_dir__/'${agentLogDir}'/g'  > /opt/opentelemetry-webserver/agent/conf/appdynamics_sdk_log4cxx.xml &&echo \"$OTEL_APACHE_AGENT_CONF\" > /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && sed -i 's/<<SID-PLACEHOLDER>>/'${APACHE_SERVICE_INSTANCE_ID}'/g' /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && echo 'Include /usr/local/apache2/conf/opentemetry_agent.conf' >> /opt/opentelemetry-webserver/source-conf/httpd.conf"},
+								"cp -r /opt/opentelemetry/* /opt/opentelemetry-webserver/agent && export agentLogDir=$(echo \"/opt/opentelemetry-webserver/agent/logs\" | sed 's,/,\\\\/,g') && cat /opt/opentelemetry-webserver/agent/conf/opentelemetry_sdk_log4cxx.xml.template | sed 's/__agent_log_dir__/'${agentLogDir}'/g'  > /opt/opentelemetry-webserver/agent/conf/opentelemetry_sdk_log4cxx.xml &&echo \"$OTEL_APACHE_AGENT_CONF\" > /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && sed -i 's/<<SID-PLACEHOLDER>>/'${APACHE_SERVICE_INSTANCE_ID}'/g' /opt/opentelemetry-webserver/source-conf/opentemetry_agent.conf && echo 'Include /usr/local/apache2/conf/opentemetry_agent.conf' >> /opt/opentelemetry-webserver/source-conf/httpd.conf"},
 							Env: []corev1.EnvVar{
 								{
 									Name:  apacheAttributesEnvVar,
@@ -2722,6 +2916,22 @@ func TestMutatePod(t *testing.T) {
 							},
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_SERVICE_NAME",
 									Value: "app",
 								},
@@ -2747,20 +2957,14 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=app,k8s.namespace.name=apache-httpd,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=app,k8s.namespace.name=apache-httpd,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=apache-httpd.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).app",
 								},
 							},
 						},
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableApacheHTTPAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableApacheHTTPAutoInstrumentationSupport.ID(), true))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableApacheHTTPAutoInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableApacheHttpdInstrumentation(true)),
 		},
 		{
 			name: "apache httpd injection feature gate disabled",
@@ -2835,13 +3039,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableApacheHTTPAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableApacheHTTPAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableApacheHTTPAutoInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableApacheHttpdInstrumentation(false)),
 		},
 
 		{
@@ -2967,6 +3165,22 @@ func TestMutatePod(t *testing.T) {
 							},
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "LD_LIBRARY_PATH",
 									Value: "/opt/opentelemetry-webserver/agent/sdk_lib/lib",
 								},
@@ -2979,6 +3193,14 @@ func TestMutatePod(t *testing.T) {
 									Value: "http://otlp-endpoint:4317",
 								},
 								{
+									Name: "OTEL_RESOURCE_ATTRIBUTES_POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
 									Name: "OTEL_RESOURCE_ATTRIBUTES_NODE_NAME",
 									ValueFrom: &corev1.EnvVarSource{
 										FieldRef: &corev1.ObjectFieldSelector{
@@ -2988,20 +3210,14 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=nginx,k8s.namespace.name=req-namespace,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=my-nginx-6c44bcbdd,service.instance.id=req-namespace.my-nginx-6c44bcbdd.nginx",
+									Value: "k8s.container.name=nginx,k8s.namespace.name=req-namespace,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=req-namespace.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).nginx",
 								},
 							},
 						},
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableNginxAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableNginxAutoInstrumentationSupport.ID(), true))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableNginxAutoInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableNginxInstrumentation(true)),
 		},
 		{
 			name: "nginx injection feature gate disabled",
@@ -3082,13 +3298,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableNginxAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableNginxAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableNginxAutoInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableDotNetInstrumentation(false)),
 		},
 
 		{
@@ -3375,7 +3585,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    nodejsInitContainerName,
 							Image:   "otel/nodejs:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", nodejsInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", nodejsInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      nodejsVolumeName,
 								MountPath: nodejsInstrMountPath,
@@ -3384,7 +3594,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    pythonInitContainerName,
 							Image:   "otel/python:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", pythonInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", pythonInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      pythonVolumeName,
 								MountPath: pythonInstrMountPath,
@@ -3393,7 +3603,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    dotnetInitContainerName,
 							Image:   "otel/dotnet:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      dotnetVolumeName,
 								MountPath: dotnetInstrMountPath,
@@ -3404,6 +3614,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "dotnet1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -3462,7 +3688,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=dotnet1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=dotnet1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).dotnet1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3475,6 +3701,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "dotnet2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -3533,7 +3775,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=dotnet2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=dotnet2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).dotnet2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3547,12 +3789,28 @@ func TestMutatePod(t *testing.T) {
 							Name: "java1",
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",
@@ -3580,7 +3838,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=java1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=java1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).java1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3594,12 +3852,28 @@ func TestMutatePod(t *testing.T) {
 							Name: "java2",
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",
@@ -3627,7 +3901,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=java2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=java2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).java2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3640,6 +3914,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "nodejs1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -3674,7 +3964,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=nodejs1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=nodejs1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).nodejs1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3687,6 +3977,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "nodejs2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -3721,7 +4027,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=nodejs2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=nodejs2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).nodejs2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3734,6 +4040,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "python1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -3784,7 +4106,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=python1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=python1,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).python1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3797,6 +4119,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "python2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -3847,7 +4185,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=python2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=python2,k8s.namespace.name=multi-instrumentation-multi-containers,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).python2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -3860,13 +4198,12 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableMultiInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), true))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(
+				config.WithEnableMultiInstrumentation(true),
+				config.WithEnablePythonInstrumentation(true),
+				config.WithEnableDotNetInstrumentation(true),
+				config.WithEnableNodeJSInstrumentation(true),
+			),
 		},
 		{
 			name: "multi instrumentation for multiple containers feature gate enabled, container-names not used",
@@ -4033,7 +4370,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    nodejsInitContainerName,
 							Image:   "otel/nodejs:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", nodejsInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", nodejsInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      nodejsVolumeName,
 								MountPath: nodejsInstrMountPath,
@@ -4042,7 +4379,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    pythonInitContainerName,
 							Image:   "otel/python:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", pythonInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", pythonInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      pythonVolumeName,
 								MountPath: pythonInstrMountPath,
@@ -4051,7 +4388,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    dotnetInitContainerName,
 							Image:   "otel/dotnet:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      dotnetVolumeName,
 								MountPath: dotnetInstrMountPath,
@@ -4062,6 +4399,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "dotnet1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -4120,7 +4473,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=dotnet1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=dotnet1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).dotnet1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4133,6 +4486,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "dotnet2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -4191,7 +4560,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=dotnet2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=dotnet2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).dotnet2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4205,12 +4574,28 @@ func TestMutatePod(t *testing.T) {
 							Name: "java1",
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",
@@ -4238,7 +4623,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=java1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=java1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).java1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4252,12 +4637,28 @@ func TestMutatePod(t *testing.T) {
 							Name: "java2",
 							Env: []corev1.EnvVar{
 								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",
@@ -4285,7 +4686,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=java2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=java2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).java2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4298,6 +4699,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "nodejs1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -4332,7 +4749,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=nodejs1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=nodejs1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).nodejs1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4345,6 +4762,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "nodejs2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -4379,7 +4812,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=nodejs2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=nodejs2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).nodejs2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4392,6 +4825,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "python1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -4442,7 +4891,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=python1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=python1,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).python1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4455,6 +4904,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "python2",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -4505,7 +4970,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=python2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=python2,k8s.namespace.name=multi-instrumentation-multi-containers-cn,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-multi-containers-cn.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).python2",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -4524,13 +4989,12 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableMultiInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), true))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(
+				config.WithEnableMultiInstrumentation(true),
+				config.WithEnableDotNetInstrumentation(true),
+				config.WithEnablePythonInstrumentation(true),
+				config.WithEnableNodeJSInstrumentation(true),
+			),
 		},
 		{
 			name: "multi instrumentation for multiple containers feature gate disabled, multiple instrumentation annotations set",
@@ -4684,13 +5148,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableMultiInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableMultiInstrumentation(false), config.WithEnableJavaInstrumentation(false)),
 		},
 		{
 			name: "multi instrumentation feature gate enabled, multiple instrumentation annotations set, no containers",
@@ -4834,13 +5292,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableMultiInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), true))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableMultiInstrumentation(true), config.WithEnableJavaInstrumentation(false)),
 		},
 		{
 			name: "multi instrumentation feature gate enabled, single instrumentation annotation set, no containers",
@@ -4934,7 +5386,7 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name:    dotnetInitContainerName,
 							Image:   "otel/dotnet:1",
-							Command: []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+							Command: []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 							VolumeMounts: []corev1.VolumeMount{{
 								Name:      dotnetVolumeName,
 								MountPath: dotnetInstrMountPath,
@@ -4945,6 +5397,22 @@ func TestMutatePod(t *testing.T) {
 						{
 							Name: "dotnet1",
 							Env: []corev1.EnvVar{
+								{
+									Name: "OTEL_NODE_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.hostIP",
+										},
+									},
+								},
+								{
+									Name: "OTEL_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
 								{
 									Name:  "OTEL_LOG_LEVEL",
 									Value: "debug",
@@ -5003,7 +5471,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "OTEL_RESOURCE_ATTRIBUTES",
-									Value: "k8s.container.name=dotnet1,k8s.namespace.name=multi-instrumentation-single-container-no-cont,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)",
+									Value: "k8s.container.name=dotnet1,k8s.namespace.name=multi-instrumentation-single-container-no-cont,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME),service.instance.id=multi-instrumentation-single-container-no-cont.$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME).dotnet1",
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -5019,13 +5487,10 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableMultiInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), true))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(
+				config.WithEnableMultiInstrumentation(true),
+				config.WithEnableDotNetInstrumentation(true),
+			),
 		},
 		{
 			name: "multi instrumentation feature gate disabled, instrumentation feature gate disabled and annotation set, multiple specific containers set",
@@ -5125,22 +5590,19 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalValMultiInstr := featuregate.EnableMultiInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), true))
-				originalValDotNetInstr := featuregate.EnableDotnetAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableDotnetAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableMultiInstrumentationSupport.ID(), originalValMultiInstr))
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableDotnetAutoInstrumentationSupport.ID(), originalValDotNetInstr))
-				})
-			},
+			config: config.New(
+				config.WithEnableMultiInstrumentation(true),
+				config.WithEnableDotNetInstrumentation(false),
+				config.WithEnableNodeJSInstrumentation(false),
+			),
 		},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
+			mutator := NewMutator(logr.Discard(), k8sClient, record.NewFakeRecorder(100), test.config)
+			require.NotNil(t, mutator)
 			if test.setFeatureGates != nil {
 				test.setFeatureGates(t)
 			}

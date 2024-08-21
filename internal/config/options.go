@@ -15,14 +15,14 @@
 package config
 
 import (
-	"regexp"
-	"strings"
-
 	"github.com/go-logr/logr"
+	"go.uber.org/zap/zapcore"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/decisiveai/opentelemetry-operator/internal/version"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
+	autoRBAC "github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/version"
 )
 
 // Option represents one specific configuration option.
@@ -41,13 +41,23 @@ type options struct {
 	autoInstrumentationNginxImage       string
 	collectorImage                      string
 	collectorConfigMapEntry             string
-	createRBACPermissions               bool
+	createRBACPermissions               autoRBAC.Availability
+	enableMultiInstrumentation          bool
+	enableApacheHttpdInstrumentation    bool
+	enableDotNetInstrumentation         bool
+	enableGoInstrumentation             bool
+	enableNginxInstrumentation          bool
+	enablePythonInstrumentation         bool
+	enableNodeJSInstrumentation         bool
+	enableJavaInstrumentation           bool
 	targetAllocatorConfigMapEntry       string
 	operatorOpAMPBridgeConfigMapEntry   string
 	targetAllocatorImage                string
 	operatorOpAMPBridgeImage            string
 	openshiftRoutesAvailability         openshift.RoutesAvailability
+	prometheusCRAvailability            prometheus.Availability
 	labelsFilter                        []string
+	annotationsFilter                   []string
 }
 
 func WithAutoDetect(a autodetect.AutoDetect) Option {
@@ -75,9 +85,44 @@ func WithCollectorConfigMapEntry(s string) Option {
 		o.collectorConfigMapEntry = s
 	}
 }
-func WithCreateRBACPermissions(s bool) Option {
+func WithEnableMultiInstrumentation(s bool) Option {
 	return func(o *options) {
-		o.createRBACPermissions = s
+		o.enableMultiInstrumentation = s
+	}
+}
+func WithEnableApacheHttpdInstrumentation(s bool) Option {
+	return func(o *options) {
+		o.enableApacheHttpdInstrumentation = s
+	}
+}
+func WithEnableDotNetInstrumentation(s bool) Option {
+	return func(o *options) {
+		o.enableDotNetInstrumentation = s
+	}
+}
+func WithEnableGoInstrumentation(s bool) Option {
+	return func(o *options) {
+		o.enableGoInstrumentation = s
+	}
+}
+func WithEnableNginxInstrumentation(s bool) Option {
+	return func(o *options) {
+		o.enableNginxInstrumentation = s
+	}
+}
+func WithEnableJavaInstrumentation(s bool) Option {
+	return func(o *options) {
+		o.enableJavaInstrumentation = s
+	}
+}
+func WithEnablePythonInstrumentation(s bool) Option {
+	return func(o *options) {
+		o.enablePythonInstrumentation = s
+	}
+}
+func WithEnableNodeJSInstrumentation(s bool) Option {
+	return func(o *options) {
+		o.enableNodeJSInstrumentation = s
 	}
 }
 func WithTargetAllocatorConfigMapEntry(s string) Option {
@@ -149,27 +194,37 @@ func WithOpenShiftRoutesAvailability(os openshift.RoutesAvailability) Option {
 	}
 }
 
+func WithPrometheusCRAvailability(pcrd prometheus.Availability) Option {
+	return func(o *options) {
+		o.prometheusCRAvailability = pcrd
+	}
+}
+
+func WithRBACPermissions(rAuto autoRBAC.Availability) Option {
+	return func(o *options) {
+		o.createRBACPermissions = rAuto
+	}
+}
+
 func WithLabelFilters(labelFilters []string) Option {
 	return func(o *options) {
+		o.labelsFilter = append(o.labelsFilter, labelFilters...)
+	}
+}
 
-		filters := []string{}
-		for _, pattern := range labelFilters {
-			var result strings.Builder
+// WithAnnotationFilters is additive if called multiple times. It works off of a few default filters
+// to prevent unnecessary rollouts. The defaults include the following:
+// * kubectl.kubernetes.io/last-applied-configuration.
+func WithAnnotationFilters(annotationFilters []string) Option {
+	return func(o *options) {
+		o.annotationsFilter = append(o.annotationsFilter, annotationFilters...)
+	}
+}
 
-			for i, literal := range strings.Split(pattern, "*") {
-
-				// Replace * with .*
-				if i > 0 {
-					result.WriteString(".*")
-				}
-
-				// Quote any regular expression meta characters in the
-				// literal text.
-				result.WriteString(regexp.QuoteMeta(literal))
-			}
-			filters = append(filters, result.String())
-		}
-
-		o.labelsFilter = filters
+func WithEncodeLevelFormat(s string) zapcore.LevelEncoder {
+	if s == "lowercase" {
+		return zapcore.LowercaseLevelEncoder
+	} else {
+		return zapcore.CapitalLevelEncoder
 	}
 }

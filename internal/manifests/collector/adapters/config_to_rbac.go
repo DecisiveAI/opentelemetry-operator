@@ -18,7 +18,7 @@ import (
 	"github.com/go-logr/logr"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser/processor"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser/processor"
 )
 
 // ConfigToRBAC parses the OpenTelemetry Collector configuration and checks what RBAC resources are needed to be created.
@@ -52,7 +52,7 @@ func ConfigToRBAC(logger logr.Logger, config map[interface{}]interface{}) []rbac
 		processorName := key.(string)
 		processorParser, err := processor.For(logger, processorName, processorCfg)
 		if err != nil {
-			logger.V(2).Info("no parser found for '%s'", processorName)
+			logger.V(2).Info("no parser found for", "processor", processorName)
 			continue
 		}
 

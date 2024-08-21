@@ -23,9 +23,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/version"
-	"github.com/decisiveai/opentelemetry-operator/pkg/collector/upgrade"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/version"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/collector/upgrade"
 )
 
 func Test0_36_0Upgrade(t *testing.T) {
@@ -84,11 +84,12 @@ service:
 		Recorder: record.NewFakeRecorder(upgrade.RecordBufferSize),
 	}
 	// test
-	res, err := up.ManagedInstance(context.Background(), existing)
+	resV1beta1, err := up.ManagedInstance(context.Background(), convertTov1beta1(t, existing))
 	assert.NoError(t, err)
+	res := convertTov1alpha1(t, resV1beta1)
 
 	// verify
-	assert.Equal(t, `exporters:
+	assert.YAMLEq(t, `exporters:
   otlp:
     endpoint: example.com
     tls:

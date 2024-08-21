@@ -33,7 +33,6 @@ import (
 	"github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	"github.com/prometheus-operator/prometheus-operator/pkg/prometheus"
 	prometheusgoclient "github.com/prometheus/client_golang/prometheus"
-
 	promconfig "github.com/prometheus/prometheus/config"
 	kubeDiscovery "github.com/prometheus/prometheus/discovery/kubernetes"
 	"gopkg.in/yaml.v2"
@@ -42,7 +41,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 
-	allocatorconfig "github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/config"
+	allocatorconfig "github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/config"
 )
 
 const (
@@ -89,10 +88,11 @@ func NewPrometheusCRWatcher(ctx context.Context, logger logr.Logger, cfg allocat
 		return nil, err
 	}
 
-	store := assets.NewStore(clientset.CoreV1(), clientset.CoreV1())
+	store := assets.NewStoreBuilder(clientset.CoreV1(), clientset.CoreV1())
 	promRegisterer := prometheusgoclient.NewRegistry()
 	operatorMetrics := operator.NewMetrics(promRegisterer)
-	eventRecorder := operator.NewEventRecorder(clientset, "target-allocator")
+	eventRecorderFactory := operator.NewEventRecorderFactory(false)
+	eventRecorder := eventRecorderFactory(clientset, "target-allocator")
 
 	nsMonInf, err := getNamespaceInformer(ctx, map[string]struct{}{v1.NamespaceAll: {}}, promOperatorLogger, clientset, operatorMetrics)
 	if err != nil {
@@ -132,7 +132,7 @@ type PrometheusCRWatcher struct {
 	podMonitorNamespaceSelector     *metav1.LabelSelector
 	serviceMonitorNamespaceSelector *metav1.LabelSelector
 	resourceSelector                *prometheus.ResourceSelector
-	store                           *assets.Store
+	store                           *assets.StoreBuilder
 }
 
 func getNamespaceInformer(ctx context.Context, allowList map[string]struct{}, promOperatorLogger log.Logger, clientset kubernetes.Interface, operatorMetrics *operator.Metrics) (cache.SharedIndexInformer, error) {
@@ -320,7 +320,6 @@ func (w *PrometheusCRWatcher) LoadConfig(ctx context.Context) (*promconfig.Confi
 		}
 
 		generatedConfig, err := w.configGenerator.GenerateServerConfiguration(
-			ctx,
 			"30s",
 			"",
 			nil,

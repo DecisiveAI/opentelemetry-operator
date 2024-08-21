@@ -20,8 +20,8 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 var _ parser.ComponentPortParser = &JaegerReceiverParser{}
@@ -131,86 +131,6 @@ func (j *JaegerReceiverParser) Ports() ([]corev1.ServicePort, error) {
 // ParserName returns the name of this parser.
 func (j *JaegerReceiverParser) ParserName() string {
 	return parserNameJaeger
-}
-
-// mydecisive.
-// CompPortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
-func (j *JaegerReceiverParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
-	var portsUrlPaths = []parser.PortUrlPaths{}
-
-	for _, protocol := range []struct {
-		name              string
-		transportProtocol corev1.Protocol
-		appProtocol       string
-		defaultPort       int32
-	}{
-		{
-			name:              "grpc",
-			defaultPort:       defaultGRPCPort,
-			transportProtocol: corev1.ProtocolTCP,
-			appProtocol:       "grpc",
-		},
-		{
-			name:              "thrift_http",
-			defaultPort:       defaultThriftHTTPPort,
-			transportProtocol: corev1.ProtocolTCP,
-			appProtocol:       "http",
-		},
-		{
-			name:              "thrift_compact",
-			defaultPort:       defaultThriftCompactPort,
-			transportProtocol: corev1.ProtocolUDP,
-		},
-		{
-			name:              "thrift_binary",
-			defaultPort:       defaultThriftBinaryPort,
-			transportProtocol: corev1.ProtocolUDP,
-		},
-	} {
-		// do we have the protocol specified at all?
-		if receiverProtocol, ok := j.config[protocol.name]; ok {
-			// we have the specified protocol, we definitely need a service port
-			nameWithProtocol := fmt.Sprintf("%s-%s", j.name, protocol.name)
-			var protocolPort *corev1.ServicePort
-
-			// do we have a configuration block for the protocol?
-			settings, ok := receiverProtocol.(map[interface{}]interface{})
-			if ok {
-				protocolPort = singlePortFromConfigEndpoint(j.logger, nameWithProtocol, settings)
-			}
-
-			// manage url paths here
-			urlPaths := []string{}
-			if protocol.name == http {
-				urlPaths = append(urlPaths, "/")
-			} else if protocol.name == grpc {
-				urlPaths = append(urlPaths, "/jaeger.api_v2/CollectorService")
-				urlPaths = append(urlPaths, "/jaeger.api_v3/QueryService")
-			}
-
-			// have we parsed a port based on the configuration block?
-			// if not, we use the default port
-			if protocolPort == nil {
-				protocolPort = &corev1.ServicePort{
-					Name: naming.PortName(nameWithProtocol, protocol.defaultPort),
-					Port: protocol.defaultPort,
-				}
-			}
-
-			// set the appropriate transport protocol (i.e. TCP/UDP) for this kind of receiver protocol
-			protocolPort.Protocol = protocol.transportProtocol
-
-			if protocol.appProtocol != "" {
-				c := protocol.appProtocol
-				protocolPort.AppProtocol = &c
-			}
-
-			// at this point, we *have* a port specified, add it to the list of ports
-			portsUrlPaths = append(portsUrlPaths, parser.PortUrlPaths{Port: *protocolPort,
-				UrlPaths: urlPaths})
-		}
-	}
-	return parser.CompPortUrlPaths{j.name: portsUrlPaths}, nil
 }
 
 func init() {

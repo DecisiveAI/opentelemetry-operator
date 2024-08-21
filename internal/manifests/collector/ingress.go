@@ -15,115 +15,55 @@
 package collector
 
 import (
-	"errors"
 	"fmt"
-	"sort"
-
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/adapters"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
-	// mydecisive.
-	var rules []networkingv1.IngressRule
-
-	switch params.OtelCol.Spec.Ingress.Type {
-	case v1alpha1.IngressTypeNginx:
-		{
-			ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
-			if err != nil {
-				return nil, err
-			}
-			switch params.OtelCol.Spec.Ingress.RuleType {
-			case v1alpha1.IngressRuleTypePath, "":
-				rules = []networkingv1.IngressRule{createPathIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)}
-			case v1alpha1.IngressRuleTypeSubdomain:
-				rules = createSubdomainIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)
-			}
-		} // v1alpha1.IngressTypeNginx
-	case v1alpha1.IngressTypeAws:
-		{
-			compPortsEndpoints, err := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
-			if err != nil {
-				return nil, err
-			}
-			for comp, portsEndpoints := range compPortsEndpoints {
-				// deleting all non-grpc ports
-				for i := len(portsEndpoints) - 1; i >= 0; i-- {
-					if portsEndpoints[i].Port.AppProtocol == nil || (portsEndpoints[i].Port.AppProtocol != nil && *portsEndpoints[i].Port.AppProtocol != "grpc") {
-						portsEndpoints = append(portsEndpoints[:i], portsEndpoints[i+1:]...)
-					}
-				}
-				// if component does not have grpc ports, delete it from the result map
-				if len(portsEndpoints) > 0 {
-					compPortsEndpoints[comp] = portsEndpoints
-				} else {
-					delete(compPortsEndpoints, comp)
-
-				}
-			}
-			// if we have no ports, we don't need a ingress entry
-			if len(compPortsEndpoints) == 0 {
-				params.Log.V(1).Info(
-					"the instance's configuration didn't yield any ports to open, skipping ingress",
-					"instance.name", params.OtelCol.Name,
-					"instance.namespace", params.OtelCol.Namespace,
-				)
-				return nil, err
-			}
-			switch params.OtelCol.Spec.Ingress.RuleType {
-			case v1alpha1.IngressRuleTypePath, "":
-				if params.OtelCol.Spec.Ingress.CollectorEndpoints == nil || len(params.OtelCol.Spec.Ingress.CollectorEndpoints) == 0 {
-					return nil, errors.New("empty components to hostnames mapping")
-				} else {
-					rules = createPathIngressRulesUrlPaths(params.Log, params.OtelCol.Name, params.OtelCol.Spec.Ingress.CollectorEndpoints, compPortsEndpoints)
-				}
-			case v1alpha1.IngressRuleTypeSubdomain:
-				params.Log.V(1).Info("Only  IngressRuleType = \"path\" is supported for AWS",
-					"ingress.type", v1alpha1.IngressTypeAws,
-					"ingress.ruleType", v1alpha1.IngressRuleTypeSubdomain,
-				)
-				return nil, err
-			}
-		} // v1alpha1.IngressTypeAws
-	case v1alpha1.IngressTypeRoute:
-		return nil, nil
-	default:
+	name := naming.Ingress(params.OtelCol.Name)
+	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, params.Config.LabelsFilter())
+	// mydecisive
+	if params.OtelCol.Spec.Ingress.Type == v1beta1.IngressTypeAws {
+		return IngressAws(params)
+	} else if params.OtelCol.Spec.Ingress.Type != v1beta1.IngressTypeAws && params.OtelCol.Spec.Ingress.Type != v1beta1.IngressTypeIngress {
 		return nil, nil
 	}
 
-	if rules == nil || len(rules) == 0 {
+	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
+
+	// if we have no ports, we don't need a ingress entry
+	if len(ports) == 0 || err != nil {
 		params.Log.V(1).Info(
-			"could not configure any ingress rules for the instance's configuration, skipping ingress",
+			"the instance's configuration didn't yield any ports to open, skipping ingress",
 			"instance.name", params.OtelCol.Name,
 			"instance.namespace", params.OtelCol.Namespace,
 		)
-		return nil, nil
+		return nil, err
 	}
 
-	sort.Slice(rules, func(i, j int) bool {
-		return rules[i].Host < rules[j].Host
-	})
+	var rules []networkingv1.IngressRule
+	switch params.OtelCol.Spec.Ingress.RuleType {
+	case v1beta1.IngressRuleTypePath, "":
+		rules = []networkingv1.IngressRule{createPathIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)}
+	case v1beta1.IngressRuleTypeSubdomain:
+		rules = createSubdomainIngressRules(params.OtelCol.Name, params.OtelCol.Spec.Ingress.Hostname, ports)
+	}
 
 	return &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        naming.Ingress(params.OtelCol.Name),
 			Namespace:   params.OtelCol.Namespace,
 			Annotations: params.OtelCol.Spec.Ingress.Annotations,
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       naming.Ingress(params.OtelCol.Name),
-				"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", params.OtelCol.Namespace, params.OtelCol.Name),
-				"app.kubernetes.io/managed-by": "opentelemetry-operator",
-			},
+			Labels:      labels,
 		},
 		Spec: networkingv1.IngressSpec{
 			TLS:              params.OtelCol.Spec.Ingress.TLS,
@@ -197,62 +137,8 @@ func createSubdomainIngressRules(otelcol string, hostname string, ports []corev1
 	return rules
 }
 
-// mydecisive.
-func createPathIngressRulesUrlPaths(logger logr.Logger, otelcol string, colEndpoints map[string]string, compPortsUrlPaths parser.CompPortUrlPaths) []networkingv1.IngressRule {
-	pathType := networkingv1.PathTypePrefix
-	var ingressRules []networkingv1.IngressRule
-	for comp, portsUrlPaths := range compPortsUrlPaths {
-		var totalPaths = 0
-		for _, portUrlPaths := range portsUrlPaths {
-			totalPaths += len(portUrlPaths.UrlPaths)
-		}
-		paths := make([]networkingv1.HTTPIngressPath, totalPaths)
-		var i = 0
-		for _, portUrlPaths := range portsUrlPaths {
-			portName := naming.PortName(portUrlPaths.Port.Name, portUrlPaths.Port.Port)
-			for _, endpoint := range portUrlPaths.UrlPaths {
-				paths[i] = networkingv1.HTTPIngressPath{
-					Path:     endpoint,
-					PathType: &pathType,
-					Backend: networkingv1.IngressBackend{
-						Service: &networkingv1.IngressServiceBackend{
-							Name: naming.BehindIngressService(otelcol),
-							Port: networkingv1.ServiceBackendPort{
-								Name: portName,
-							},
-						},
-					},
-				}
-				i++
-			}
-			if host, ok := colEndpoints[comp]; ok {
-				ingressRule := networkingv1.IngressRule{
-					Host: host,
-					IngressRuleValue: networkingv1.IngressRuleValue{
-						HTTP: &networkingv1.HTTPIngressRuleValue{
-							Paths: paths,
-						},
-					},
-				}
-				ingressRules = append(ingressRules, ingressRule)
-			} else {
-				err := errors.New("missing or invalid mapping")
-				logger.V(1).Error(err, "missing or invalid mapping for", "component", comp)
-				continue
-			}
-		}
-	}
-	return ingressRules
-}
-
-func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) ([]corev1.ServicePort, error) {
-	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
-	if err != nil {
-		logger.Error(err, "couldn't extract the configuration from the context")
-		return nil, err
-	}
-
-	ports, err := adapters.ConfigToComponentPorts(logger, adapters.ComponentTypeReceiver, configFromString)
+func servicePortsFromCfg(logger logr.Logger, otelcol v1beta1.OpenTelemetryCollector) ([]corev1.ServicePort, error) {
+	ports, err := otelcol.Spec.Config.GetReceiverPorts(logger)
 	if err != nil {
 		logger.Error(err, "couldn't build the ingress for this instance")
 		return nil, err
@@ -273,24 +159,18 @@ func servicePortsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryColle
 				resultingInferredPorts = append(resultingInferredPorts, *filtered)
 			}
 		}
-		ports = append(otelcol.Spec.Ports, resultingInferredPorts...)
+
+		ports = append(toServicePorts(otelcol.Spec.Ports), resultingInferredPorts...)
 	}
-	return ports, err
+
+	return ports, nil
 }
 
-// mydecisive.
-func servicePortsUrlPathsFromCfg(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) (parser.CompPortUrlPaths, error) {
-	configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config)
-	if err != nil {
-		logger.Error(err, "couldn't extract the configuration from the context")
-		return nil, err
+func toServicePorts(spec []v1beta1.PortsSpec) []corev1.ServicePort {
+	var ports []corev1.ServicePort
+	for _, p := range spec {
+		ports = append(ports, p.ServicePort)
 	}
 
-	compPortsUrlPaths, err := adapters.ConfigToComponentPortsUrlPaths(logger, adapters.ComponentTypeReceiver, configFromString)
-	if err != nil {
-		logger.Error(err, "couldn't build the ingress for this instance")
-		return nil, err
-	}
-
-	return compPortsUrlPaths, nil
+	return ports
 }

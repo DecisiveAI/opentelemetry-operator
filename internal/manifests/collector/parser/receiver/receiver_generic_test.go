@@ -21,8 +21,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser/receiver"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser/receiver"
 )
 
 var logger = logf.Log.WithName("unit-tests")

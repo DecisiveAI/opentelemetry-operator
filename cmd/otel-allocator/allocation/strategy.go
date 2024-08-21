@@ -23,7 +23,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
-	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/target"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/target"
 )
 
 type AllocatorProvider func(log logr.Logger, opts ...AllocationOption) Allocator
@@ -48,6 +48,10 @@ var (
 	targetsRemaining = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "opentelemetry_allocator_targets_remaining",
 		Help: "Number of targets kept after filtering.",
+	})
+	TargetsUnassigned = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "opentelemetry_allocator_targets_unassigned",
+		Help: "Number of targets that could not be assigned due to missing node label.",
 	})
 )
 
@@ -99,6 +103,15 @@ type Allocator interface {
 	SetFilter(filter Filter)
 }
 
+type Strategy interface {
+	GetCollectorForTarget(map[string]*Collector, *target.Item) (*Collector, error)
+	// SetCollectors exists for strategies where changing the collector set is potentially an expensive operation.
+	// The caller must guarantee that the collectors map passed in GetCollectorForTarget is consistent with the latest
+	// SetCollectors call. Strategies which don't need this information can just ignore it.
+	SetCollectors(map[string]*Collector)
+	GetName() string
+}
+
 var _ consistent.Member = Collector{}
 
 // Collector Creates a struct that holds Collector information.
@@ -106,6 +119,7 @@ var _ consistent.Member = Collector{}
 // This struct can be extended with information like annotations and labels in the future.
 type Collector struct {
 	Name       string
+	NodeName   string
 	NumTargets int
 }
 
@@ -117,16 +131,26 @@ func (c Collector) String() string {
 	return c.Name
 }
 
-func NewCollector(name string) *Collector {
-	return &Collector{Name: name}
+func NewCollector(name, node string) *Collector {
+	return &Collector{Name: name, NodeName: node}
 }
 
 func init() {
-	err := Register(leastWeightedStrategyName, newLeastWeightedAllocator)
+	err := Register(leastWeightedStrategyName, func(log logr.Logger, opts ...AllocationOption) Allocator {
+		return newAllocator(log, newleastWeightedStrategy(), opts...)
+	})
 	if err != nil {
 		panic(err)
 	}
-	err = Register(consistentHashingStrategyName, newConsistentHashingAllocator)
+	err = Register(consistentHashingStrategyName, func(log logr.Logger, opts ...AllocationOption) Allocator {
+		return newAllocator(log, newConsistentHashingStrategy(), opts...)
+	})
+	if err != nil {
+		panic(err)
+	}
+	err = Register(perNodeStrategyName, func(log logr.Logger, opts ...AllocationOption) Allocator {
+		return newAllocator(log, newPerNodeStrategy(), opts...)
+	})
 	if err != nil {
 		panic(err)
 	}

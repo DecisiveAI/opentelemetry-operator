@@ -15,15 +15,14 @@
 package adapters_test
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
 	"testing"
 
-	ta "github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator/adapters"
-
 	"github.com/stretchr/testify/assert"
+
+	ta "github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator/adapters"
 )
 
 func TestExtractPromConfigFromConfig(t *testing.T) {
@@ -118,7 +117,85 @@ func TestExtractPromConfigFromNullConfig(t *testing.T) {
 }
 
 func TestUnescapeDollarSignsInPromConfig(t *testing.T) {
-	actual := `
+	testCases := []struct {
+		description string
+		input       string
+		expected    string
+	}{
+		{
+			description: "no scrape configs",
+			input: `
+receivers:
+  prometheus:
+    config:
+      scrape_configs: []
+`,
+			expected: `
+receivers:
+  prometheus:
+    config:
+      scrape_configs: []
+`,
+		},
+		{
+			description: "only metric relabellings",
+			input: `
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'example'
+        metric_relabel_configs:
+        - source_labels: ['job']
+          target_label: 'job'
+          replacement: '$$1_$2'
+`,
+			expected: `
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'example'
+        metric_relabel_configs:
+        - source_labels: ['job']
+          target_label: 'job'
+          replacement: '$1_$2'
+`,
+		},
+		{
+			description: "only target relabellings",
+			input: `
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'example'
+        relabel_configs:
+        - source_labels: ['__meta_service_id']
+          target_label: 'job'
+          replacement: 'my_service_$$1'
+        - source_labels: ['__meta_service_name']
+          target_label: 'instance'
+          replacement: '$1'
+`,
+			expected: `
+receivers:
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'example'
+        relabel_configs:
+        - source_labels: ['__meta_service_id']
+          target_label: 'job'
+          replacement: 'my_service_$1'
+        - source_labels: ['__meta_service_name']
+          target_label: 'instance'
+          replacement: '$1'
+`,
+		},
+		{
+			description: "full",
+			input: `
 receivers:
   prometheus:
     config:
@@ -135,8 +212,8 @@ receivers:
         - source_labels: ['job']
           target_label: 'job'
           replacement: '$$1_$2'
-`
-	expected := `
+`,
+			expected: `
 receivers:
   prometheus:
     config:
@@ -153,20 +230,26 @@ receivers:
         - source_labels: ['job']
           target_label: 'job'
           replacement: '$1_$2'
-`
-
-	config, err := ta.UnescapeDollarSignsInPromConfig(actual)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
+`,
+		},
 	}
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.description, func(t *testing.T) {
+			config, err := ta.UnescapeDollarSignsInPromConfig(testCase.input)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
 
-	expectedConfig, err := ta.UnescapeDollarSignsInPromConfig(expected)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
+			expectedConfig, err := ta.UnescapeDollarSignsInPromConfig(testCase.expected)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
 
-	if !reflect.DeepEqual(config, expectedConfig) {
-		t.Errorf("unexpected config: got %v, want %v", config, expectedConfig)
+			if !reflect.DeepEqual(config, expectedConfig) {
+				t.Errorf("unexpected config: got %v, want %v", config, expectedConfig)
+			}
+		})
 	}
 }
 
@@ -196,7 +279,7 @@ func TestAddHTTPSDConfigToPromConfig(t *testing.T) {
 						"job_name": "test_job",
 						"http_sd_configs": []interface{}{
 							map[string]interface{}{
-								"url": fmt.Sprintf("http://%s:80/jobs/%s/targets?collector_id=$POD_NAME", taServiceName, url.QueryEscape("test_job")),
+								"url": fmt.Sprintf("http://%s.default.svc.cluster.local:80/jobs/%s/targets?collector_id=$POD_NAME", taServiceName, url.QueryEscape("test_job")),
 							},
 						},
 					},
@@ -204,7 +287,7 @@ func TestAddHTTPSDConfigToPromConfig(t *testing.T) {
 			},
 		}
 
-		actualCfg, err := ta.AddHTTPSDConfigToPromConfig(cfg, taServiceName)
+		actualCfg, err := ta.AddHTTPSDConfigToPromConfig(cfg, taServiceName, "default")
 		assert.NoError(t, err)
 		assert.Equal(t, expectedCfg, actualCfg)
 	})
@@ -225,7 +308,7 @@ func TestAddHTTPSDConfigToPromConfig(t *testing.T) {
 
 		taServiceName := "test-service"
 
-		_, err := ta.AddHTTPSDConfigToPromConfig(cfg, taServiceName)
+		_, err := ta.AddHTTPSDConfigToPromConfig(cfg, taServiceName, "default")
 		assert.Error(t, err)
 		assert.EqualError(t, err, "no scrape_configs available as part of the configuration")
 	})
@@ -255,13 +338,13 @@ func TestAddTAConfigToPromConfig(t *testing.T) {
 		expectedResult := map[interface{}]interface{}{
 			"config": map[interface{}]interface{}{},
 			"target_allocator": map[interface{}]interface{}{
-				"endpoint":     "http://test-targetallocator:80",
+				"endpoint":     "http://test-targetallocator.default.svc.cluster.local:80",
 				"interval":     "30s",
 				"collector_id": "${POD_NAME}",
 			},
 		}
 
-		result, err := ta.AddTAConfigToPromConfig(cfg, taServiceName)
+		result, err := ta.AddTAConfigToPromConfig(cfg, taServiceName, "default")
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
@@ -291,7 +374,7 @@ func TestAddTAConfigToPromConfig(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				_, err := ta.AddTAConfigToPromConfig(tc.cfg, taServiceName)
+				_, err := ta.AddTAConfigToPromConfig(tc.cfg, taServiceName, "default")
 
 				assert.Error(t, err)
 				assert.EqualError(t, err, tc.errText)
@@ -302,66 +385,53 @@ func TestAddTAConfigToPromConfig(t *testing.T) {
 
 func TestValidatePromConfig(t *testing.T) {
 	testCases := []struct {
-		description                   string
-		config                        map[interface{}]interface{}
-		targetAllocatorEnabled        bool
-		targetAllocatorRewriteEnabled bool
-		expectedError                 error
+		description            string
+		config                 map[interface{}]interface{}
+		targetAllocatorEnabled bool
+		expectedError          error
 	}{
 		{
-			description:                   "target_allocator and rewrite enabled",
-			config:                        map[interface{}]interface{}{},
-			targetAllocatorEnabled:        true,
-			targetAllocatorRewriteEnabled: true,
-			expectedError:                 nil,
+			description:            "target_allocator enabled",
+			config:                 map[interface{}]interface{}{},
+			targetAllocatorEnabled: true,
+			expectedError:          nil,
 		},
 		{
 			description: "target_allocator enabled, target_allocator section present",
 			config: map[interface{}]interface{}{
 				"target_allocator": map[interface{}]interface{}{},
 			},
-			targetAllocatorEnabled:        true,
-			targetAllocatorRewriteEnabled: false,
-			expectedError:                 nil,
+			targetAllocatorEnabled: true,
+			expectedError:          nil,
 		},
 		{
 			description: "target_allocator enabled, config section present",
 			config: map[interface{}]interface{}{
 				"config": map[interface{}]interface{}{},
 			},
-			targetAllocatorEnabled:        true,
-			targetAllocatorRewriteEnabled: false,
-			expectedError:                 nil,
-		},
-		{
-			description:                   "target_allocator enabled, neither section present",
-			config:                        map[interface{}]interface{}{},
-			targetAllocatorEnabled:        true,
-			targetAllocatorRewriteEnabled: false,
-			expectedError:                 errors.New("either target allocator or prometheus config needs to be present"),
+			targetAllocatorEnabled: true,
+			expectedError:          nil,
 		},
 		{
 			description: "target_allocator disabled, config section present",
 			config: map[interface{}]interface{}{
 				"config": map[interface{}]interface{}{},
 			},
-			targetAllocatorEnabled:        false,
-			targetAllocatorRewriteEnabled: false,
-			expectedError:                 nil,
+			targetAllocatorEnabled: false,
+			expectedError:          nil,
 		},
 		{
-			description:                   "target_allocator disabled, config section not present",
-			config:                        map[interface{}]interface{}{},
-			targetAllocatorEnabled:        false,
-			targetAllocatorRewriteEnabled: false,
-			expectedError:                 fmt.Errorf("no %s available as part of the configuration", "prometheusConfig"),
+			description:            "target_allocator disabled, config section not present",
+			config:                 map[interface{}]interface{}{},
+			targetAllocatorEnabled: false,
+			expectedError:          fmt.Errorf("no %s available as part of the configuration", "prometheusConfig"),
 		},
 	}
 
 	for _, testCase := range testCases {
 		testCase := testCase
 		t.Run(testCase.description, func(t *testing.T) {
-			err := ta.ValidatePromConfig(testCase.config, testCase.targetAllocatorEnabled, testCase.targetAllocatorRewriteEnabled)
+			err := ta.ValidatePromConfig(testCase.config, testCase.targetAllocatorEnabled)
 			assert.Equal(t, testCase.expectedError, err)
 		})
 	}

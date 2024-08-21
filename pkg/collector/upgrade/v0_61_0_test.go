@@ -22,9 +22,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/version"
-	"github.com/decisiveai/opentelemetry-operator/pkg/collector/upgrade"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/version"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/collector/upgrade"
 )
 
 var (
@@ -77,7 +77,7 @@ func Test0_61_0Upgrade(t *testing.T) {
 				Recorder: record.NewFakeRecorder(upgrade.RecordBufferSize),
 			}
 
-			_, err := versionUpgrade.ManagedInstance(context.Background(), collectorInstance)
+			_, err := versionUpgrade.ManagedInstance(context.Background(), convertTov1beta1(t, collectorInstance))
 			if (err != nil) != tc.expectErr {
 				t.Errorf("expect err: %t but got: %v", tc.expectErr, err)
 			}

@@ -1,0 +1,33 @@
+I0717 21:24:07.658429       1 handler.go:232] Adding GroupVersion cert-manager.io v1 to ResourceManager
+I0717 21:24:07.659031       1 handler.go:232] Adding GroupVersion opentelemetry.io v1alpha1 to ResourceManager
+I0717 21:24:07.659225       1 handler.go:232] Adding GroupVersion opentelemetry.io v1beta1 to ResourceManager
+I0717 21:24:07.668583       1 handler.go:232] Adding GroupVersion cert-manager.io v1 to ResourceManager
+I0717 21:24:07.669078       1 handler.go:232] Adding GroupVersion acme.cert-manager.io v1 to ResourceManager
+I0717 21:24:07.673205       1 handler.go:232] Adding GroupVersion opentelemetry.io v1alpha1 to ResourceManager
+I0717 21:24:07.695580       1 handler.go:232] Adding GroupVersion opentelemetry.io v1alpha1 to ResourceManager
+I0717 21:24:07.697099       1 handler.go:232] Adding GroupVersion cert-manager.io v1 to ResourceManager
+I0717 21:24:07.709231       1 handler.go:232] Adding GroupVersion acme.cert-manager.io v1 to ResourceManager
+I0717 21:25:14.434162       1 trace.go:219] Trace[645339257]: "Get" accept:application/json, */*,audit-id:4ea0ff23-de71-4c10-84a2-70777bc48f2f,client:172.19.0.1,protocol:HTTP/2.0,resource:pods,scope:resource,url:/api/v1/namespaces/kube-system/pods/kube-apiserver-otel-operator-tmp-control-plane/log,user-agent:k9s/v0.0.0 (darwin/arm64) kubernetes/$Format,verb:CONNECT (17-Jul-2024 21:25:09.613) (total time: 4820ms):
+Trace[645339257]: ---"Writing http response done" 4816ms (21:25:14.433)
+Trace[645339257]: [4.820815127s] [4.820815127s] END
+I0717 21:25:28.902567       1 trace.go:219] Trace[698318330]: "Get" accept:application/json, */*,audit-id:d3a02060-6fba-47e9-813e-a0eb164b173e,client:172.19.0.1,protocol:HTTP/2.0,resource:pods,scope:resource,url:/api/v1/namespaces/kube-system/pods/kube-controller-manager-otel-operator-tmp-control-plane/log,user-agent:k9s/v0.0.0 (darwin/arm64) kubernetes/$Format,verb:CONNECT (17-Jul-2024 21:25:16.888) (total time: 12014ms):
+Trace[698318330]: ---"Writing http response done" 12010ms (21:25:28.902)
+Trace[698318330]: [12.014105881s] [12.014105881s] END
+I0717 21:25:43.985876       1 trace.go:219] Trace[787999767]: "Get" accept:application/json, */*,audit-id:cd0f582b-2569-4f5b-9474-34f9d243c112,client:172.19.0.1,protocol:HTTP/2.0,resource:pods,scope:resource,url:/api/v1/namespaces/default/pods/my-opentelemetry-operator-5bbddb6659-qqgkm/log,user-agent:k9s/v0.0.0 (darwin/arm64) kubernetes/$Format,verb:CONNECT (17-Jul-2024 21:25:34.446) (total time: 9538ms):
+Trace[787999767]: ---"Writing http response done" 9534ms (21:25:43.985)
+Trace[787999767]: [9.538765462s] [9.538765462s] END
+I0717 21:25:50.749728       1 trace.go:219] Trace[1376903144]: "Call conversion webhook" custom-resource-definition:opentelemetrycollectors.opentelemetry.io,desired-api-version:opentelemetry.io/v1alpha1,object-count:1,UID:f54ee044-f8bf-4976-b8e3-5e692d1c6763 (17-Jul-2024 21:25:50.654) (total time: 94ms):
+Trace[1376903144]: ---"Request completed" 94ms (21:25:50.749)
+Trace[1376903144]: [94.8795ms] [94.8795ms] END
+I0717 21:25:57.488359       1 alloc.go:330] "allocated clusterIPs" service="default/notthatsimple-collector" clusterIPs=map[IPv4:10.96.203.168]
+I0717 21:25:57.556215       1 alloc.go:330] "allocated clusterIPs" service="default/notthatsimple-collector-monitoring" clusterIPs=map[IPv4:10.96.18.225]
+I0717 21:26:10.725474       1 trace.go:219] Trace[290419070]: "Get" accept:application/json, */*,audit-id:7e197c03-cb3e-434f-abff-b20a30aed739,client:172.19.0.1,protocol:HTTP/2.0,resource:pods,scope:resource,url:/api/v1/namespaces/default/pods/my-opentelemetry-operator-5bbddb6659-qqgkm/log,user-agent:k9s/v0.0.0 (darwin/arm64) kubernetes/$Format,verb:CONNECT (17-Jul-2024 21:26:04.840) (total time: 5884ms):
+Trace[290419070]: ---"Writing http response done" 5880ms (21:26:10.725)
+Trace[290419070]: [5.884996336s] [5.884996336s] END
+I0717 21:26:24.498477       1 trace.go:219] Trace[118865268]: "Get" accept:application/json, */*,audit-id:aac9c333-32bf-4d0b-a531-1d4bf46fb1a7,client:172.19.0.1,protocol:HTTP/2.0,resource:pods,scope:resource,url:/api/v1/namespaces/kube-system/pods/kube-controller-manager-otel-operator-tmp-control-plane/log,user-agent:k9s/v0.0.0 (darwin/arm64) kubernetes/$Format,verb:CONNECT (17-Jul-2024 21:26:14.444) (total time: 10053ms):
+Trace[118865268]: ---"Writing http response done" 10050ms (21:26:24.498)
+Trace[118865268]: [10.053422963s] [10.053422963s] END
+I0717 21:28:20.054875       1 trace.go:219] Trace[820775225]: "Get" accept:application/json, */*,audit-id:3b16b6f6-ad31-406f-a20a-a1b14fdcc262,client:172.19.0.1,protocol:HTTP/2.0,resource:pods,scope:resource,url:/api/v1/namespaces/kube-system/pods/kube-apiserver-otel-operator-tmp-control-plane/log,user-agent:k9s/v0.0.0 (darwin/arm64) kubernetes/$Format,verb:CONNECT (17-Jul-2024 21:26:28.107) (total time: 111951ms):
+Trace[820775225]: ---"Writing http response done" 111946ms (21:28:20.054)
+Trace[820775225]: [1m51.951516052s] [1m51.951516052s] END
+

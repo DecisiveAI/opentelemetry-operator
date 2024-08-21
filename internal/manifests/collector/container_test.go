@@ -20,13 +20,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	. "github.com/decisiveai/opentelemetry-operator/internal/manifests/collector"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	. "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector"
 )
 
 var logger = logf.Log.WithName("unit-tests")
@@ -40,28 +41,31 @@ var metricContainerPort = corev1.ContainerPort{
 func TestContainerNewDefault(t *testing.T) {
 	// prepare
 	var defaultConfig = `receivers:
-		otlp:
-			protocols:
-			http:
-			grpc:
-	exporters:
-		debug:
-	service:
-		pipelines:
-			metrics:
-				receivers: [otlp]
-				exporters: [debug]`
-
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Name:     "metrics",
-					Port:     8888,
-					Protocol: corev1.ProtocolTCP,
+  otlp:
+    protocols:
+    http:
+    grpc:
+  exporters:
+    debug:
+  service:
+    pipelines:
+      metrics:
+        receivers: [otlp]
+        exporters: [debug]`
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Ports: []v1beta1.PortsSpec{
+					{
+						ServicePort: corev1.ServicePort{
+							Name:     "metrics",
+							Port:     8888,
+							Protocol: corev1.ProtocolTCP,
+						},
+					},
 				},
 			},
-			Config: defaultConfig,
+			Config: mustUnmarshalToConfig(t, defaultConfig),
 		},
 	}
 	cfg := config.New(config.WithCollectorImage("default-image"))
@@ -76,9 +80,11 @@ func TestContainerNewDefault(t *testing.T) {
 
 func TestContainerWithImageOverridden(t *testing.T) {
 	// prepare
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Image: "overridden-image",
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Image: "overridden-image",
+			},
 		},
 	}
 	cfg := config.New(config.WithCollectorImage("default-image"))
@@ -105,23 +111,19 @@ service:
 	tests := []struct {
 		description   string
 		specConfig    string
-		specPorts     []corev1.ServicePort
+		specPorts     []v1beta1.PortsSpec
 		expectedPorts []corev1.ContainerPort
 	}{
 		{
-			description:   "bad spec config",
-			specConfig:    "🦄",
-			specPorts:     nil,
-			expectedPorts: []corev1.ContainerPort{},
-		},
-		{
 			description: "couldn't build ports from spec config",
 			specConfig:  "",
-			specPorts: []corev1.ServicePort{
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name:     "metrics",
-					Port:     8888,
-					Protocol: corev1.ProtocolTCP,
+					ServicePort: corev1.ServicePort{
+						Name:     "metrics",
+						Port:     8888,
+						Protocol: corev1.ProtocolTCP,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{metricContainerPort},
@@ -140,15 +142,19 @@ service:
 		},
 		{
 			description: "ports in spec ContainerPorts",
-			specPorts: []corev1.ServicePort{
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name:     "metrics",
-					Port:     8888,
-					Protocol: corev1.ProtocolTCP,
+					ServicePort: corev1.ServicePort{
+						Name:     "metrics",
+						Port:     8888,
+						Protocol: corev1.ProtocolTCP,
+					},
 				},
 				{
-					Name: "testport1",
-					Port: 12345,
+					ServicePort: corev1.ServicePort{
+						Name: "testport1",
+						Port: 12345,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{
@@ -162,15 +168,19 @@ service:
 		{
 			description: "ports in spec Config and ContainerPorts",
 			specConfig:  goodConfig,
-			specPorts: []corev1.ServicePort{
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name: "testport1",
-					Port: 12345,
+					ServicePort: corev1.ServicePort{
+						Name: "testport1",
+						Port: 12345,
+					},
 				},
 				{
-					Name:     "testport2",
-					Port:     54321,
-					Protocol: corev1.ProtocolUDP,
+					ServicePort: corev1.ServicePort{
+						Name:     "testport2",
+						Port:     54321,
+						Protocol: corev1.ProtocolUDP,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{
@@ -193,14 +203,18 @@ service:
 		{
 			description: "duplicate port name",
 			specConfig:  goodConfig,
-			specPorts: []corev1.ServicePort{
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name: "testport1",
-					Port: 12345,
+					ServicePort: corev1.ServicePort{
+						Name: "testport1",
+						Port: 12345,
+					},
 				},
 				{
-					Name: "testport1",
-					Port: 11111,
+					ServicePort: corev1.ServicePort{
+						Name: "testport1",
+						Port: 11111,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{
@@ -220,22 +234,26 @@ service:
 			specConfig: `exporters:
     prometheus:
         endpoint: "0.0.0.0:9090"
-	debug:
+    debug:
 service:
     pipelines:
         metrics:
-			receivers: [otlp]
+            receivers: [otlp]
             exporters: [prometheus, debug]
 `,
-			specPorts: []corev1.ServicePort{
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name:     "metrics",
-					Port:     8888,
-					Protocol: corev1.ProtocolTCP,
+					ServicePort: corev1.ServicePort{
+						Name:     "metrics",
+						Port:     8888,
+						Protocol: corev1.ProtocolTCP,
+					},
 				},
 				{
-					Name: "prometheus",
-					Port: 9090,
+					ServicePort: corev1.ServicePort{
+						Name: "prometheus",
+						Port: 9090,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{
@@ -257,25 +275,31 @@ service:
         endpoint: "0.0.0.0:9090"
     prometheus/dev:
         endpoint: "0.0.0.0:9091"
-	debug:
+    debug:
 service:
     pipelines:
         metrics:
             exporters: [prometheus/prod, prometheus/dev, debug]
 `,
-			specPorts: []corev1.ServicePort{
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name:     "metrics",
-					Port:     8888,
-					Protocol: corev1.ProtocolTCP,
+					ServicePort: corev1.ServicePort{
+						Name:     "metrics",
+						Port:     8888,
+						Protocol: corev1.ProtocolTCP,
+					},
 				},
 				{
-					Name: "prometheus-dev",
-					Port: 9091,
+					ServicePort: corev1.ServicePort{
+						Name: "prometheus-dev",
+						Port: 9091,
+					},
 				},
 				{
-					Name: "prometheus-prod",
-					Port: 9090,
+					ServicePort: corev1.ServicePort{
+						Name: "prometheus-prod",
+						Port: 9090,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{
@@ -295,42 +319,51 @@ service:
 			specConfig: `exporters:
     prometheusremotewrite/prometheus:
         endpoint: http://prometheus-server.monitoring/api/v1/write`,
-			specPorts: []corev1.ServicePort{
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name:     "metrics",
-					Port:     8888,
-					Protocol: corev1.ProtocolTCP,
+					ServicePort: corev1.ServicePort{
+						Name:     "metrics",
+						Port:     8888,
+						Protocol: corev1.ProtocolTCP,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{metricContainerPort},
 		},
 		{
 			description: "multiple prometheus exporters and prometheus RW exporter",
-			specConfig: `exporters:
-    prometheus/prod:
-        endpoint: "0.0.0.0:9090"
-    prometheus/dev:
-        endpoint: "0.0.0.0:9091"
-    prometheusremotewrite/prometheus:
-        endpoint: http://prometheus-server.monitoring/api/v1/write
-	debug:
+			specConfig: `---
+exporters:
+  prometheus/prod:
+    endpoint: "0.0.0.0:9090"
+  prometheus/dev:
+    endpoint: "0.0.0.0:9091"
+  prometheusremotewrite/prometheus:
+    endpoint: "http://prometheus-server.monitoring/api/v1/write"
+  debug:
 service:
-    pipelines:
-        metrics:
-            exporters: [prometheus/prod, prometheus/dev, prometheusremotewrite/prometheus, debug]`,
-			specPorts: []corev1.ServicePort{
+  pipelines:
+    metrics:
+      exporters: [prometheus/prod, prometheus/dev, prometheusremotewrite/prometheus, debug]`,
+			specPorts: []v1beta1.PortsSpec{
 				{
-					Name:     "metrics",
-					Port:     8888,
-					Protocol: corev1.ProtocolTCP,
+					ServicePort: corev1.ServicePort{
+						Name:     "metrics",
+						Port:     8888,
+						Protocol: corev1.ProtocolTCP,
+					},
 				},
 				{
-					Name: "prometheus-dev",
-					Port: 9091,
+					ServicePort: corev1.ServicePort{
+						Name: "prometheus-dev",
+						Port: 9091,
+					},
 				},
 				{
-					Name: "prometheus-prod",
-					Port: 9090,
+					ServicePort: corev1.ServicePort{
+						Name: "prometheus-prod",
+						Port: 9090,
+					},
 				},
 			},
 			expectedPorts: []corev1.ContainerPort{
@@ -350,10 +383,12 @@ service:
 	for _, testCase := range tests {
 		t.Run(testCase.description, func(t *testing.T) {
 			// prepare
-			otelcol := v1alpha1.OpenTelemetryCollector{
-				Spec: v1alpha1.OpenTelemetryCollectorSpec{
-					Config: testCase.specConfig,
-					Ports:  testCase.specPorts,
+			otelcol := v1beta1.OpenTelemetryCollector{
+				Spec: v1beta1.OpenTelemetryCollectorSpec{
+					Config: mustUnmarshalToConfig(t, testCase.specConfig),
+					OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+						Ports: testCase.specPorts,
+					},
 				},
 			}
 
@@ -369,11 +404,13 @@ service:
 
 func TestContainerConfigFlagIsIgnored(t *testing.T) {
 	// prepare
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Args: map[string]string{
-				"key":    "value",
-				"config": "/some-custom-file.yaml",
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Args: map[string]string{
+					"key":    "value",
+					"config": "/some-custom-file.yaml",
+				},
 			},
 		},
 	}
@@ -390,11 +427,13 @@ func TestContainerConfigFlagIsIgnored(t *testing.T) {
 
 func TestContainerCustomVolumes(t *testing.T) {
 	// prepare
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			VolumeMounts: []corev1.VolumeMount{{
-				Name: "custom-volume-mount",
-			}},
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				VolumeMounts: []corev1.VolumeMount{{
+					Name: "custom-volume-mount",
+				}},
+			},
 		},
 	}
 	cfg := config.New()
@@ -409,9 +448,9 @@ func TestContainerCustomVolumes(t *testing.T) {
 
 func TestContainerCustomConfigMapsVolumes(t *testing.T) {
 	// prepare
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			ConfigMaps: []v1alpha1.ConfigMapsSpec{{
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			ConfigMaps: []v1beta1.ConfigMapsSpec{{
 				Name:      "test",
 				MountPath: "/",
 			}, {
@@ -435,7 +474,7 @@ func TestContainerCustomConfigMapsVolumes(t *testing.T) {
 
 func TestContainerCustomSecurityContext(t *testing.T) {
 	// default config without security context
-	c1 := Container(config.New(), logger, v1alpha1.OpenTelemetryCollector{Spec: v1alpha1.OpenTelemetryCollectorSpec{}}, true)
+	c1 := Container(config.New(), logger, v1beta1.OpenTelemetryCollector{Spec: v1beta1.OpenTelemetryCollectorSpec{}}, true)
 
 	// verify
 	assert.Nil(t, c1.SecurityContext)
@@ -445,11 +484,14 @@ func TestContainerCustomSecurityContext(t *testing.T) {
 	uid := int64(1234)
 
 	// test
-	c2 := Container(config.New(), logger, v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			SecurityContext: &corev1.SecurityContext{
-				Privileged: &isPrivileged,
-				RunAsUser:  &uid,
+	c2 := Container(config.New(), logger, v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+
+				SecurityContext: &corev1.SecurityContext{
+					Privileged: &isPrivileged,
+					RunAsUser:  &uid,
+				},
 			},
 		},
 	}, true)
@@ -461,12 +503,14 @@ func TestContainerCustomSecurityContext(t *testing.T) {
 }
 
 func TestContainerEnvVarsOverridden(t *testing.T) {
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Env: []corev1.EnvVar{
-				{
-					Name:  "foo",
-					Value: "bar",
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Env: []corev1.EnvVar{
+					{
+						Name:  "foo",
+						Value: "bar",
+					},
 				},
 			},
 		},
@@ -484,8 +528,8 @@ func TestContainerEnvVarsOverridden(t *testing.T) {
 }
 
 func TestContainerDefaultEnvVars(t *testing.T) {
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{},
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{},
 	}
 
 	cfg := config.New()
@@ -502,8 +546,8 @@ func TestContainerProxyEnvVars(t *testing.T) {
 	err := os.Setenv("NO_PROXY", "localhost")
 	require.NoError(t, err)
 	defer os.Unsetenv("NO_PROXY")
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{},
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{},
 	}
 
 	cfg := config.New()
@@ -519,16 +563,18 @@ func TestContainerProxyEnvVars(t *testing.T) {
 }
 
 func TestContainerResourceRequirements(t *testing.T) {
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Resources: corev1.ResourceRequirements{
-				Limits: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse("100m"),
-					corev1.ResourceMemory: resource.MustParse("128M"),
-				},
-				Requests: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse("200m"),
-					corev1.ResourceMemory: resource.MustParse("256M"),
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Resources: corev1.ResourceRequirements{
+					Limits: corev1.ResourceList{
+						corev1.ResourceCPU:    resource.MustParse("100m"),
+						corev1.ResourceMemory: resource.MustParse("128M"),
+					},
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    resource.MustParse("200m"),
+						corev1.ResourceMemory: resource.MustParse("256M"),
+					},
 				},
 			},
 		},
@@ -547,8 +593,8 @@ func TestContainerResourceRequirements(t *testing.T) {
 }
 
 func TestContainerDefaultResourceRequirements(t *testing.T) {
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{},
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{},
 	}
 
 	cfg := config.New()
@@ -562,11 +608,13 @@ func TestContainerDefaultResourceRequirements(t *testing.T) {
 
 func TestContainerArgs(t *testing.T) {
 	// prepare
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Args: map[string]string{
-				"metrics-level": "detailed",
-				"log-level":     "debug",
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Args: map[string]string{
+					"metrics-level": "detailed",
+					"log-level":     "debug",
+				},
 			},
 		},
 	}
@@ -582,11 +630,13 @@ func TestContainerArgs(t *testing.T) {
 
 func TestContainerOrderedArgs(t *testing.T) {
 	// prepare a scenario where the debug level and a feature gate has been enabled
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Args: map[string]string{
-				"log-level":     "debug",
-				"feature-gates": "+random-feature",
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Args: map[string]string{
+					"log-level":     "debug",
+					"feature-gates": "+random-feature",
+				},
 			},
 		},
 	}
@@ -604,9 +654,11 @@ func TestContainerOrderedArgs(t *testing.T) {
 
 func TestContainerImagePullPolicy(t *testing.T) {
 	// prepare
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			ImagePullPolicy: corev1.PullIfNotPresent,
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				ImagePullPolicy: corev1.PullIfNotPresent,
+			},
 		},
 	}
 	cfg := config.New()
@@ -634,11 +686,13 @@ func TestContainerEnvFrom(t *testing.T) {
 			},
 		},
 	}
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			EnvFrom: []corev1.EnvFromSource{
-				envFrom1,
-				envFrom2,
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				EnvFrom: []corev1.EnvFromSource{
+					envFrom1,
+					envFrom2,
+				},
 			},
 		},
 	}
@@ -660,13 +714,21 @@ func TestContainerProbe(t *testing.T) {
 	successThreshold := int32(13)
 	failureThreshold := int32(14)
 	terminationGracePeriodSeconds := int64(15)
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Config: `extensions:
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			Config: mustUnmarshalToConfig(t, `extensions:
   health_check:
 service:
-  extensions: [health_check]`,
-			LivenessProbe: &v1alpha1.Probe{
+  extensions: [health_check]`),
+			LivenessProbe: &v1beta1.Probe{
+				InitialDelaySeconds:           &initialDelaySeconds,
+				TimeoutSeconds:                &timeoutSeconds,
+				PeriodSeconds:                 &periodSeconds,
+				SuccessThreshold:              &successThreshold,
+				FailureThreshold:              &failureThreshold,
+				TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
+			},
+			ReadinessProbe: &v1beta1.Probe{
 				InitialDelaySeconds:           &initialDelaySeconds,
 				TimeoutSeconds:                &timeoutSeconds,
 				PeriodSeconds:                 &periodSeconds,
@@ -682,6 +744,7 @@ service:
 	c := Container(cfg, logger, otelcol, true)
 
 	// verify
+	// liveness
 	assert.Equal(t, "/", c.LivenessProbe.HTTPGet.Path)
 	assert.Equal(t, int32(13133), c.LivenessProbe.HTTPGet.Port.IntVal)
 	assert.Equal(t, "", c.LivenessProbe.HTTPGet.Host)
@@ -692,18 +755,31 @@ service:
 	assert.Equal(t, successThreshold, c.LivenessProbe.SuccessThreshold)
 	assert.Equal(t, failureThreshold, c.LivenessProbe.FailureThreshold)
 	assert.Equal(t, terminationGracePeriodSeconds, *c.LivenessProbe.TerminationGracePeriodSeconds)
+
+	// rediness
+	assert.Equal(t, "/", c.ReadinessProbe.HTTPGet.Path)
+	assert.Equal(t, int32(13133), c.ReadinessProbe.HTTPGet.Port.IntVal)
+	assert.Equal(t, "", c.ReadinessProbe.HTTPGet.Host)
+
+	assert.Equal(t, initialDelaySeconds, c.ReadinessProbe.InitialDelaySeconds)
+	assert.Equal(t, timeoutSeconds, c.ReadinessProbe.TimeoutSeconds)
+	assert.Equal(t, periodSeconds, c.ReadinessProbe.PeriodSeconds)
+	assert.Equal(t, successThreshold, c.ReadinessProbe.SuccessThreshold)
+	assert.Equal(t, failureThreshold, c.ReadinessProbe.FailureThreshold)
+	assert.Equal(t, terminationGracePeriodSeconds, *c.ReadinessProbe.TerminationGracePeriodSeconds)
 }
 
 func TestContainerProbeEmptyConfig(t *testing.T) {
 	// prepare
 
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Config: `extensions:
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			Config: mustUnmarshalToConfig(t, `extensions:
   health_check:
 service:
-  extensions: [health_check]`,
-			LivenessProbe: &v1alpha1.Probe{},
+  extensions: [health_check]`),
+			LivenessProbe:  &v1beta1.Probe{},
+			ReadinessProbe: &v1beta1.Probe{},
 		},
 	}
 	cfg := config.New()
@@ -712,20 +788,24 @@ service:
 	c := Container(cfg, logger, otelcol, true)
 
 	// verify
+	// liveness
 	assert.Equal(t, "/", c.LivenessProbe.HTTPGet.Path)
 	assert.Equal(t, int32(13133), c.LivenessProbe.HTTPGet.Port.IntVal)
 	assert.Equal(t, "", c.LivenessProbe.HTTPGet.Host)
+	// readiness
+	assert.Equal(t, "/", c.ReadinessProbe.HTTPGet.Path)
+	assert.Equal(t, int32(13133), c.ReadinessProbe.HTTPGet.Port.IntVal)
+	assert.Equal(t, "", c.ReadinessProbe.HTTPGet.Host)
 }
 
 func TestContainerProbeNoConfig(t *testing.T) {
 	// prepare
-
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Config: `extensions:
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			Config: mustUnmarshalToConfig(t, `extensions:
   health_check:
 service:
-  extensions: [health_check]`,
+  extensions: [health_check]`),
 		},
 	}
 	cfg := config.New()
@@ -741,14 +821,16 @@ service:
 
 func TestContainerLifecycle(t *testing.T) {
 	// prepare
-	otelcol := v1alpha1.OpenTelemetryCollector{
-		Spec: v1alpha1.OpenTelemetryCollectorSpec{
-			Lifecycle: &corev1.Lifecycle{
-				PostStart: &corev1.LifecycleHandler{
-					Exec: &corev1.ExecAction{Command: []string{"sh", "sleep 100"}},
-				},
-				PreStop: &corev1.LifecycleHandler{
-					Exec: &corev1.ExecAction{Command: []string{"sh", "sleep 300"}},
+	otelcol := v1beta1.OpenTelemetryCollector{
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				Lifecycle: &corev1.Lifecycle{
+					PostStart: &corev1.LifecycleHandler{
+						Exec: &corev1.ExecAction{Command: []string{"sh", "sleep 100"}},
+					},
+					PreStop: &corev1.LifecycleHandler{
+						Exec: &corev1.ExecAction{Command: []string{"sh", "sleep 300"}},
+					},
 				},
 			},
 		},
@@ -769,4 +851,12 @@ func TestContainerLifecycle(t *testing.T) {
 
 	// verify
 	assert.Equal(t, expectedLifecycleHooks, *c.Lifecycle)
+}
+
+func mustUnmarshalToConfig(t *testing.T, config string) v1beta1.Config {
+	cfg := v1beta1.Config{}
+	if err := yaml.Unmarshal([]byte(config), &cfg); err != nil {
+		t.Fatal(err)
+	}
+	return cfg
 }

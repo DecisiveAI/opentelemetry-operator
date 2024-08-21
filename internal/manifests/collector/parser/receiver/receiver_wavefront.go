@@ -17,7 +17,7 @@ package receiver
 import (
 	"github.com/go-logr/logr"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 )
 
 const parserNameWavefront = "__wavefront"

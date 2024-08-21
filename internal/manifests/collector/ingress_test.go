@@ -23,25 +23,23 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
-
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 const testFileIngress = "testdata/ingress_testdata.yaml"
-const testFileIngressAws = "testdata/ingress_testdata_aws.yaml"
 
 func TestDesiredIngresses(t *testing.T) {
 	t.Run("should return nil invalid ingress type", func(t *testing.T) {
 		params := manifests.Params{
 			Config: config.Config{},
 			Log:    logger,
-			OtelCol: v1alpha1.OpenTelemetryCollector{
-				Spec: v1alpha1.OpenTelemetryCollectorSpec{
-					Ingress: v1alpha1.Ingress{
-						Type: v1alpha1.IngressType("unknown"),
+			OtelCol: v1beta1.OpenTelemetryCollector{
+				Spec: v1beta1.OpenTelemetryCollectorSpec{
+					Ingress: v1beta1.Ingress{
+						Type: v1beta1.IngressType("unknown"),
 					},
 				},
 			},
@@ -52,44 +50,39 @@ func TestDesiredIngresses(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("should return nil unable to parse config", func(t *testing.T) {
+	t.Run("should return nil, no ingress set", func(t *testing.T) {
 		params := manifests.Params{
 			Config: config.Config{},
 			Log:    logger,
-			OtelCol: v1alpha1.OpenTelemetryCollector{
-				Spec: v1alpha1.OpenTelemetryCollectorSpec{
-					Config: "!!!",
-					Ingress: v1alpha1.Ingress{
-						Type: v1alpha1.IngressTypeNginx,
-					},
+			OtelCol: v1beta1.OpenTelemetryCollector{
+				Spec: v1beta1.OpenTelemetryCollectorSpec{
+					Mode: "Deployment",
 				},
 			},
 		}
 
 		actual, err := Ingress(params)
-		fmt.Printf("error1: %+v", err)
 		assert.Nil(t, actual)
-		assert.ErrorContains(t, err, "couldn't parse the opentelemetry-collector configuration")
+		assert.NoError(t, err)
 	})
 
 	t.Run("should return nil unable to parse receiver ports", func(t *testing.T) {
 		params := manifests.Params{
 			Config: config.Config{},
 			Log:    logger,
-			OtelCol: v1alpha1.OpenTelemetryCollector{
-				Spec: v1alpha1.OpenTelemetryCollectorSpec{
-					Config: "---",
-					Ingress: v1alpha1.Ingress{
-						Type: v1alpha1.IngressTypeNginx,
+			OtelCol: v1beta1.OpenTelemetryCollector{
+				Spec: v1beta1.OpenTelemetryCollectorSpec{
+					Config: v1beta1.Config{},
+					Ingress: v1beta1.Ingress{
+						Type: v1beta1.IngressTypeIngress,
 					},
 				},
 			},
 		}
 
 		actual, err := Ingress(params)
-		fmt.Printf("error2: %+v", err)
 		assert.Nil(t, actual)
-		assert.ErrorContains(t, err, "no receivers available as part of the configuration")
+		assert.NoError(t, err)
 	})
 
 	t.Run("path per port", func(t *testing.T) {
@@ -105,8 +98,8 @@ func TestDesiredIngresses(t *testing.T) {
 		}
 
 		params.OtelCol.Namespace = ns
-		params.OtelCol.Spec.Ingress = v1alpha1.Ingress{
-			Type:             v1alpha1.IngressTypeNginx,
+		params.OtelCol.Spec.Ingress = v1beta1.Ingress{
+			Type:             v1beta1.IngressTypeIngress,
 			Hostname:         hostname,
 			Annotations:      map[string]string{"some.key": "some.value"},
 			IngressClassName: &ingressClassName,
@@ -126,6 +119,9 @@ func TestDesiredIngresses(t *testing.T) {
 					"app.kubernetes.io/name":       naming.Ingress(params.OtelCol.Name),
 					"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", params.OtelCol.Namespace, params.OtelCol.Name),
 					"app.kubernetes.io/managed-by": "opentelemetry-operator",
+					"app.kubernetes.io/component":  "opentelemetry-collector",
+					"app.kubernetes.io/part-of":    "opentelemetry",
+					"app.kubernetes.io/version":    "latest",
 				},
 			},
 			Spec: networkingv1.IngressSpec{
@@ -193,9 +189,9 @@ func TestDesiredIngresses(t *testing.T) {
 		}
 
 		params.OtelCol.Namespace = ns
-		params.OtelCol.Spec.Ingress = v1alpha1.Ingress{
-			Type:             v1alpha1.IngressTypeNginx,
-			RuleType:         v1alpha1.IngressRuleTypeSubdomain,
+		params.OtelCol.Spec.Ingress = v1beta1.Ingress{
+			Type:             v1beta1.IngressTypeIngress,
+			RuleType:         v1beta1.IngressRuleTypeSubdomain,
 			Hostname:         hostname,
 			Annotations:      map[string]string{"some.key": "some.value"},
 			IngressClassName: &ingressClassName,
@@ -275,253 +271,6 @@ func TestDesiredIngresses(t *testing.T) {
 												Name: "test-collector",
 												Port: networkingv1.ServiceBackendPort{
 													Name: "otlp-test-grpc",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}, got)
-	})
-	t.Run("aws alb controller", func(t *testing.T) {
-		var (
-			ns               = "test"
-			ingressClassName = "alb"
-		)
-
-		params, err := newParams("something:tag", testFileIngressAws)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		params.OtelCol.Namespace = ns
-		params.OtelCol.Spec.Ingress = v1alpha1.Ingress{
-			Type:             v1alpha1.IngressTypeAws,
-			Annotations:      map[string]string{"some.key": "some.value"},
-			IngressClassName: &ingressClassName,
-		}
-		params.OtelCol.Spec.Ingress.CollectorEndpoints = map[string]string{
-			"loki/1": "loki-1.grpc.endpoint.collector.domain",
-			"loki/2": "loki-2.grpc.endpoint.collector.domain",
-			"otlp":   "otlp.grpc.endpoint.collector.domain",
-		}
-
-		got, err := Ingress(params)
-
-		assert.NoError(t, err)
-
-		pathType := networkingv1.PathTypePrefix
-
-		assert.Equal(t, &networkingv1.Ingress{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        naming.Ingress(params.OtelCol.Name),
-				Namespace:   ns,
-				Annotations: params.OtelCol.Spec.Ingress.Annotations,
-				Labels: map[string]string{
-					"app.kubernetes.io/name":       naming.Ingress(params.OtelCol.Name),
-					"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", params.OtelCol.Namespace, params.OtelCol.Name),
-					"app.kubernetes.io/managed-by": "opentelemetry-operator",
-				},
-			},
-			Spec: networkingv1.IngressSpec{
-				IngressClassName: &ingressClassName,
-				Rules: []networkingv1.IngressRule{
-					{
-						Host: "loki-1.grpc.endpoint.collector.domain",
-						IngressRuleValue: networkingv1.IngressRuleValue{
-							HTTP: &networkingv1.HTTPIngressRuleValue{
-								Paths: []networkingv1.HTTPIngressPath{
-									{
-										Path:     "/logproto.Pusher",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "loki-1-grpc",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Host: "loki-2.grpc.endpoint.collector.domain",
-						IngressRuleValue: networkingv1.IngressRuleValue{
-							HTTP: &networkingv1.HTTPIngressRuleValue{
-								Paths: []networkingv1.HTTPIngressPath{
-									{
-										Path:     "/logproto.Pusher",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "loki-2-grpc",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Host: "otlp.grpc.endpoint.collector.domain",
-						IngressRuleValue: networkingv1.IngressRuleValue{
-							HTTP: &networkingv1.HTTPIngressRuleValue{
-								Paths: []networkingv1.HTTPIngressPath{
-									{
-										Path:     "/opentelemetry.proto.collector.logs.v1.LogsService",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "otlp-grpc",
-												},
-											},
-										},
-									},
-									{
-										Path:     "/opentelemetry.proto.collector.traces.v1.TracesService",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "otlp-grpc",
-												},
-											},
-										},
-									},
-									{
-										Path:     "/opentelemetry.proto.collector.metrics.v1.MetricsService",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "otlp-grpc",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}, got)
-	})
-	t.Run("aws alb controller missing mapping", func(t *testing.T) {
-		var (
-			ns               = "test"
-			ingressClassName = "alb"
-		)
-
-		params, err := newParams("something:tag", testFileIngressAws)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		params.OtelCol.Namespace = ns
-		params.OtelCol.Spec.Ingress = v1alpha1.Ingress{
-			Type:             v1alpha1.IngressTypeAws,
-			Annotations:      map[string]string{"some.key": "some.value"},
-			IngressClassName: &ingressClassName,
-		}
-		// remove loki/2 mapping
-		params.OtelCol.Spec.Ingress.CollectorEndpoints = map[string]string{
-			"loki/1": "loki-1.grpc.endpoint.collector.domain",
-			"otlp":   "otlp.grpc.endpoint.collector.domain",
-		}
-
-		got, err := Ingress(params)
-
-		assert.NoError(t, err)
-
-		pathType := networkingv1.PathTypePrefix
-
-		assert.Equal(t, &networkingv1.Ingress{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        naming.Ingress(params.OtelCol.Name),
-				Namespace:   ns,
-				Annotations: params.OtelCol.Spec.Ingress.Annotations,
-				Labels: map[string]string{
-					"app.kubernetes.io/name":       naming.Ingress(params.OtelCol.Name),
-					"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", params.OtelCol.Namespace, params.OtelCol.Name),
-					"app.kubernetes.io/managed-by": "opentelemetry-operator",
-				},
-			},
-			Spec: networkingv1.IngressSpec{
-				IngressClassName: &ingressClassName,
-				Rules: []networkingv1.IngressRule{
-					{
-						Host: "loki-1.grpc.endpoint.collector.domain",
-						IngressRuleValue: networkingv1.IngressRuleValue{
-							HTTP: &networkingv1.HTTPIngressRuleValue{
-								Paths: []networkingv1.HTTPIngressPath{
-									{
-										Path:     "/logproto.Pusher",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "loki-1-grpc",
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Host: "otlp.grpc.endpoint.collector.domain",
-						IngressRuleValue: networkingv1.IngressRuleValue{
-							HTTP: &networkingv1.HTTPIngressRuleValue{
-								Paths: []networkingv1.HTTPIngressPath{
-									{
-										Path:     "/opentelemetry.proto.collector.logs.v1.LogsService",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "otlp-grpc",
-												},
-											},
-										},
-									},
-									{
-										Path:     "/opentelemetry.proto.collector.traces.v1.TracesService",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "otlp-grpc",
-												},
-											},
-										},
-									},
-									{
-										Path:     "/opentelemetry.proto.collector.metrics.v1.MetricsService",
-										PathType: &pathType,
-										Backend: networkingv1.IngressBackend{
-											Service: &networkingv1.IngressServiceBackend{
-												Name: "test-collector-behind-ingress",
-												Port: networkingv1.ServiceBackendPort{
-													Name: "otlp-grpc",
 												},
 											},
 										},

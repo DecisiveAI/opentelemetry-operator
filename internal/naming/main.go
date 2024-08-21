@@ -16,13 +16,14 @@
 package naming
 
 // ConfigMap builds the name for the config map used in the OpenTelemetryCollector containers.
-func ConfigMap(otelcol string) string {
-	return DNSName(Truncate("%s-collector", 63, otelcol))
+// The configHash should be calculated using manifestutils.GetConfigMapSHA.
+func ConfigMap(otelcol, configHash string) string {
+	return DNSName(Truncate("%s-collector-%s", 63, otelcol, configHash[:8]))
 }
 
 // TAConfigMap returns the name for the config map used in the TargetAllocator.
-func TAConfigMap(otelcol string) string {
-	return DNSName(Truncate("%s-targetallocator", 63, otelcol))
+func TAConfigMap(targetAllocator string) string {
+	return DNSName(Truncate("%s-targetallocator", 63, targetAllocator))
 }
 
 // OpAMPBridgeConfigMap builds the name for the config map used in the OpAMPBridge containers.
@@ -110,12 +111,6 @@ func HeadlessService(otelcol string) string {
 	return DNSName(Truncate("%s-headless", 63, Service(otelcol)))
 }
 
-// mydecisive.
-// BehindIngressService builds the name for the monitoring service based on the instance.
-func BehindIngressService(otelcol string) string {
-	return DNSName(Truncate("%s-behind-ingress", 63, Service(otelcol)))
-}
-
 // MonitoringService builds the name for the monitoring service based on the instance.
 func MonitoringService(otelcol string) string {
 	return DNSName(Truncate("%s-monitoring", 63, Service(otelcol)))
@@ -124,6 +119,17 @@ func MonitoringService(otelcol string) string {
 // Service builds the service name based on the instance.
 func Service(otelcol string) string {
 	return DNSName(Truncate("%s-collector", 63, otelcol))
+}
+
+// mydecisive
+// GrpcService builds the name for the grpc service based on the instance.
+func GrpcService(otelcol string) string {
+	return DNSName(Truncate("%s-grpc", 63, Service(otelcol)))
+}
+
+// NonGrpcService builds the name for the grpc service based on the instance.
+func NonGrpcService(otelcol string) string {
+	return DNSName(Truncate("%s-non-grpc", 63, Service(otelcol)))
 }
 
 // Ingress builds the ingress name based on the instance.
@@ -142,13 +148,13 @@ func ClusterRole(otelcol string, namespace string) string {
 }
 
 // ClusterRoleBinding builds the cluster role binding name based on the instance.
-func ClusterRoleBinding(otelcol string) string {
-	return DNSName(Truncate("%s-collector", 63, otelcol))
+func ClusterRoleBinding(otelcol, namespace string) string {
+	return DNSName(Truncate("%s-%s-collector", 63, otelcol, namespace))
 }
 
 // TAService returns the name to use for the TargetAllocator service.
-func TAService(otelcol string) string {
-	return DNSName(Truncate("%s-targetallocator", 63, otelcol))
+func TAService(taName string) string {
+	return DNSName(Truncate("%s-targetallocator", 63, taName))
 }
 
 // OpAMPBridgeService returns the name to use for the OpAMPBridge service.

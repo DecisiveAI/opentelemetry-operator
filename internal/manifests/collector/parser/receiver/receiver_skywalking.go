@@ -21,8 +21,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 var _ parser.ComponentPortParser = &SkywalkingReceiverParser{}
@@ -119,82 +119,6 @@ func (o *SkywalkingReceiverParser) Ports() ([]corev1.ServicePort, error) {
 	}
 
 	return ports, nil
-}
-
-// mydecisive.
-// CompPortsUrlPaths returns all the service ports + URL paths for http protocol in this parser.
-func (o *SkywalkingReceiverParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
-	portsUrlPaths := []parser.PortUrlPaths{}
-
-	for _, protocol := range []struct {
-		name         string
-		defaultPorts []corev1.ServicePort
-	}{
-		{
-			name: grpc,
-			defaultPorts: []corev1.ServicePort{
-				{
-					Name:        naming.PortName(fmt.Sprintf("%s-grpc", o.name), defaultSkywalkingGRPCPort),
-					Port:        defaultSkywalkingGRPCPort,
-					TargetPort:  intstr.FromInt(int(defaultSkywalkingGRPCPort)),
-					AppProtocol: &grpc,
-				},
-			},
-		},
-		{
-			name: http,
-			defaultPorts: []corev1.ServicePort{
-				{
-					Name:        naming.PortName(fmt.Sprintf("%s-http", o.name), defaultSkywalkingHTTPPort),
-					Port:        defaultSkywalkingHTTPPort,
-					TargetPort:  intstr.FromInt(int(defaultSkywalkingHTTPPort)),
-					AppProtocol: &http,
-				},
-			},
-		},
-	} {
-		// do we have the protocol specified at all?
-		if receiverProtocol, ok := o.config[protocol.name]; ok {
-			// we have the specified protocol, we definitely need a service port
-			nameWithProtocol := fmt.Sprintf("%s-%s", o.name, protocol.name)
-			var protocolPort *corev1.ServicePort
-
-			// do we have a configuration block for the protocol?
-			settings, ok := receiverProtocol.(map[interface{}]interface{})
-			if ok {
-				protocolPort = singlePortFromConfigEndpoint(o.logger, nameWithProtocol, settings)
-			}
-
-			// manage url paths here
-			urlPaths := []string{}
-			if protocol.name == http {
-				urlPaths = append(urlPaths, "/")
-			} else if protocol.name == grpc {
-				urlPaths = append(urlPaths, "/skywalking.v3/ManagementService")
-				urlPaths = append(urlPaths, "/skywalking.v3/TraceSegmentReportService")
-				urlPaths = append(urlPaths, "/skywalking.v3/JVMMetricReportService")
-			}
-
-			// have we parsed a port based on the configuration block?
-			// if not, we use the default port
-			if protocolPort == nil {
-				portsUrlPaths = append(portsUrlPaths, parser.PortUrlPaths{Port: protocol.defaultPorts[0],
-					UrlPaths: urlPaths})
-			} else {
-				// infer protocol and appProtocol from protocol.name
-				if protocol.name == grpc {
-					protocolPort.Protocol = corev1.ProtocolTCP
-					protocolPort.AppProtocol = &grpc
-				} else if protocol.name == http {
-					protocolPort.Protocol = corev1.ProtocolTCP
-					protocolPort.AppProtocol = &http
-				}
-				portsUrlPaths = append(portsUrlPaths, parser.PortUrlPaths{Port: *protocolPort,
-					UrlPaths: urlPaths})
-			}
-		}
-	}
-	return parser.CompPortUrlPaths{o.name: portsUrlPaths}, nil
 }
 
 // ParserName returns the name of this parser.

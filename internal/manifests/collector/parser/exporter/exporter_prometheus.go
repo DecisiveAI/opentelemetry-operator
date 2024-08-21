@@ -19,8 +19,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/parser"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 var _ parser.ComponentPortParser = &PrometheusExporterParser{}
@@ -59,18 +59,12 @@ func (o *PrometheusExporterParser) Ports() ([]corev1.ServicePort, error) {
 			},
 		)
 	} else {
-		ports = append(
-			ports, *singlePortFromConfigEndpoint(o.logger, o.name, o.config),
-		)
+		if port := singlePortFromConfigEndpoint(o.logger, o.name, o.config); port != nil {
+			ports = append(ports, *port)
+		}
 	}
 
 	return ports, nil
-}
-
-// mydecisive.
-func (o *PrometheusExporterParser) CompPortsUrlPaths() (parser.CompPortUrlPaths, error) {
-	var compPortUrlPaths = parser.CompPortUrlPaths{}
-	return compPortUrlPaths, nil
 }
 
 // ParserName returns the name of this parser.

@@ -17,7 +17,7 @@ package instrumentation
 import (
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 )
 
 const (
@@ -73,7 +73,7 @@ func injectNodeJSSDK(nodeJSSpec v1alpha1.NodeJS, pod corev1.Pod, index int) (cor
 		pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
 			Name:      nodejsInitContainerName,
 			Image:     nodeJSSpec.Image,
-			Command:   []string{"cp", "-a", "/autoinstrumentation/.", nodejsInstrMountPath},
+			Command:   []string{"cp", "-r", "/autoinstrumentation/.", nodejsInstrMountPath},
 			Resources: nodeJSSpec.Resources,
 			VolumeMounts: []corev1.VolumeMount{{
 				Name:      nodejsVolumeName,

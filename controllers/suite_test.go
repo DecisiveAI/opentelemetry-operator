@@ -26,13 +26,17 @@ import (
 	"time"
 
 	routev1 "github.com/openshift/api/route/v1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -46,14 +50,19 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/yaml"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/testdata"
-	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
+	autoRBAC "github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/testdata"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -82,12 +91,22 @@ const (
 	promFile                 = "testdata/test.yaml"
 	updatedPromFile          = "testdata/test_ta_update.yaml"
 	testFileIngress          = "testdata/ingress_testdata.yaml"
+	otlpTestFile             = "testdata/otlp_test.yaml"
 )
 
 var _ autodetect.AutoDetect = (*mockAutoDetect)(nil)
 
 type mockAutoDetect struct {
 	OpenShiftRoutesAvailabilityFunc func() (openshift.RoutesAvailability, error)
+	PrometheusCRsAvailabilityFunc   func() (prometheus.Availability, error)
+	RBACPermissionsFunc             func(ctx context.Context) (autoRBAC.Availability, error)
+}
+
+func (m *mockAutoDetect) PrometheusCRsAvailability() (prometheus.Availability, error) {
+	if m.PrometheusCRsAvailabilityFunc != nil {
+		return m.PrometheusCRsAvailabilityFunc()
+	}
+	return prometheus.NotAvailable, nil
 }
 
 func (m *mockAutoDetect) OpenShiftRoutesAvailability() (openshift.RoutesAvailability, error) {
@@ -97,32 +116,36 @@ func (m *mockAutoDetect) OpenShiftRoutesAvailability() (openshift.RoutesAvailabi
 	return openshift.RoutesNotAvailable, nil
 }
 
+func (m *mockAutoDetect) RBACPermissions(ctx context.Context) (autoRBAC.Availability, error) {
+	if m.RBACPermissionsFunc != nil {
+		return m.RBACPermissionsFunc(ctx)
+	}
+	return autoRBAC.NotAvailable, nil
+}
+
 func TestMain(m *testing.M) {
 	ctx, cancel = context.WithCancel(context.TODO())
 	defer cancel()
 
-	testEnv = &envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
-		CRDs:              []*apiextensionsv1.CustomResourceDefinition{testdata.OpenShiftRouteCRD},
-		WebhookInstallOptions: envtest.WebhookInstallOptions{
-			Paths: []string{filepath.Join("..", "config", "webhook")},
-		},
-	}
-	cfg, err = testEnv.Start()
 	if err != nil {
 		fmt.Printf("failed to start testEnv: %v", err)
 		os.Exit(1)
 	}
 
-	if err = routev1.AddToScheme(testScheme); err != nil {
-		fmt.Printf("failed to register scheme: %v", err)
-		os.Exit(1)
-	}
+	utilruntime.Must(monitoringv1.AddToScheme(testScheme))
+	utilruntime.Must(networkingv1.AddToScheme(testScheme))
+	utilruntime.Must(routev1.AddToScheme(testScheme))
+	utilruntime.Must(v1alpha1.AddToScheme(testScheme))
+	utilruntime.Must(v1beta1.AddToScheme(testScheme))
 
-	if err = v1alpha1.AddToScheme(testScheme); err != nil {
-		fmt.Printf("failed to register scheme: %v", err)
-		os.Exit(1)
+	testEnv = &envtest.Environment{
+		CRDDirectoryPaths: []string{filepath.Join("..", "config", "crd", "bases")},
+		CRDs:              []*apiextensionsv1.CustomResourceDefinition{testdata.OpenShiftRouteCRD, testdata.ServiceMonitorCRD, testdata.PodMonitorCRD},
+		WebhookInstallOptions: envtest.WebhookInstallOptions{
+			Paths: []string{filepath.Join("..", "config", "webhook")},
+		},
 	}
+	cfg, err = testEnv.Start()
 	// +kubebuilder:scaffold:scheme
 
 	k8sClient, err = client.New(cfg, client.Options{Scheme: testScheme})
@@ -155,7 +178,7 @@ func TestMain(m *testing.M) {
 	}
 	reviewer := rbac.NewReviewer(clientset)
 
-	if err = v1alpha1.SetupCollectorWebhook(mgr, config.New(), reviewer); err != nil {
+	if err = v1beta1.SetupCollectorWebhook(mgr, config.New(), reviewer, nil); err != nil {
 		fmt.Printf("failed to SetupWebhookWithManager: %v", err)
 		os.Exit(1)
 	}
@@ -215,31 +238,29 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func paramsWithMode(mode v1alpha1.Mode) manifests.Params {
+func testCollectorWithMode(name string, mode v1alpha1.Mode) v1alpha1.OpenTelemetryCollector {
 	replicas := int32(2)
-	return paramsWithModeAndReplicas(mode, replicas)
+	return testCollectorWithModeAndReplicas(name, mode, replicas)
 }
 
-func paramsWithModeAndReplicas(mode v1alpha1.Mode, replicas int32) manifests.Params {
+func testCollectorWithModeAndReplicas(name string, mode v1alpha1.Mode, replicas int32) v1alpha1.OpenTelemetryCollector {
 	configYAML, err := os.ReadFile("testdata/test.yaml")
 	if err != nil {
 		fmt.Printf("Error getting yaml file: %v", err)
 	}
-	return manifests.Params{
-		Config: config.New(config.WithCollectorImage(defaultCollectorImage), config.WithTargetAllocatorImage(defaultTaAllocationImage)),
-		Client: k8sClient,
-		OtelCol: v1alpha1.OpenTelemetryCollector{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "opentelemetry.io",
-				APIVersion: "v1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test",
-				Namespace: "default",
-			},
-			Spec: v1alpha1.OpenTelemetryCollectorSpec{
-				Image: "ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.47.0",
-				Ports: []v1.ServicePort{{
+	return v1alpha1.OpenTelemetryCollector{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "opentelemetry.io",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "default",
+		},
+		Spec: v1alpha1.OpenTelemetryCollectorSpec{
+			Image: "ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.47.0",
+			Ports: []v1alpha1.PortsSpec{{
+				ServicePort: v1.ServicePort{
 					Name: "web",
 					Port: 80,
 					TargetPort: intstr.IntOrString{
@@ -247,19 +268,24 @@ func paramsWithModeAndReplicas(mode v1alpha1.Mode, replicas int32) manifests.Par
 						IntVal: 80,
 					},
 					NodePort: 0,
-				}},
-				Replicas: &replicas,
-				Config:   string(configYAML),
-				Mode:     mode,
-			},
+				}}},
+			Replicas: &replicas,
+			Config:   string(configYAML),
+			Mode:     mode,
 		},
-		Scheme:   testScheme,
-		Log:      logger,
-		Recorder: record.NewFakeRecorder(10),
 	}
 }
 
-func newParams(taContainerImage string, file string) (manifests.Params, error) {
+func testCollectorAssertNoErr(t *testing.T, name string, taContainerImage string, file string) v1alpha1.OpenTelemetryCollector {
+	p, err := testCollectorWithConfigFile(name, taContainerImage, file)
+	assert.NoError(t, err)
+	if len(taContainerImage) == 0 {
+		p.Spec.TargetAllocator.Enabled = false
+	}
+	return p
+}
+
+func testCollectorWithConfigFile(name string, taContainerImage string, file string) (v1alpha1.OpenTelemetryCollector, error) {
 	replicas := int32(1)
 	var configYAML []byte
 	var err error
@@ -270,26 +296,21 @@ func newParams(taContainerImage string, file string) (manifests.Params, error) {
 		configYAML, err = os.ReadFile(file)
 	}
 	if err != nil {
-		return manifests.Params{}, fmt.Errorf("Error getting yaml file: %w", err)
+		return v1alpha1.OpenTelemetryCollector{}, fmt.Errorf("Error getting yaml file: %w", err)
 	}
-
-	cfg := config.New(config.WithCollectorImage(defaultCollectorImage), config.WithTargetAllocatorImage(defaultTaAllocationImage))
-
-	return manifests.Params{
-		Config: cfg,
-		Client: k8sClient,
-		OtelCol: v1alpha1.OpenTelemetryCollector{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "opentelemetry.io",
-				APIVersion: "v1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "test",
-				Namespace: "default",
-			},
-			Spec: v1alpha1.OpenTelemetryCollectorSpec{
-				Mode: v1alpha1.ModeStatefulSet,
-				Ports: []v1.ServicePort{{
+	return v1alpha1.OpenTelemetryCollector{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "opentelemetry.io",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: "default",
+		},
+		Spec: v1alpha1.OpenTelemetryCollectorSpec{
+			Mode: v1alpha1.ModeStatefulSet,
+			Ports: []v1alpha1.PortsSpec{{
+				ServicePort: v1.ServicePort{
 					Name: "web",
 					Port: 80,
 					TargetPort: intstr.IntOrString{
@@ -297,45 +318,37 @@ func newParams(taContainerImage string, file string) (manifests.Params, error) {
 						IntVal: 80,
 					},
 					NodePort: 0,
-				}},
-				TargetAllocator: v1alpha1.OpenTelemetryTargetAllocator{
-					Enabled: true,
-					Image:   taContainerImage,
-				},
-				Replicas: &replicas,
-				Config:   string(configYAML),
+				}}},
+			TargetAllocator: v1alpha1.OpenTelemetryTargetAllocator{
+				Enabled: true,
+				Image:   taContainerImage,
 			},
+			Replicas: &replicas,
+			Config:   string(configYAML),
 		},
-		Scheme: testScheme,
-		Log:    logger,
 	}, nil
 }
 
-func paramsWithHPA(minReps, maxReps int32) manifests.Params {
+func testCollectorWithHPA(minReps, maxReps int32) v1alpha1.OpenTelemetryCollector {
 	configYAML, err := os.ReadFile("testdata/test.yaml")
 	if err != nil {
 		fmt.Printf("Error getting yaml file: %v", err)
 	}
-
 	cpuUtilization := int32(90)
 
-	configuration := config.New(config.WithCollectorImage(defaultCollectorImage), config.WithTargetAllocatorImage(defaultTaAllocationImage))
-
-	return manifests.Params{
-		Config: configuration,
-		Client: k8sClient,
-		OtelCol: v1alpha1.OpenTelemetryCollector{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "opentelemetry.io",
-				APIVersion: "v1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "hpatest",
-				Namespace: "default",
-				UID:       instanceUID,
-			},
-			Spec: v1alpha1.OpenTelemetryCollectorSpec{
-				Ports: []v1.ServicePort{{
+	return v1alpha1.OpenTelemetryCollector{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "opentelemetry.io",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "hpatest",
+			Namespace: "default",
+			UID:       instanceUID,
+		},
+		Spec: v1alpha1.OpenTelemetryCollectorSpec{
+			Ports: []v1alpha1.PortsSpec{{
+				ServicePort: v1.ServicePort{
 					Name: "web",
 					Port: 80,
 					TargetPort: intstr.IntOrString{
@@ -343,22 +356,18 @@ func paramsWithHPA(minReps, maxReps int32) manifests.Params {
 						IntVal: 80,
 					},
 					NodePort: 0,
-				}},
-				Config: string(configYAML),
-				Autoscaler: &v1alpha1.AutoscalerSpec{
-					MinReplicas:          &minReps,
-					MaxReplicas:          &maxReps,
-					TargetCPUUtilization: &cpuUtilization,
-				},
+				}}},
+			Config: string(configYAML),
+			Autoscaler: &v1alpha1.AutoscalerSpec{
+				MinReplicas:          &minReps,
+				MaxReplicas:          &maxReps,
+				TargetCPUUtilization: &cpuUtilization,
 			},
 		},
-		Scheme:   testScheme,
-		Log:      logger,
-		Recorder: record.NewFakeRecorder(10),
 	}
 }
 
-func paramsWithPolicy(minAvailable, maxUnavailable int32) manifests.Params {
+func testCollectorWithPDB(minAvailable, maxUnavailable int32) v1alpha1.OpenTelemetryCollector {
 	configYAML, err := os.ReadFile("testdata/test.yaml")
 	if err != nil {
 		fmt.Printf("Error getting yaml file: %v", err)
@@ -387,21 +396,19 @@ func paramsWithPolicy(minAvailable, maxUnavailable int32) manifests.Params {
 		}
 	}
 
-	return manifests.Params{
-		Config: configuration,
-		Client: k8sClient,
-		OtelCol: v1alpha1.OpenTelemetryCollector{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "opentelemetry.io",
-				APIVersion: "v1",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "policytest",
-				Namespace: "default",
-				UID:       instanceUID,
-			},
-			Spec: v1alpha1.OpenTelemetryCollectorSpec{
-				Ports: []v1.ServicePort{{
+	return v1alpha1.OpenTelemetryCollector{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "opentelemetry.io",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "policytest",
+			Namespace: "default",
+			UID:       instanceUID,
+		},
+		Spec: v1alpha1.OpenTelemetryCollectorSpec{
+			Ports: []v1alpha1.PortsSpec{{
+				ServicePort: v1.ServicePort{
 					Name: "web",
 					Port: 80,
 					TargetPort: intstr.IntOrString{
@@ -409,14 +416,10 @@ func paramsWithPolicy(minAvailable, maxUnavailable int32) manifests.Params {
 						IntVal: 80,
 					},
 					NodePort: 0,
-				}},
-				Config:              string(configYAML),
-				PodDisruptionBudget: pdb,
-			},
+				}}},
+			Config:              string(configYAML),
+			PodDisruptionBudget: pdb,
 		},
-		Scheme:   testScheme,
-		Log:      logger,
-		Recorder: record.NewFakeRecorder(10),
 	}
 }
 
@@ -479,4 +482,13 @@ func populateObjectIfExists(t testing.TB, object client.Object, namespacedName t
 		return false, err
 	}
 	return true, nil
+}
+
+func getConfigMapSHAFromString(configStr string) (string, error) {
+	var config v1beta1.Config
+	err := yaml.Unmarshal([]byte(configStr), &config)
+	if err != nil {
+		return "", err
+	}
+	return manifestutils.GetConfigMapSHA(config)
 }

@@ -19,9 +19,10 @@ import (
 	"github.com/operator-framework/operator-lib/proxy"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
 )
 
 // Container builds a container for the given OpAMPBridge.
@@ -60,6 +61,28 @@ func Container(cfg config.Config, logger logr.Logger, opampBridge v1alpha1.OpAMP
 				},
 			},
 		})
+	}
+
+	if featuregate.SetGolangFlags.IsEnabled() {
+		envVars = append(envVars, corev1.EnvVar{
+			Name: "GOMEMLIMIT",
+			ValueFrom: &corev1.EnvVarSource{
+				ResourceFieldRef: &corev1.ResourceFieldSelector{
+					Resource:      "limits.memory",
+					ContainerName: naming.OpAMPBridgeContainer(),
+				},
+			},
+		},
+			corev1.EnvVar{
+				Name: "GOMAXPROCS",
+				ValueFrom: &corev1.EnvVarSource{
+					ResourceFieldRef: &corev1.ResourceFieldSelector{
+						Resource:      "limits.cpu",
+						ContainerName: naming.OpAMPBridgeContainer(),
+					},
+				},
+			},
+		)
 	}
 
 	envVars = append(envVars, proxy.ReadProxyVarsFromEnv()...)
