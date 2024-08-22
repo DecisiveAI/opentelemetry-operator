@@ -11,6 +11,10 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:98765
       http:
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:14260
 exporters:
   logging:
     loglevel: debug
@@ -18,5 +22,5 @@ exporters:
 service:
   pipelines:
     traces:
-      receivers: [otlp/1, otlp/2]
+      receivers: [otlp/1, otlp/2, jaeger]
       exporters: [nop]
