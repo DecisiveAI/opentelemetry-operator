@@ -18,7 +18,8 @@ import networkingv1 "k8s.io/api/networking/v1"
 
 type (
 	// IngressType represents how a collector should be exposed (ingress vs route).
-	// +kubebuilder:validation:Enum=ingress;route
+	// mydecisive: + aws
+	// +kubebuilder:validation:Enum=ingress;route;aws
 	IngressType string
 )
 
@@ -27,6 +28,9 @@ const (
 	IngressTypeIngress IngressType = "ingress"
 	// IngressTypeRoute IngressTypeOpenshiftRoute specifies that an route should be created.
 	IngressTypeRoute IngressType = "route"
+	// mydecisive.
+	// IngressTypeAws specifies that an aws specific ngress should be created.
+	IngressTypeAws IngressType = "aws"
 )
 
 type (
@@ -108,6 +112,14 @@ type Ingress struct {
 	// type "route" is used.
 	// +optional
 	Route OpenShiftRoute `json:"route,omitempty"`
+
+	// mydecisive,
+	// CollectorEndpoints should contain dns names for all collectors endpoints (grpc receivers)
+	// mapped to receivers names e.g. :
+	// otlp/1: otlp1.grpc.some.domain
+	// otlp/2: otlp2.grpc.some.domain
+	// +optional
+	CollectorEndpoints map[string]string `json:"collectorEndpoints,omitempty"`
 }
 
 // OpenShiftRoute defines openshift route specific settings.

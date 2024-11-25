@@ -83,6 +83,8 @@ func (r *OpenTelemetryCollectorReconciler) findOtelOwnedObjects(ctx context.Cont
 		&autoscalingv2.HorizontalPodAutoscaler{},
 		&networkingv1.Ingress{},
 		&policyV1.PodDisruptionBudget{},
+		// mydecisive
+		&corev1.Service{},
 	}
 	listOps := &client.ListOptions{
 		Namespace:     params.OtelCol.Namespace,
