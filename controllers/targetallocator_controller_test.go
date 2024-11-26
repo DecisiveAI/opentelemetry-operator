@@ -30,10 +30,10 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	k8sreconcile "sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
-	"github.com/open-telemetry/opentelemetry-operator/controllers"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/controllers"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
 )
 
 var testLogger = logf.Log.WithName("opamp-bridge-controller-unit-tests")

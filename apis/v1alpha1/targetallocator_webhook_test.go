@@ -30,9 +30,9 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 	kubeTesting "k8s.io/client-go/testing"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
-	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
 )
 
 func TestTargetAllocatorDefaultingWebhook(t *testing.T) {

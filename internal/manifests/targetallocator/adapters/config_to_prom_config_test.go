@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	ta "github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator/adapters"
+	ta "github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator/adapters"
 )
 
 func TestExtractPromConfigFromConfig(t *testing.T) {

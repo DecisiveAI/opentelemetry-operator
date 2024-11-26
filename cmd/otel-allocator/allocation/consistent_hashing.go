@@ -21,7 +21,7 @@ import (
 	"github.com/buraksezer/consistent"
 	"github.com/cespare/xxhash/v2"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/target"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/target"
 )
 
 const consistentHashingStrategyName = "consistent-hashing"

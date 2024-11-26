@@ -17,7 +17,7 @@ package receivers
 import (
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/components"
+	"github.com/decisiveai/opentelemetry-operator/internal/components"
 )
 
 // registry holds a record of all known receiver parsers.

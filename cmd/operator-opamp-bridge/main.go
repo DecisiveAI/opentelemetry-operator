@@ -20,9 +20,9 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/agent"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/config"
-	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
+	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/agent"
+	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/config"
+	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
 )
 
 func main() {

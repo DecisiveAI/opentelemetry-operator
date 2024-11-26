@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/components/processors"
+	"github.com/decisiveai/opentelemetry-operator/internal/components/processors"
 )
 
 func TestGenerateResourceDetectionRbacRules(t *testing.T) {

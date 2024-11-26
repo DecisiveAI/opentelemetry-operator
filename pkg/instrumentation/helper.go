@@ -26,8 +26,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/strings/slices"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
-	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/pkg/constants"
 )
 
 var defaultSize = resource.MustParse("200Mi")

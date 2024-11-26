@@ -18,12 +18,12 @@ import (
 	"github.com/go-logr/logr"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/certmanager"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
-	autoRBAC "github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
-	"github.com/open-telemetry/opentelemetry-operator/internal/version"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/certmanager"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/prometheus"
+	autoRBAC "github.com/decisiveai/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/decisiveai/opentelemetry-operator/internal/version"
 )
 
 // Option represents one specific configuration option.

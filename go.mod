@@ -1,4 +1,4 @@
-module github.com/open-telemetry/opentelemetry-operator
+module github.com/decisiveai/opentelemetry-operator
 
 go 1.22.0
 
@@ -228,3 +228,7 @@ require (
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 )
+
+replace github.com/decisiveai/opentelemetry-operator => ./
+
+replace github.com/open-telemetry/opentelemetry-operator => ./
