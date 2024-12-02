@@ -20,9 +20,9 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/components"
-	"github.com/open-telemetry/opentelemetry-operator/internal/components/exporters"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/internal/components"
+	"github.com/decisiveai/opentelemetry-operator/internal/components/exporters"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 func TestParserForReturns(t *testing.T) {

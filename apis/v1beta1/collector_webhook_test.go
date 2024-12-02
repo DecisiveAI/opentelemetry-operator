@@ -38,11 +38,11 @@ import (
 	kubeTesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
-	collectorManifests "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector"
-	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	collectorManifests "github.com/decisiveai/opentelemetry-operator/internal/manifests/collector"
+	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
 )
 
 var (

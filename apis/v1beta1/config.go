@@ -30,11 +30,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/components"
-	"github.com/open-telemetry/opentelemetry-operator/internal/components/exporters"
-	"github.com/open-telemetry/opentelemetry-operator/internal/components/extensions"
-	"github.com/open-telemetry/opentelemetry-operator/internal/components/processors"
-	"github.com/open-telemetry/opentelemetry-operator/internal/components/receivers"
+	"github.com/decisiveai/opentelemetry-operator/internal/components"
+	"github.com/decisiveai/opentelemetry-operator/internal/components/exporters"
+	"github.com/decisiveai/opentelemetry-operator/internal/components/extensions"
+	"github.com/decisiveai/opentelemetry-operator/internal/components/processors"
+	"github.com/decisiveai/opentelemetry-operator/internal/components/receivers"
 )
 
 type ComponentKind int
