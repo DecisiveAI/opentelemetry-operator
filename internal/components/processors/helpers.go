@@ -14,7 +14,7 @@
 
 package processors
 
-import "github.com/decisiveai/opentelemetry-operator/internal/components"
+import "github.com/open-telemetry/opentelemetry-operator/internal/components"
 
 // registry holds a record of all known receiver parsers.
 var registry = make(map[string]components.Parser)

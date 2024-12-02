@@ -118,8 +118,3 @@ func (g *GenericParser[T]) ParserType() string {
 func (g *GenericParser[T]) ParserName() string {
 	return fmt.Sprintf("__%s", g.name)
 }
-
-// mydecisive
-func (n *GenericParser[T]) PortsWithUrlPaths(logger logr.Logger, name string, config interface{}) ([]PortUrlPaths, error) {
-	return []PortUrlPaths{}, nil
-}

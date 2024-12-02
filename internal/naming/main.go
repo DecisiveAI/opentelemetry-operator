@@ -121,17 +121,6 @@ func Service(otelcol string) string {
 	return DNSName(Truncate("%s-collector", 63, otelcol))
 }
 
-// mydecisive
-// GrpcService builds the name for the grpc service based on the instance.
-func GrpcService(otelcol string) string {
-	return DNSName(Truncate("%s-grpc", 63, Service(otelcol)))
-}
-
-// NonGrpcService builds the name for the grpc service based on the instance.
-func NonGrpcService(otelcol string) string {
-	return DNSName(Truncate("%s-non-grpc", 63, Service(otelcol)))
-}
-
 // Ingress builds the ingress name based on the instance.
 func Ingress(otelcol string) string {
 	return DNSName(Truncate("%s-ingress", 63, otelcol))

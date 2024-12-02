@@ -20,7 +20,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/adapters"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/adapters"
 )
 
 type TAOption func(targetAllocatorCfg map[interface{}]interface{}) error

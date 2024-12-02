@@ -5,8 +5,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/decisiveai/opentelemetry-operator/tests/test-e2e-apps/bridge-server/data"
-	"github.com/decisiveai/opentelemetry-operator/tests/test-e2e-apps/bridge-server/opampsrv"
+	"github.com/open-telemetry/opentelemetry-operator/tests/test-e2e-apps/bridge-server/data"
+	"github.com/open-telemetry/opentelemetry-operator/tests/test-e2e-apps/bridge-server/opampsrv"
 )
 
 var logger = log.New(log.Default().Writer(), "[MAIN] ", log.Default().Flags()|log.Lmsgprefix|log.Lmicroseconds)

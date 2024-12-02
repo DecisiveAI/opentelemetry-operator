@@ -20,7 +20,7 @@ import (
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
 )
 
 var (

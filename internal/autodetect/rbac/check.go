@@ -21,8 +21,8 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/autodetectutils"
-	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/autodetectutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
 )
 
 // CheckRBACPermissions checks if the operator has the needed permissions to create RBAC resources automatically.

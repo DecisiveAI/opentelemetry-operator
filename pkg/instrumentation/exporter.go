@@ -20,9 +20,9 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
-	"github.com/decisiveai/opentelemetry-operator/pkg/constants"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
 )
 
 func configureExporter(exporter v1alpha1.Exporter, pod *corev1.Pod, container *corev1.Container) {

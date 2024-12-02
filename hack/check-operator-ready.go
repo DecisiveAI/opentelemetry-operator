@@ -31,7 +31,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	otelv1alpha1 "github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	otelv1alpha1 "github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 )
 
 var scheme *k8sruntime.Scheme

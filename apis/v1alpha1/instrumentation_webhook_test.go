@@ -23,7 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
 
 var defaultVolumeSize = resource.MustParse("200Mi")

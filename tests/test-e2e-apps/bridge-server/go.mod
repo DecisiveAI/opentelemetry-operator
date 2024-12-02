@@ -1,4 +1,4 @@
-module github.com/decisiveai/opentelemetry-operator/tests/test-e2e-apps/bridge-server
+module github.com/open-telemetry/opentelemetry-operator/tests/test-e2e-apps/bridge-server
 
 go 1.22.1
 

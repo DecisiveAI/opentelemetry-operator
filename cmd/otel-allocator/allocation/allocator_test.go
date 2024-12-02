@@ -20,7 +20,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/target"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/target"
 )
 
 func TestSetCollectors(t *testing.T) {

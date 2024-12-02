@@ -32,13 +32,13 @@ import (
 	"k8s.io/client-go/rest"
 	kubeTesting "k8s.io/client-go/testing"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/autodetectutils"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/certmanager"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/prometheus"
-	autoRBAC "github.com/decisiveai/opentelemetry-operator/internal/autodetect/rbac"
-	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/autodetectutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/certmanager"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
+	autoRBAC "github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
 )
 
 func TestDetectPlatformBasedOnAvailableAPIGroups(t *testing.T) {
