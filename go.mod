@@ -1,4 +1,4 @@
-module github.com/open-telemetry/opentelemetry-operator
+module github.com/decisiveai/opentelemetry-operator
 
 go 1.22.0
 
