@@ -37,13 +37,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator"
-	taStatus "github.com/open-telemetry/opentelemetry-operator/internal/status/targetallocator"
-	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
-	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator"
+	taStatus "github.com/decisiveai/opentelemetry-operator/internal/status/targetallocator"
+	"github.com/decisiveai/opentelemetry-operator/pkg/constants"
+	"github.com/decisiveai/opentelemetry-operator/pkg/featuregate"
 )
 
 // TargetAllocatorReconciler reconciles a TargetAllocator object.

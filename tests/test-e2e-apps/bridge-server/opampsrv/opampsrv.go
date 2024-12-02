@@ -16,7 +16,7 @@ import (
 	"github.com/open-telemetry/opamp-go/server"
 	"github.com/open-telemetry/opamp-go/server/types"
 
-	"github.com/open-telemetry/opentelemetry-operator/tests/test-e2e-apps/bridge-server/data"
+	"github.com/decisiveai/opentelemetry-operator/tests/test-e2e-apps/bridge-server/data"
 )
 
 type Server struct {

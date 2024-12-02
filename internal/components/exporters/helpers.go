@@ -15,7 +15,7 @@
 package exporters
 
 import (
-	"github.com/open-telemetry/opentelemetry-operator/internal/components"
+	"github.com/decisiveai/opentelemetry-operator/internal/components"
 )
 
 // registry holds a record of all known receiver parsers.

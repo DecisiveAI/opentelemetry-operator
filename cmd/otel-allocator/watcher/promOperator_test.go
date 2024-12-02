@@ -46,7 +46,7 @@ import (
 	fcache "k8s.io/client-go/tools/cache/testing"
 	"k8s.io/utils/ptr"
 
-	allocatorconfig "github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/config"
+	allocatorconfig "github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/config"
 )
 
 var defaultScrapeProtocols = []promconfig.ScrapeProtocol{

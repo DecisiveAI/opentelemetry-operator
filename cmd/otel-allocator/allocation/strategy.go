@@ -23,7 +23,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/target"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/target"
 )
 
 type AllocatorProvider func(log logr.Logger, opts ...AllocationOption) Allocator

@@ -17,8 +17,8 @@ package upgrade
 import (
 	"github.com/Masterminds/semver/v3"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
 )
 
 // Deprecated use upgradeFuncV1beta1.

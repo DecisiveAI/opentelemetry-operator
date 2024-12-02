@@ -20,8 +20,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
-	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/prometheus"
+	"github.com/decisiveai/opentelemetry-operator/internal/config"
 )
 
 func TestDesiredServiceMonitors(t *testing.T) {
