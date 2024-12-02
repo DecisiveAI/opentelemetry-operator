@@ -24,12 +24,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/certmanager"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
-	"github.com/decisiveai/opentelemetry-operator/pkg/constants"
-	"github.com/decisiveai/opentelemetry-operator/pkg/featuregate"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/certmanager"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
 )
 
 // maxPortLen allows us to truncate a port name according to what is considered valid port syntax:

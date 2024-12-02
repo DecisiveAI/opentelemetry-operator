@@ -20,21 +20,19 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 type ParserOption[ComponentConfigType any] func(*Settings[ComponentConfigType])
 
 type Settings[ComponentConfigType any] struct {
-	protocol       corev1.Protocol
-	appProtocol    *string
-	targetPort     intstr.IntOrString
-	nodePort       int32
-	name           string
-	port           int32
-	defaultRecAddr string
-	// mydecisive
-	urlPaths        []string
+	protocol        corev1.Protocol
+	appProtocol     *string
+	targetPort      intstr.IntOrString
+	nodePort        int32
+	name            string
+	port            int32
+	defaultRecAddr  string
 	portParser      PortParser[ComponentConfigType]
 	rbacGen         RBACRuleGenerator[ComponentConfigType]
 	livenessGen     ProbeGenerator[ComponentConfigType]
@@ -135,13 +133,6 @@ func (b Builder[ComponentConfigType]) WithEnvVarGen(envVarGen EnvVarGenerator[Co
 func (b Builder[ComponentConfigType]) WithDefaultsApplier(defaultsApplier Defaulter[ComponentConfigType]) Builder[ComponentConfigType] {
 	return append(b, func(o *Settings[ComponentConfigType]) {
 		o.defaultsApplier = defaultsApplier
-	})
-}
-
-// mydecisive
-func (b Builder[ComponentConfigType]) WithUrlPaths(urlPaths []string) Builder[ComponentConfigType] {
-	return append(b, func(o *Settings[ComponentConfigType]) {
-		o.urlPaths = urlPaths
 	})
 }
 

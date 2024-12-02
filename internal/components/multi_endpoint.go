@@ -22,7 +22,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 var _ Parser = &MultiPortReceiver{}
@@ -43,9 +43,6 @@ type MultiPortReceiver struct {
 
 	addrMappings map[string]string
 	portMappings map[string]*corev1.ServicePort
-
-	// mydecisive
-	urlPathsMapping map[string]*[]string
 }
 
 func (m *MultiPortReceiver) Ports(logger logr.Logger, name string, config interface{}) ([]corev1.ServicePort, error) {
@@ -144,11 +141,10 @@ func (mp MultiPortBuilder[ComponentConfigType]) Build() (*MultiPortReceiver, err
 
 	mb := mp[0].MustBuild()
 	multiReceiver := &MultiPortReceiver{
-		name:            mb.name,
-		defaultRecAddr:  mb.settings.defaultRecAddr,
-		addrMappings:    map[string]string{},
-		portMappings:    map[string]*corev1.ServicePort{},
-		urlPathsMapping: map[string]*[]string{},
+		name:           mb.name,
+		defaultRecAddr: mb.settings.defaultRecAddr,
+		addrMappings:   map[string]string{},
+		portMappings:   map[string]*corev1.ServicePort{},
 	}
 	for _, bu := range mp[1:] {
 		built, err := bu.Build()
@@ -158,8 +154,6 @@ func (mp MultiPortBuilder[ComponentConfigType]) Build() (*MultiPortReceiver, err
 		if built.settings != nil {
 			multiReceiver.portMappings[built.name] = built.settings.GetServicePort()
 			multiReceiver.addrMappings[built.name] = built.settings.defaultRecAddr
-			// mydecisive
-			multiReceiver.urlPathsMapping[built.name] = &built.settings.urlPaths
 		}
 	}
 	return multiReceiver, nil
@@ -171,27 +165,4 @@ func (mp MultiPortBuilder[ComponentConfigType]) MustBuild() *MultiPortReceiver {
 	} else {
 		return p
 	}
-}
-
-// mydecisive
-func (m *MultiPortReceiver) PortsWithUrlPaths(logger logr.Logger, name string, config interface{}) ([]PortUrlPaths, error) {
-	multiProtoEndpointCfg := &MultiProtocolEndpointConfig{}
-	if err := mapstructure.Decode(config, multiProtoEndpointCfg); err != nil {
-		return []PortUrlPaths{}, nil
-	}
-	portsUrlParts := []PortUrlPaths{}
-	for protocol, ec := range multiProtoEndpointCfg.Protocols {
-		if defaultSvc, ok := m.portMappings[protocol]; ok {
-			port := defaultSvc.Port
-			if ec != nil {
-				port = ec.GetPortNumOrDefault(logger, port)
-			}
-			defaultSvc.Name = naming.PortName(fmt.Sprintf("%s-%s", name, protocol), port)
-			// TODO since this is used for gRPC only, we actually dont need to construct this, as gRPC urls are hardcoded
-			portsUrlParts = append(portsUrlParts, PortUrlPaths{ConstructServicePort(defaultSvc, port), *m.urlPathsMapping[protocol]})
-		} else {
-			return nil, fmt.Errorf("unknown protocol set: %s", protocol)
-		}
-	}
-	return portsUrlParts, nil
 }

@@ -38,9 +38,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	otelv1alpha1 "github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	otelv1beta1 "github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
-	"github.com/decisiveai/opentelemetry-operator/cmd/gather/config"
+	otelv1alpha1 "github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	otelv1beta1 "github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/gather/config"
 )
 
 type Cluster struct {

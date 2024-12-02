@@ -17,7 +17,7 @@ package opampbridge
 import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
 )
 
 const (

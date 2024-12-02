@@ -25,7 +25,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
 
 var (

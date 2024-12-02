@@ -31,10 +31,10 @@ import (
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
-	otelv1alpha1 "github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	otelv1beta1 "github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
-	"github.com/decisiveai/opentelemetry-operator/cmd/gather/cluster"
-	"github.com/decisiveai/opentelemetry-operator/cmd/gather/config"
+	otelv1alpha1 "github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	otelv1beta1 "github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/gather/cluster"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/gather/config"
 )
 
 var scheme *k8sruntime.Scheme

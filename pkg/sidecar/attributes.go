@@ -25,7 +25,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/pkg/constants"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
 )
 
 const resourceAttributesEnvName = "OTEL_RESOURCE_ATTRIBUTES"

@@ -28,7 +28,7 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"gopkg.in/yaml.v3"
 
-	allocatorWatcher "github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/watcher"
+	allocatorWatcher "github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/watcher"
 )
 
 var (

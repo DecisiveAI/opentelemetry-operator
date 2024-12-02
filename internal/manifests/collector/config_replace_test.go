@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	ta "github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator/adapters"
+	ta "github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator/adapters"
 )
 
 func TestPrometheusParser(t *testing.T) {

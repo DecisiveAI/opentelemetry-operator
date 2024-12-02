@@ -28,7 +28,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/allocation"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/allocation"
 )
 
 const (

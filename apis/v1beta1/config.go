@@ -30,11 +30,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/components"
-	"github.com/decisiveai/opentelemetry-operator/internal/components/exporters"
-	"github.com/decisiveai/opentelemetry-operator/internal/components/extensions"
-	"github.com/decisiveai/opentelemetry-operator/internal/components/processors"
-	"github.com/decisiveai/opentelemetry-operator/internal/components/receivers"
+	"github.com/open-telemetry/opentelemetry-operator/internal/components"
+	"github.com/open-telemetry/opentelemetry-operator/internal/components/exporters"
+	"github.com/open-telemetry/opentelemetry-operator/internal/components/extensions"
+	"github.com/open-telemetry/opentelemetry-operator/internal/components/processors"
+	"github.com/open-telemetry/opentelemetry-operator/internal/components/receivers"
 )
 
 type ComponentKind int
@@ -535,40 +535,4 @@ func addPrefix(prefix string, arr []string) []string {
 		prefixed = append(prefixed, fmt.Sprintf("%s%s", prefix, v))
 	}
 	return prefixed
-}
-
-// mydecisive
-func (c *Config) GetReceiverPortsWithUrlPaths(logger logr.Logger) (components.ComponentsPortsUrlPaths, error) {
-	return c.getPortsWithUrlPathsForComponentKinds(logger, KindReceiver)
-}
-
-// mydecisive
-func (c *Config) getPortsWithUrlPathsForComponentKinds(logger logr.Logger, componentKinds ...ComponentKind) (components.ComponentsPortsUrlPaths, error) {
-	componentsPortsUrlPaths := components.ComponentsPortsUrlPaths{}
-	enabledComponents := c.GetEnabledComponents()
-	for _, componentKind := range componentKinds {
-		var retriever components.ParserRetriever
-		var cfg AnyConfig
-		switch componentKind {
-		case KindReceiver:
-			retriever = receivers.ReceiverFor
-			cfg = c.Receivers
-		case KindExporter:
-			retriever = exporters.ParserFor
-			cfg = c.Exporters
-		case KindProcessor:
-			break
-		}
-		for componentName := range enabledComponents[componentKind] {
-			// TODO: Clean up the naming here and make it simpler to use a retriever.
-			parser := retriever(componentName)
-			if parsedPorts, err := parser.PortsWithUrlPaths(logger, componentName, cfg.Object[componentName]); err != nil {
-				return nil, err
-			} else {
-				componentsPortsUrlPaths[componentName] = parsedPorts
-			}
-		}
-	}
-
-	return componentsPortsUrlPaths, nil
 }

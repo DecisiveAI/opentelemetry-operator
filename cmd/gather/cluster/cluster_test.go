@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/decisiveai/opentelemetry-operator/cmd/gather/config"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/gather/config"
 )
 
 // MockClient is a mock implementation of client.Client.

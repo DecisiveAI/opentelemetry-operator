@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
 
 func TestPodAnnotations(t *testing.T) {
