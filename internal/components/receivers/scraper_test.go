@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/components/receivers"
+	"github.com/decisiveai/opentelemetry-operator/internal/components/receivers"
 )
 
 func TestScraperParsers(t *testing.T) {

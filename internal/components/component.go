@@ -38,6 +38,17 @@ type PortRetriever interface {
 	GetPortNumOrDefault(logr.Logger, int32) int32
 }
 
+// mydecisive.
+// PortUrlPaths represents a service port and a list of URL paths
+type PortUrlPaths struct {
+	Port     corev1.ServicePort
+	UrlPaths []string
+}
+
+// mydecisive.
+// ComponentsPortsUrlPaths maps  component name to the list of PortUrlPaths
+type ComponentsPortsUrlPaths map[string][]PortUrlPaths
+
 // PortParser is a function that returns a list of servicePorts given a config of type Config.
 type PortParser[ComponentConfigType any] func(logger logr.Logger, name string, defaultPort *corev1.ServicePort, config ComponentConfigType) ([]corev1.ServicePort, error)
 
@@ -120,6 +131,10 @@ type Parser interface {
 
 	// ParserName is an internal name for the parser
 	ParserName() string
+
+	//mydecisive
+	// PortsWithUrlPaths returns the service ports + URL paths parsed based on the receiver's configuration
+	PortsWithUrlPaths(logger logr.Logger, name string, config interface{}) ([]PortUrlPaths, error)
 }
 
 func ConstructServicePort(current *corev1.ServicePort, port int32) corev1.ServicePort {

@@ -22,12 +22,12 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/certmanager"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/fips"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
-	autoRBAC "github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
-	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/certmanager"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/fips"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/prometheus"
+	autoRBAC "github.com/decisiveai/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/decisiveai/opentelemetry-operator/internal/rbac"
 )
 
 var _ AutoDetect = (*autoDetect)(nil)

@@ -26,7 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/target"
+	"github.com/decisiveai/opentelemetry-operator/cmd/otel-allocator/target"
 )
 
 var (

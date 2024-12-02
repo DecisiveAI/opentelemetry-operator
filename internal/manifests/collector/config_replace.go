@@ -21,11 +21,11 @@ import (
 	_ "github.com/prometheus/prometheus/discovery/install" // Package install has the side-effect of registering all builtin.
 	"gopkg.in/yaml.v3"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/adapters"
-	ta "github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator/adapters"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/adapters"
+	ta "github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator/adapters"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 type targetAllocator struct {

@@ -22,19 +22,21 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
-	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/decisiveai/opentelemetry-operator/internal/naming"
 )
 
 func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 	name := naming.Ingress(params.OtelCol.Name)
 	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, params.Config.LabelsFilter())
-	if params.OtelCol.Spec.Ingress.Type != v1beta1.IngressTypeIngress {
+	// mydecisive
+	if params.OtelCol.Spec.Ingress.Type == v1beta1.IngressTypeAws {
+		return IngressAws(params)
+	} else if params.OtelCol.Spec.Ingress.Type != v1beta1.IngressTypeAws && params.OtelCol.Spec.Ingress.Type != v1beta1.IngressTypeIngress {
 		return nil, nil
 	}
-
 	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
 
 	// if we have no ports, we don't need a ingress entry

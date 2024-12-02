@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
 )
 
 // Annotations return the annotations for OpenTelemetryCollector resources.

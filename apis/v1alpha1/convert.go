@@ -24,7 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 
-	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
 )
 
 var _ conversion.Convertible = &OpenTelemetryCollector{}
@@ -129,6 +129,8 @@ func tov1beta1(in OpenTelemetryCollector) (v1beta1.OpenTelemetryCollector, error
 				Route: v1beta1.OpenShiftRoute{
 					Termination: v1beta1.TLSRouteTerminationType(copy.Spec.Ingress.Route.Termination),
 				},
+				// mydecisive
+				CollectorEndpoints: copy.Spec.Ingress.CollectorEndpoints,
 			},
 			LivenessProbe: tov1beta1Probe(copy.Spec.LivenessProbe),
 			Observability: v1beta1.ObservabilitySpec{
@@ -346,6 +348,8 @@ func tov1alpha1(in v1beta1.OpenTelemetryCollector) (*OpenTelemetryCollector, err
 				Route: OpenShiftRoute{
 					Termination: TLSRouteTerminationType(copy.Spec.Ingress.Route.Termination),
 				},
+				// mydecisive
+				CollectorEndpoints: copy.Spec.Ingress.CollectorEndpoints,
 			},
 			HostNetwork:                   copy.Spec.HostNetwork,
 			ShareProcessNamespace:         copy.Spec.ShareProcessNamespace,

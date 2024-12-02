@@ -22,7 +22,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/targetallocator"
+	"github.com/decisiveai/opentelemetry-operator/internal/manifests/targetallocator"
 )
 
 const (

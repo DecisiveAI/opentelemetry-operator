@@ -17,7 +17,7 @@ package receivers
 import (
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/open-telemetry/opentelemetry-operator/internal/components"
+	"github.com/decisiveai/opentelemetry-operator/internal/components"
 )
 
 // registry holds a record of all known receiver parsers.
@@ -52,7 +52,14 @@ var (
 		components.NewMultiPortReceiverBuilder("otlp").
 			AddPortMapping(components.NewProtocolBuilder("grpc", 4317).
 				WithAppProtocol(&components.GrpcProtocol).
-				WithTargetPort(4317)).
+				WithTargetPort(4317).
+				// mydecisive
+				WithUrlPaths(
+					[]string{
+						"/opentelemetry.proto.collector.logs.v1.LogsService",
+						"/opentelemetry.proto.collector.traces.v1.TracesService",
+						"/opentelemetry.proto.collector.metrics.v1.MetricsService",
+					})).
 			AddPortMapping(components.NewProtocolBuilder("http", 4318).
 				WithAppProtocol(&components.HttpProtocol).
 				WithTargetPort(4318)).
@@ -60,7 +67,14 @@ var (
 		components.NewMultiPortReceiverBuilder("skywalking").
 			AddPortMapping(components.NewProtocolBuilder(components.GrpcProtocol, 11800).
 				WithTargetPort(11800).
-				WithAppProtocol(&components.GrpcProtocol)).
+				WithAppProtocol(&components.GrpcProtocol).
+				// mydecisive
+				WithUrlPaths(
+					[]string{
+						"/skywalking.v3/ManagementService",
+						"/skywalking.v3/TraceSegmentReportService",
+						"/skywalking.v3/JVMMetricReportService",
+					})).
 			AddPortMapping(components.NewProtocolBuilder(components.HttpProtocol, 12800).
 				WithTargetPort(12800).
 				WithAppProtocol(&components.HttpProtocol)).
@@ -69,7 +83,13 @@ var (
 			AddPortMapping(components.NewProtocolBuilder(components.GrpcProtocol, 14250).
 				WithTargetPort(14250).
 				WithProtocol(corev1.ProtocolTCP).
-				WithAppProtocol(&components.GrpcProtocol)).
+				WithAppProtocol(&components.GrpcProtocol).
+				// mydecisive
+				WithUrlPaths(
+					[]string{
+						"/jaeger.api_v2/CollectorService",
+						"/jaeger.api_v3/QueryService",
+					})).
 			AddPortMapping(components.NewProtocolBuilder("thrift_http", 14268).
 				WithTargetPort(14268).
 				WithProtocol(corev1.ProtocolTCP).
@@ -84,7 +104,12 @@ var (
 		components.NewMultiPortReceiverBuilder("loki").
 			AddPortMapping(components.NewProtocolBuilder(components.GrpcProtocol, 9095).
 				WithTargetPort(9095).
-				WithAppProtocol(&components.GrpcProtocol)).
+				WithAppProtocol(&components.GrpcProtocol).
+				// mydecisive
+				WithUrlPaths(
+					[]string{
+						"/logproto.Pusher",
+					})).
 			AddPortMapping(components.NewProtocolBuilder(components.HttpProtocol, 3100).
 				WithTargetPort(3100).
 				WithAppProtocol(&components.HttpProtocol)).
