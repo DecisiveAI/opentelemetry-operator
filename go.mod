@@ -230,4 +230,4 @@ require (
 )
 
 // mydecisive
-replace github.com/decisiveai/opentelemetry-operator => ./
+//replace github.com/decisiveai/opentelemetry-operator => ./
