@@ -20,8 +20,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
-	"github.com/decisiveai/opentelemetry-operator/pkg/constants"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
 )
 
 func TestInitContainerMissing(t *testing.T) {
@@ -170,12 +171,12 @@ func TestDuplicatedContainers(t *testing.T) {
 	}{
 		{
 			name:               "No duplicates",
-			containers:         []string{"app1,app2", "app3", "app4,app5"},
+			containers:         []string{"app1", "app2", "app3", "app4", "app5"},
 			expectedDuplicates: nil,
 		},
 		{
 			name:               "Duplicates in containers",
-			containers:         []string{"app1,app2", "app1", "app1,app3,app4", "app4"},
+			containers:         []string{"app1", "app2", "app1", "app1", "app3", "app4", "app4"},
 			expectedDuplicates: fmt.Errorf("duplicated container names detected: [app1 app4]"),
 		},
 	}
@@ -188,6 +189,92 @@ func TestDuplicatedContainers(t *testing.T) {
 	}
 }
 
+func TestInstrVolume(t *testing.T) {
+	tests := []struct {
+		name       string
+		volume     corev1.PersistentVolumeClaimTemplate
+		volumeName string
+		quantity   *resource.Quantity
+		expected   corev1.Volume
+	}{
+		{
+			name: "With volume",
+			volume: corev1.PersistentVolumeClaimTemplate{
+				Spec: corev1.PersistentVolumeClaimSpec{
+					AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+				},
+			},
+			volumeName: "default-vol",
+			quantity:   nil,
+			expected: corev1.Volume{
+				Name: "default-vol",
+				VolumeSource: corev1.VolumeSource{
+					Ephemeral: &corev1.EphemeralVolumeSource{
+						VolumeClaimTemplate: &corev1.PersistentVolumeClaimTemplate{
+							Spec: corev1.PersistentVolumeClaimSpec{
+								AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+							},
+						},
+					},
+				}},
+		},
+		{
+			name:       "With volume size limit",
+			volume:     corev1.PersistentVolumeClaimTemplate{},
+			volumeName: "default-vol",
+			quantity:   &defaultVolumeLimitSize,
+			expected: corev1.Volume{
+				Name: "default-vol",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{
+						SizeLimit: &defaultVolumeLimitSize,
+					},
+				}},
+		},
+		{
+			name:       "No volume or size limit",
+			volume:     corev1.PersistentVolumeClaimTemplate{},
+			volumeName: "default-vol",
+			quantity:   nil,
+			expected: corev1.Volume{
+				Name: "default-vol",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{
+						SizeLimit: &defaultSize,
+					},
+				}},
+		},
+		{
+			name: "With volume and size limit",
+			volume: corev1.PersistentVolumeClaimTemplate{
+				Spec: corev1.PersistentVolumeClaimSpec{
+					AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+				},
+			},
+			volumeName: "default-vol",
+			quantity:   &defaultVolumeLimitSize,
+			expected: corev1.Volume{
+				Name: "default-vol",
+				VolumeSource: corev1.VolumeSource{
+					Ephemeral: &corev1.EphemeralVolumeSource{
+						VolumeClaimTemplate: &corev1.PersistentVolumeClaimTemplate{
+							Spec: corev1.PersistentVolumeClaimSpec{
+								AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+							},
+						},
+					},
+				}},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			res := instrVolume(test.volume, test.volumeName, test.quantity)
+			assert.Equal(t, test.expected, res)
+		})
+	}
+}
+
 func TestInstrWithContainers(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -196,12 +283,12 @@ func TestInstrWithContainers(t *testing.T) {
 	}{
 		{
 			name:           "No containers",
-			containers:     instrumentationWithContainers{Containers: ""},
+			containers:     instrumentationWithContainers{Containers: []string{}},
 			expectedResult: 0,
 		},
 		{
 			name:           "With containers",
-			containers:     instrumentationWithContainers{Containers: "ct1"},
+			containers:     instrumentationWithContainers{Containers: []string{"ct1"}},
 			expectedResult: 1,
 		},
 	}
@@ -222,12 +309,12 @@ func TestInstrWithoutContainers(t *testing.T) {
 	}{
 		{
 			name:           "No containers",
-			containers:     instrumentationWithContainers{Containers: ""},
+			containers:     instrumentationWithContainers{Containers: []string{}},
 			expectedResult: 1,
 		},
 		{
 			name:           "With containers",
-			containers:     instrumentationWithContainers{Containers: "ct1"},
+			containers:     instrumentationWithContainers{Containers: []string{"ct1"}},
 			expectedResult: 0,
 		},
 	}

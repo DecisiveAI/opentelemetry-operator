@@ -15,7 +15,6 @@
 package collector
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"sort"
@@ -25,10 +24,12 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/adapters"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/certmanager"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
 )
 
 // maxPortLen allows us to truncate a port name according to what is considered valid port syntax:
@@ -36,7 +37,7 @@ import (
 const maxPortLen = 15
 
 // Container builds a container for the given collector.
-func Container(cfg config.Config, logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector, addConfig bool) corev1.Container {
+func Container(cfg config.Config, logger logr.Logger, otelcol v1beta1.OpenTelemetryCollector, addConfig bool) corev1.Container {
 	image := otelcol.Spec.Image
 	if len(image) == 0 {
 		image = cfg.CollectorImage()
@@ -53,6 +54,7 @@ func Container(cfg config.Config, logger logr.Logger, otelcol v1alpha1.OpenTelem
 			Name:          p.Name,
 			ContainerPort: p.Port,
 			Protocol:      p.Protocol,
+			HostPort:      p.HostPort,
 		}
 	}
 
@@ -80,6 +82,14 @@ func Container(cfg config.Config, logger logr.Logger, otelcol v1alpha1.OpenTelem
 			corev1.VolumeMount{
 				Name:      naming.ConfigMapVolume(),
 				MountPath: "/conf",
+			})
+	}
+
+	if cfg.CertManagerAvailability() == certmanager.Available && featuregate.EnableTargetAllocatorMTLS.IsEnabled() {
+		volumeMounts = append(volumeMounts,
+			corev1.VolumeMount{
+				Name:      naming.TAClientCertificate(otelcol.Name),
+				MountPath: constants.TACollectorTLSDirPath,
 			})
 	}
 
@@ -132,17 +142,45 @@ func Container(cfg config.Config, logger logr.Logger, otelcol v1alpha1.OpenTelem
 		})
 	}
 
-	var livenessProbe *corev1.Probe
-	if configFromString, err := adapters.ConfigFromString(otelcol.Spec.Config); err == nil {
-		if probe, err := getLivenessProbe(configFromString, otelcol.Spec.LivenessProbe); err == nil {
-			livenessProbe = probe
-		} else if errors.Is(err, adapters.ErrNoServiceExtensions) {
-			logger.Info("extensions not configured, skipping liveness probe creation")
-		} else if errors.Is(err, adapters.ErrNoServiceExtensionHealthCheck) {
-			logger.Info("healthcheck extension not configured, skipping liveness probe creation")
-		} else {
-			logger.Error(err, "cannot create liveness probe.")
-		}
+	livenessProbe, livenessProbeErr := otelcol.Spec.Config.GetLivenessProbe(logger)
+	if livenessProbeErr != nil {
+		logger.Error(livenessProbeErr, "cannot create liveness probe.")
+	} else {
+		defaultProbeSettings(livenessProbe, otelcol.Spec.LivenessProbe)
+	}
+	readinessProbe, readinessProbeErr := otelcol.Spec.Config.GetReadinessProbe(logger)
+	if readinessProbeErr != nil {
+		logger.Error(readinessProbeErr, "cannot create readiness probe.")
+	} else {
+		defaultProbeSettings(readinessProbe, otelcol.Spec.ReadinessProbe)
+	}
+
+	if featuregate.SetGolangFlags.IsEnabled() {
+		envVars = append(envVars, corev1.EnvVar{
+			Name: "GOMEMLIMIT",
+			ValueFrom: &corev1.EnvVarSource{
+				ResourceFieldRef: &corev1.ResourceFieldSelector{
+					Resource:      "limits.memory",
+					ContainerName: naming.Container(),
+				},
+			},
+		},
+			corev1.EnvVar{
+				Name: "GOMAXPROCS",
+				ValueFrom: &corev1.EnvVarSource{
+					ResourceFieldRef: &corev1.ResourceFieldSelector{
+						Resource:      "limits.cpu",
+						ContainerName: naming.Container(),
+					},
+				},
+			},
+		)
+	}
+
+	if configEnvVars, err := otelcol.Spec.Config.GetEnvironmentVariables(logger); err != nil {
+		logger.Error(err, "could not get the environment variables from the config")
+	} else {
+		envVars = append(envVars, configEnvVars...)
 	}
 
 	envVars = append(envVars, proxy.ReadProxyVarsFromEnv()...)
@@ -158,18 +196,14 @@ func Container(cfg config.Config, logger logr.Logger, otelcol v1alpha1.OpenTelem
 		Resources:       otelcol.Spec.Resources,
 		SecurityContext: otelcol.Spec.SecurityContext,
 		LivenessProbe:   livenessProbe,
+		ReadinessProbe:  readinessProbe,
 		Lifecycle:       otelcol.Spec.Lifecycle,
 	}
 }
 
-func getConfigContainerPorts(logger logr.Logger, cfg string) (map[string]corev1.ContainerPort, error) {
+func getConfigContainerPorts(logger logr.Logger, conf v1beta1.Config) (map[string]corev1.ContainerPort, error) {
 	ports := map[string]corev1.ContainerPort{}
-	c, err := adapters.ConfigFromString(cfg)
-	if err != nil {
-		logger.Error(err, "couldn't extract the configuration")
-		return ports, err
-	}
-	ps, err := adapters.ConfigToPorts(logger, c)
+	ps, err := conf.GetAllPorts(logger)
 	if err != nil {
 		return ports, err
 	}
@@ -195,7 +229,7 @@ func getConfigContainerPorts(logger logr.Logger, cfg string) (map[string]corev1.
 		}
 	}
 
-	metricsPort, err := adapters.ConfigToMetricsPort(logger, c)
+	_, metricsPort, err := conf.Service.MetricsEndpoint()
 	if err != nil {
 		logger.Info("couldn't determine metrics port from configuration, using 8888 default value", "error", err)
 		metricsPort = 8888
@@ -220,12 +254,8 @@ func portMapToList(portMap map[string]corev1.ContainerPort) []corev1.ContainerPo
 	return ports
 }
 
-func getLivenessProbe(config map[interface{}]interface{}, probeConfig *v1alpha1.Probe) (*corev1.Probe, error) {
-	probe, err := adapters.ConfigToContainerProbe(config)
-	if err != nil {
-		return nil, err
-	}
-	if probeConfig != nil {
+func defaultProbeSettings(probe *corev1.Probe, probeConfig *v1beta1.Probe) {
+	if probe != nil && probeConfig != nil {
 		if probeConfig.InitialDelaySeconds != nil {
 			probe.InitialDelaySeconds = *probeConfig.InitialDelaySeconds
 		}
@@ -243,5 +273,4 @@ func getLivenessProbe(config map[interface{}]interface{}, probeConfig *v1alpha1.
 		}
 		probe.TerminationGracePeriodSeconds = probeConfig.TerminationGracePeriodSeconds
 	}
-	return probe, nil
 }

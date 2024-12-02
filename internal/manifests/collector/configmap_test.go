@@ -17,11 +17,15 @@ package collector
 import (
 	"testing"
 
-	colfeaturegate "go.opentelemetry.io/collector/featuregate"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	colfg "go.opentelemetry.io/collector/featuregate"
 
-	"github.com/decisiveai/opentelemetry-operator/pkg/featuregate"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/certmanager"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
 )
 
 func TestDesiredConfigMap(t *testing.T) {
@@ -33,13 +37,9 @@ func TestDesiredConfigMap(t *testing.T) {
 	}
 
 	t.Run("should return expected collector config map", func(t *testing.T) {
-		expectedLables["app.kubernetes.io/component"] = "opentelemetry-collector"
-		expectedLables["app.kubernetes.io/name"] = "test-collector"
-		expectedLables["app.kubernetes.io/version"] = "0.47.0"
 
 		expectedData := map[string]string{
-			"collector.yaml": `processors:
-receivers:
+			"collector.yaml": `receivers:
   jaeger:
     protocols:
       grpc:
@@ -58,130 +58,32 @@ service:
   pipelines:
     metrics:
       receivers: [prometheus, jaeger]
-      processors: []
       exporters: [debug]`,
 		}
 
 		param := deploymentParams()
-		actual, err := ConfigMap(param)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "test-collector", actual.Name)
-		assert.Equal(t, expectedLables, actual.Labels)
-		assert.Equal(t, expectedData, actual.Data)
-
-	})
-
-	t.Run("should return expected collector config map with http_sd_config if rewrite flag disabled", func(t *testing.T) {
-		err := colfeaturegate.GlobalRegistry().Set(featuregate.EnableTargetAllocatorRewrite.ID(), false)
-		assert.NoError(t, err)
-		t.Cleanup(func() {
-			_ = colfeaturegate.GlobalRegistry().Set(featuregate.EnableTargetAllocatorRewrite.ID(), true)
-		})
-		expectedLables["app.kubernetes.io/component"] = "opentelemetry-collector"
-		expectedLables["app.kubernetes.io/name"] = "test-collector"
-
-		expectedData := map[string]string{
-			"collector.yaml": `exporters:
-  debug: null
-processors: null
-receivers:
-  jaeger:
-    protocols:
-      grpc: null
-  prometheus:
-    config:
-      scrape_configs:
-      - http_sd_configs:
-        - url: http://test-targetallocator:80/jobs/otel-collector/targets?collector_id=$POD_NAME
-        job_name: otel-collector
-        scrape_interval: 10s
-service:
-  pipelines:
-    metrics:
-      exporters:
-      - debug
-      processors: []
-      receivers:
-      - prometheus
-      - jaeger
-`,
-		}
-
-		param := deploymentParams()
-		param.OtelCol.Spec.TargetAllocator.Enabled = true
-		actual, err := ConfigMap(param)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "test-collector", actual.GetName())
-		assert.Equal(t, expectedLables, actual.GetLabels())
-		assert.Equal(t, expectedData, actual.Data)
-
-	})
-
-	t.Run("should return expected escaped collector config map with http_sd_config if rewrite flag disabled", func(t *testing.T) {
-		err := colfeaturegate.GlobalRegistry().Set(featuregate.EnableTargetAllocatorRewrite.ID(), false)
-		assert.NoError(t, err)
-		t.Cleanup(func() {
-			_ = colfeaturegate.GlobalRegistry().Set(featuregate.EnableTargetAllocatorRewrite.ID(), true)
-		})
+		hash, _ := manifestutils.GetConfigMapSHA(param.OtelCol.Spec.Config)
+		expectedName := naming.ConfigMap("test", hash)
 
 		expectedLables["app.kubernetes.io/component"] = "opentelemetry-collector"
 		expectedLables["app.kubernetes.io/name"] = "test-collector"
-		expectedLables["app.kubernetes.io/version"] = "latest"
-
-		expectedData := map[string]string{
-			"collector.yaml": `exporters:
-  debug: null
-processors: null
-receivers:
-  prometheus:
-    config:
-      scrape_configs:
-      - http_sd_configs:
-        - url: http://test-targetallocator:80/jobs/serviceMonitor%2Ftest%2Ftest%2F0/targets?collector_id=$POD_NAME
-        job_name: serviceMonitor/test/test/0
-    target_allocator:
-      collector_id: ${POD_NAME}
-      endpoint: http://test-targetallocator:80
-      http_sd_config:
-        refresh_interval: 60s
-      interval: 30s
-service:
-  pipelines:
-    metrics:
-      exporters:
-      - debug
-      processors: []
-      receivers:
-      - prometheus
-`,
-		}
-
-		param, err := newParams("test/test-img", "testdata/http_sd_config_servicemonitor_test_ta_set.yaml")
-		assert.NoError(t, err)
-		param.OtelCol.Spec.TargetAllocator.Enabled = true
-		actual, err := ConfigMap(param)
-
-		assert.NoError(t, err)
-		assert.Equal(t, "test-collector", actual.Name)
-		assert.Equal(t, expectedLables, actual.Labels)
-		assert.Equal(t, expectedData, actual.Data)
-
-		// Reset the value
 		expectedLables["app.kubernetes.io/version"] = "0.47.0"
 
+		actual, err := ConfigMap(param)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedName, actual.Name)
+		assert.Equal(t, expectedLables, actual.Labels)
+		assert.Equal(t, len(expectedData), len(actual.Data))
+		for k, expected := range expectedData {
+			assert.YAMLEq(t, expected, actual.Data[k])
+		}
 	})
 
 	t.Run("should return expected escaped collector config map with target_allocator config block", func(t *testing.T) {
-		expectedLables["app.kubernetes.io/component"] = "opentelemetry-collector"
-		expectedLables["app.kubernetes.io/name"] = "test-collector"
-		expectedLables["app.kubernetes.io/version"] = "latest"
-
 		expectedData := map[string]string{
 			"collector.yaml": `exporters:
-  debug: null
-processors: null
+  debug:
 receivers:
   prometheus:
     config: {}
@@ -194,7 +96,6 @@ service:
     metrics:
       exporters:
       - debug
-      processors: []
       receivers:
       - prometheus
 `,
@@ -202,13 +103,24 @@ service:
 
 		param, err := newParams("test/test-img", "testdata/http_sd_config_servicemonitor_test.yaml")
 		assert.NoError(t, err)
+
+		hash, _ := manifestutils.GetConfigMapSHA(param.OtelCol.Spec.Config)
+		expectedName := naming.ConfigMap("test", hash)
+
+		expectedLables["app.kubernetes.io/component"] = "opentelemetry-collector"
+		expectedLables["app.kubernetes.io/name"] = "test-collector"
+		expectedLables["app.kubernetes.io/version"] = "latest"
+
 		param.OtelCol.Spec.TargetAllocator.Enabled = true
 		actual, err := ConfigMap(param)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "test-collector", actual.Name)
+		assert.Equal(t, expectedName, actual.Name)
 		assert.Equal(t, expectedLables, actual.Labels)
-		assert.Equal(t, expectedData, actual.Data)
+		assert.Equal(t, len(expectedData), len(actual.Data))
+		for k, expected := range expectedData {
+			assert.YAMLEq(t, expected, actual.Data[k])
+		}
 
 		// Reset the value
 		expectedLables["app.kubernetes.io/version"] = "0.47.0"
@@ -216,4 +128,58 @@ service:
 
 	})
 
+	t.Run("should return expected escaped collector config map with target_allocator and https config block", func(t *testing.T) {
+		expectedData := map[string]string{
+			"collector.yaml": `exporters:
+  debug:
+receivers:
+  prometheus:
+    config: {}
+    target_allocator:
+      collector_id: ${POD_NAME}
+      endpoint: https://test-targetallocator:443
+      interval: 30s
+      tls:
+        ca_file: /tls/ca.crt
+        cert_file: /tls/tls.crt
+        key_file: /tls/tls.key
+service:
+  pipelines:
+    metrics:
+      exporters:
+      - debug
+      receivers:
+      - prometheus
+`,
+		}
+
+		param, err := newParams("test/test-img", "testdata/http_sd_config_servicemonitor_test.yaml", config.WithCertManagerAvailability(certmanager.Available))
+		require.NoError(t, err)
+		flgs := featuregate.Flags(colfg.GlobalRegistry())
+		err = flgs.Parse([]string{"--feature-gates=operator.targetallocator.mtls"})
+		require.NoError(t, err)
+
+		hash, _ := manifestutils.GetConfigMapSHA(param.OtelCol.Spec.Config)
+		expectedName := naming.ConfigMap("test", hash)
+
+		expectedLables["app.kubernetes.io/component"] = "opentelemetry-collector"
+		expectedLables["app.kubernetes.io/name"] = "test-collector"
+		expectedLables["app.kubernetes.io/version"] = "latest"
+
+		param.OtelCol.Spec.TargetAllocator.Enabled = true
+		actual, err := ConfigMap(param)
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedName, actual.Name)
+		assert.Equal(t, expectedLables, actual.Labels)
+		assert.Equal(t, len(expectedData), len(actual.Data))
+		for k, expected := range expectedData {
+			assert.YAMLEq(t, expected, actual.Data[k])
+		}
+
+		// Reset the value
+		expectedLables["app.kubernetes.io/version"] = "0.47.0"
+		assert.NoError(t, err)
+
+	})
 }

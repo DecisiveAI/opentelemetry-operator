@@ -22,9 +22,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/version"
-	"github.com/decisiveai/opentelemetry-operator/pkg/collector/upgrade"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/collector/upgrade"
 )
 
 func Test0_57_0Upgrade(t *testing.T) {
@@ -51,12 +50,14 @@ extensions:
       enabled: false
       exporter_failure_threshold: 5
       interval: 5m
+exporters:
+  debug: {}
 service:
   extensions: [health_check]
   pipelines:
     metrics:
       receivers: [otlp]
-      exporters: [nop]
+      exporters: [debug]
 `,
 		},
 	}
@@ -65,14 +66,15 @@ service:
 	//Test to remove port and change endpoint value.
 	versionUpgrade := &upgrade.VersionUpgrade{
 		Log:      logger,
-		Version:  version.Get(),
+		Version:  makeVersion("0.57.2"),
 		Client:   k8sClient,
 		Recorder: record.NewFakeRecorder(upgrade.RecordBufferSize),
 	}
 
-	upgradedInstance, err := versionUpgrade.ManagedInstance(context.Background(), collectorInstance)
+	upgradedInstanceV1beta1, err := versionUpgrade.ManagedInstance(context.Background(), convertTov1beta1(t, collectorInstance))
 	assert.NoError(t, err)
-	assert.Equal(t, `extensions:
+	upgradedInstance := convertTov1alpha1(t, upgradedInstanceV1beta1)
+	assert.YAMLEq(t, `extensions:
   health_check:
     check_collector_pipeline:
       enabled: false
@@ -84,13 +86,15 @@ receivers:
     protocols:
       http:
         endpoint: mysite.local:55690
+exporters:
+  debug: {}
 service:
   extensions:
   - health_check
   pipelines:
     metrics:
       exporters:
-      - nop
+      - debug
       receivers:
       - otlp
 `, upgradedInstance.Spec.Config)

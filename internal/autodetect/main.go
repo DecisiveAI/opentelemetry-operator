@@ -16,10 +16,18 @@
 package autodetect
 
 import (
+	"context"
+	"fmt"
+
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/certmanager"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/fips"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
+	autoRBAC "github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
 )
 
 var _ AutoDetect = (*autoDetect)(nil)
@@ -27,14 +35,19 @@ var _ AutoDetect = (*autoDetect)(nil)
 // AutoDetect provides an assortment of routines that auto-detect traits based on the runtime.
 type AutoDetect interface {
 	OpenShiftRoutesAvailability() (openshift.RoutesAvailability, error)
+	PrometheusCRsAvailability() (prometheus.Availability, error)
+	RBACPermissions(ctx context.Context) (autoRBAC.Availability, error)
+	CertManagerAvailability(ctx context.Context) (certmanager.Availability, error)
+	FIPSEnabled(ctx context.Context) bool
 }
 
 type autoDetect struct {
-	dcl discovery.DiscoveryInterface
+	dcl      discovery.DiscoveryInterface
+	reviewer *rbac.Reviewer
 }
 
 // New creates a new auto-detection worker, using the given client when talking to the current cluster.
-func New(restConfig *rest.Config) (AutoDetect, error) {
+func New(restConfig *rest.Config, reviewer *rbac.Reviewer) (AutoDetect, error) {
 	dcl, err := discovery.NewDiscoveryClientForConfig(restConfig)
 	if err != nil {
 		// it's pretty much impossible to get into this problem, as most of the
@@ -44,8 +57,45 @@ func New(restConfig *rest.Config) (AutoDetect, error) {
 	}
 
 	return &autoDetect{
-		dcl: dcl,
+		dcl:      dcl,
+		reviewer: reviewer,
 	}, nil
+}
+
+// PrometheusCRsAvailability checks if Prometheus CRDs are available.
+func (a *autoDetect) PrometheusCRsAvailability() (prometheus.Availability, error) {
+	apiList, err := a.dcl.ServerGroups()
+	if err != nil {
+		return prometheus.NotAvailable, err
+	}
+
+	foundServiceMonitor := false
+	foundPodMonitor := false
+	apiGroups := apiList.Groups
+	for i := 0; i < len(apiGroups); i++ {
+		if apiGroups[i].Name == "monitoring.coreos.com" {
+			for _, version := range apiGroups[i].Versions {
+				resources, err := a.dcl.ServerResourcesForGroupVersion(version.GroupVersion)
+				if err != nil {
+					return prometheus.NotAvailable, err
+				}
+
+				for _, resource := range resources.APIResources {
+					if resource.Kind == "ServiceMonitor" {
+						foundServiceMonitor = true
+					} else if resource.Kind == "PodMonitor" {
+						foundPodMonitor = true
+					}
+				}
+			}
+		}
+	}
+
+	if foundServiceMonitor && foundPodMonitor {
+		return prometheus.Available, nil
+	}
+
+	return prometheus.NotAvailable, nil
 }
 
 // OpenShiftRoutesAvailability checks if OpenShift Route are available.
@@ -63,4 +113,50 @@ func (a *autoDetect) OpenShiftRoutesAvailability() (openshift.RoutesAvailability
 	}
 
 	return openshift.RoutesNotAvailable, nil
+}
+
+func (a *autoDetect) RBACPermissions(ctx context.Context) (autoRBAC.Availability, error) {
+	w, err := autoRBAC.CheckRBACPermissions(ctx, a.reviewer)
+	if err != nil {
+		return autoRBAC.NotAvailable, err
+	}
+	if w != nil {
+		return autoRBAC.NotAvailable, fmt.Errorf("missing permissions: %s", w)
+	}
+
+	return autoRBAC.Available, nil
+}
+
+func (a *autoDetect) CertManagerAvailability(ctx context.Context) (certmanager.Availability, error) {
+	apiList, err := a.dcl.ServerGroups()
+	if err != nil {
+		return certmanager.NotAvailable, err
+	}
+
+	apiGroups := apiList.Groups
+	certManagerFound := false
+	for i := 0; i < len(apiGroups); i++ {
+		if apiGroups[i].Name == "cert-manager.io" {
+			certManagerFound = true
+			break
+		}
+	}
+
+	if !certManagerFound {
+		return certmanager.NotAvailable, nil
+	}
+
+	w, err := certmanager.CheckCertManagerPermissions(ctx, a.reviewer)
+	if err != nil {
+		return certmanager.NotAvailable, err
+	}
+	if w != nil {
+		return certmanager.NotAvailable, fmt.Errorf("missing permissions: %s", w)
+	}
+
+	return certmanager.Available, nil
+}
+
+func (a *autoDetect) FIPSEnabled(_ context.Context) bool {
+	return fips.IsFipsEnabled()
 }

@@ -23,7 +23,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 )
 
 const (
@@ -59,7 +59,9 @@ const (
 	6) Inject mounting of volumes / files into appropriate directories in application container
 */
 
-func injectApacheHttpdagent(_ logr.Logger, apacheSpec v1alpha1.ApacheHttpd, pod corev1.Pod, index int, otlpEndpoint string, resourceMap map[string]string) corev1.Pod {
+func injectApacheHttpdagent(_ logr.Logger, apacheSpec v1alpha1.ApacheHttpd, pod corev1.Pod, useLabelsForResourceAttributes bool, index int, otlpEndpoint string, resourceMap map[string]string) corev1.Pod {
+
+	volume := instrVolume(apacheSpec.VolumeClaimTemplate, apacheAgentVolume, apacheSpec.VolumeSizeLimit)
 
 	// caller checks if there is at least one container
 	container := &pod.Spec.Containers[index]
@@ -135,14 +137,7 @@ func injectApacheHttpdagent(_ logr.Logger, apacheSpec v1alpha1.ApacheHttpd, pod 
 	// Copy OTEL module to a shared volume
 	if isApacheInitContainerMissing(pod, apacheAgentInitContainerName) {
 		// Inject volume for agent
-		pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
-			Name: apacheAgentVolume,
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-					SizeLimit: volumeSize(apacheSpec.VolumeSizeLimit),
-				},
-			}})
-
+		pod.Spec.Volumes = append(pod.Spec.Volumes, volume)
 		pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
 			Name:    apacheAgentInitContainerName,
 			Image:   apacheSpec.Image,
@@ -152,17 +147,17 @@ func injectApacheHttpdagent(_ logr.Logger, apacheSpec v1alpha1.ApacheHttpd, pod 
 				"cp -r /opt/opentelemetry/* " + apacheAgentDirFull + " && " +
 					// setup logging configuration from template
 					"export agentLogDir=$(echo \"" + apacheAgentDirFull + "/logs\" | sed 's,/,\\\\/,g') && " +
-					"cat " + apacheAgentDirFull + "/conf/appdynamics_sdk_log4cxx.xml.template | sed 's/__agent_log_dir__/'${agentLogDir}'/g'  > " + apacheAgentDirFull + "/conf/appdynamics_sdk_log4cxx.xml &&" +
+					"cat " + apacheAgentDirFull + "/conf/opentelemetry_sdk_log4cxx.xml.template | sed 's/__agent_log_dir__/'${agentLogDir}'/g'  > " + apacheAgentDirFull + "/conf/opentelemetry_sdk_log4cxx.xml &&" +
 					// Create agent configuration file by pasting content of env var to a file
 					"echo \"$" + apacheAttributesEnvVar + "\" > " + apacheAgentConfDirFull + "/" + apacheAgentConfigFile + " && " +
 					"sed -i 's/" + apacheServiceInstanceId + "/'${" + apacheServiceInstanceIdEnvVar + "}'/g' " + apacheAgentConfDirFull + "/" + apacheAgentConfigFile + " && " +
 					// Include a link to include Apache agent configuration file into httpd.conf
-					"echo 'Include " + getApacheConfDir(apacheSpec.ConfigPath) + "/" + apacheAgentConfigFile + "' >> " + apacheAgentConfDirFull + "/" + apacheConfigFile,
+					"echo -e '\nInclude " + getApacheConfDir(apacheSpec.ConfigPath) + "/" + apacheAgentConfigFile + "' >> " + apacheAgentConfDirFull + "/" + apacheConfigFile,
 			},
 			Env: []corev1.EnvVar{
 				{
 					Name:  apacheAttributesEnvVar,
-					Value: getApacheOtelConfig(pod, apacheSpec, index, otlpEndpoint, resourceMap),
+					Value: getApacheOtelConfig(pod, useLabelsForResourceAttributes, apacheSpec, index, otlpEndpoint, resourceMap),
 				},
 				{Name: apacheServiceInstanceIdEnvVar,
 					ValueFrom: &corev1.EnvVarSource{
@@ -201,7 +196,7 @@ func isApacheInitContainerMissing(pod corev1.Pod, containerName string) bool {
 
 // Calculate Apache HTTPD agent configuration file based on attributes provided by the injection rules
 // and by the pod values.
-func getApacheOtelConfig(pod corev1.Pod, apacheSpec v1alpha1.ApacheHttpd, index int, otelEndpoint string, resourceMap map[string]string) string {
+func getApacheOtelConfig(pod corev1.Pod, useLabelsForResourceAttributes bool, apacheSpec v1alpha1.ApacheHttpd, index int, otelEndpoint string, resourceMap map[string]string) string {
 	template := `
 #Load the Otel Webserver SDK
 LoadFile %[1]s/sdk_lib/lib/libopentelemetry_common.so
@@ -222,7 +217,7 @@ LoadModule otel_apache_module %[1]s/WebServerModule/Apache/libmod_apache_otel%[2
 	if otelEndpoint == "" {
 		otelEndpoint = "http://localhost:4317/"
 	}
-	serviceName := chooseServiceName(pod, resourceMap, index)
+	serviceName := chooseServiceName(pod, useLabelsForResourceAttributes, resourceMap, index)
 	serviceNamespace := pod.GetNamespace()
 	if len(serviceNamespace) == 0 {
 		serviceNamespace = resourceMap[string(semconv.K8SNamespaceNameKey)]

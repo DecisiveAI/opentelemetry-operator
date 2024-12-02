@@ -21,9 +21,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
 )
 
 var testTolerationValues = []v1.Toleration{
@@ -253,6 +253,36 @@ func TestDeploymentFilterLabels(t *testing.T) {
 	}
 }
 
+func TestDeploymentFilterAnnotations(t *testing.T) {
+	excludedAnnotations := map[string]string{
+		"foo":         "1",
+		"app.foo.bar": "1",
+		"opampbridge": "true",
+	}
+
+	opampBridge := v1alpha1.OpAMPBridge{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        "my-instance",
+			Annotations: excludedAnnotations,
+		},
+		Spec: v1alpha1.OpAMPBridgeSpec{},
+	}
+
+	cfg := config.New(config.WithAnnotationFilters([]string{"foo*", "app.*.bar"}))
+
+	params := manifests.Params{
+		Config:      cfg,
+		OpAMPBridge: opampBridge,
+		Log:         logger,
+	}
+
+	d := Deployment(params)
+
+	assert.Len(t, d.ObjectMeta.Annotations, 2)
+	assert.NotContains(t, d.ObjectMeta.Annotations, "foo")
+	assert.NotContains(t, d.ObjectMeta.Annotations, "app.foo.bar")
+}
+
 func TestDeploymentNodeSelector(t *testing.T) {
 	// Test default
 	opampBridge1 := v1alpha1.OpAMPBridge{
@@ -422,4 +452,34 @@ func TestDeploymentTopologySpreadConstraints(t *testing.T) {
 	assert.NotNil(t, d2.Spec.Template.Spec.TopologySpreadConstraints)
 	assert.NotEmpty(t, d2.Spec.Template.Spec.TopologySpreadConstraints)
 	assert.Equal(t, testTopologySpreadConstraintValue, d2.Spec.Template.Spec.TopologySpreadConstraints)
+}
+
+func TestDeploymentDNSConfig(t *testing.T) {
+	// prepare
+	opAmpBridge := v1alpha1.OpAMPBridge{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-instance",
+			Namespace: "my-namespace",
+		},
+		Spec: v1alpha1.OpAMPBridgeSpec{
+			PodDNSConfig: v1.PodDNSConfig{
+				Nameservers: []string{"8.8.8.8"},
+				Searches:    []string{"my.dns.search.suffix"},
+			},
+		},
+	}
+
+	cfg := config.New()
+
+	params := manifests.Params{
+		Config:      cfg,
+		OpAMPBridge: opAmpBridge,
+		Log:         logger,
+	}
+
+	// test
+	d := Deployment(params)
+	assert.Equal(t, "my-instance-opamp-bridge", d.Name)
+	assert.Equal(t, v1.DNSPolicy("None"), d.Spec.Template.Spec.DNSPolicy)
+	assert.Equal(t, d.Spec.Template.Spec.DNSConfig.Nameservers, []string{"8.8.8.8"})
 }

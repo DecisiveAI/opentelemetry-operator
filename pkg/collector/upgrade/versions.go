@@ -17,13 +17,18 @@ package upgrade
 import (
 	"github.com/Masterminds/semver/v3"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
 )
 
+// Deprecated use upgradeFuncV1beta1.
 type upgradeFunc func(u VersionUpgrade, otelcol *v1alpha1.OpenTelemetryCollector) (*v1alpha1.OpenTelemetryCollector, error)
+type upgradeFuncV1beta1 func(u VersionUpgrade, otelcol *v1beta1.OpenTelemetryCollector) (*v1beta1.OpenTelemetryCollector, error)
 
 type otelcolVersion struct {
-	upgrade upgradeFunc
+	// deprecated use upgradeV1beta1.
+	upgrade        upgradeFunc
+	upgradeV1beta1 upgradeFuncV1beta1
 	semver.Version
 }
 
@@ -84,6 +89,26 @@ var (
 		{
 			Version: *semver.MustParse("0.61.0"),
 			upgrade: upgrade0_61_0,
+		},
+		{
+			Version:        *semver.MustParse("0.104.0"),
+			upgradeV1beta1: upgrade0_104_0_TA,
+		},
+		{
+			Version:        *semver.MustParse("0.104.0"),
+			upgradeV1beta1: upgrade0_104_0,
+		},
+		{
+			Version:        *semver.MustParse("0.105.0"),
+			upgradeV1beta1: upgrade0_105_0,
+		},
+		{
+			Version:        *semver.MustParse("0.110.0"),
+			upgradeV1beta1: upgrade0_110_0,
+		},
+		{
+			Version:        *semver.MustParse("0.111.0"),
+			upgradeV1beta1: upgrade0_111_0,
 		},
 	}
 

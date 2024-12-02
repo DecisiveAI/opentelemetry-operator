@@ -23,9 +23,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/version"
-	"github.com/decisiveai/opentelemetry-operator/pkg/collector/upgrade"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/collector/upgrade"
 )
 
 func Test0_39_0Upgrade(t *testing.T) {
@@ -42,26 +41,29 @@ func Test0_39_0Upgrade(t *testing.T) {
 		Spec: v1alpha1.OpenTelemetryCollectorSpec{
 			Config: `
 receivers:
- httpd/mtls:
-   protocols:
-     http:
-       endpoint: mysite.local:55690
+  httpd/mtls:
+    protocols:
+      http:
+        endpoint: mysite.local:55690
 
- httpd:
+  httpd:
 
 processors:
- memory_limiter:
- memory_limiter/with-settings:
-   check_interval: 5s
-   limit_mib: 4000
-   spike_limit_mib: 500
-   ballast_size_mib: 2000
+  memory_limiter:
+  memory_limiter/with-settings:
+    check_interval: 5s
+    limit_mib: 4000
+    spike_limit_mib: 500
+    ballast_size_mib: 2000
+
+exporters:
+  debug: {}
 
 service:
- pipelines:
-   metrics:
-     receivers: [httpd/mtls, httpd]
-     exporters: [nop]
+  pipelines:
+    metrics:
+      receivers: [httpd/mtls, httpd]
+      exporters: [debug]
 `,
 		},
 	}
@@ -71,14 +73,15 @@ service:
 	// drop processors.memory_limiter field 'ballast_size_mib'
 	up := &upgrade.VersionUpgrade{
 		Log:      logger,
-		Version:  version.Get(),
+		Version:  makeVersion("0.39.0"),
 		Client:   nil,
 		Recorder: record.NewFakeRecorder(upgrade.RecordBufferSize),
 	}
-	res, err := up.ManagedInstance(context.Background(), existing)
+	resV1beta1, err := up.ManagedInstance(context.Background(), convertTov1beta1(t, existing))
 	assert.NoError(t, err)
+	res := convertTov1alpha1(t, resV1beta1)
 
-	assert.Equal(t, `processors:
+	assert.YAMLEq(t, `processors:
   memory_limiter:
   memory_limiter/with-settings:
     check_interval: 5s
@@ -90,11 +93,13 @@ receivers:
     protocols:
       http:
         endpoint: mysite.local:55690
+exporters:
+  debug: {}
 service:
   pipelines:
     metrics:
       exporters:
-      - nop
+      - debug
       receivers:
       - apache/mtls
       - apache
@@ -119,21 +124,25 @@ processors:
     spike_limit_mib: 500
     ballast_size_mib: 2000
 
+exporters:
+  debug: {}
+
 service:
   pipelines:
     traces:
       receivers: [otlp/mtls, otlp]
-      exporters: [nop]
+      exporters: [debug]
 `,
 		},
 	}
 
 	existing1.Status.Version = "0.38.0"
-	res, err = up.ManagedInstance(context.Background(), existing1)
+	resV1beta1, err = up.ManagedInstance(context.Background(), convertTov1beta1(t, existing1))
 	assert.NoError(t, err)
+	res = convertTov1alpha1(t, resV1beta1)
 
 	// verify
-	assert.Equal(t, `processors:
+	assert.YAMLEq(t, `processors:
   memory_limiter:
   memory_limiter/with-settings:
     check_interval: 5s
@@ -145,11 +154,15 @@ receivers:
     protocols:
       http:
         endpoint: mysite.local:55690
+
+exporters:
+  debug: {}
+
 service:
   pipelines:
     traces:
       exporters:
-      - nop
+      - debug
       receivers:
       - otlp/mtls
       - otlp

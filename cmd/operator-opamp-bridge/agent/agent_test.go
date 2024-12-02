@@ -16,7 +16,6 @@ package agent
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
 	"os"
 	"sort"
@@ -24,7 +23,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/oklog/ulid/v2"
+	"github.com/google/uuid"
 	"github.com/open-telemetry/opamp-go/client"
 	"github.com/open-telemetry/opamp-go/client/types"
 	"github.com/open-telemetry/opamp-go/protobufs"
@@ -38,9 +37,10 @@ import (
 	runtimeClient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/config"
-	"github.com/decisiveai/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/config"
+	"github.com/open-telemetry/opentelemetry-operator/cmd/operator-opamp-bridge/operator"
 )
 
 const (
@@ -139,13 +139,23 @@ func getConfigHash(key, file string) string {
 	return fmt.Sprintf("%s%d", key, size)
 }
 
+var _ client.OpAMPClient = &mockOpampClient{}
+
 type mockOpampClient struct {
 	lastStatus          *protobufs.RemoteConfigStatus
 	lastEffectiveConfig *protobufs.EffectiveConfig
 	settings            types.StartSettings
 }
 
-func (m *mockOpampClient) RequestConnectionSettings(request *protobufs.ConnectionSettingsRequest) error {
+func (m *mockOpampClient) SetCustomCapabilities(_ *protobufs.CustomCapabilities) error {
+	return nil
+}
+
+func (m *mockOpampClient) SendCustomMessage(_ *protobufs.CustomMessage) (messageSendingChannel chan struct{}, err error) {
+	return nil, nil
+}
+
+func (m *mockOpampClient) RequestConnectionSettings(_ *protobufs.ConnectionSettingsRequest) error {
 	return nil
 }
 
@@ -191,6 +201,7 @@ func (m *mockOpampClient) SetPackageStatuses(_ *protobufs.PackageStatuses) error
 func getFakeApplier(t *testing.T, conf *config.Config, lists ...runtimeClient.ObjectList) *operator.Client {
 	schemeBuilder := runtime.NewSchemeBuilder(func(s *runtime.Scheme) error {
 		s.AddKnownTypes(v1alpha1.GroupVersion, &v1alpha1.OpenTelemetryCollector{}, &v1alpha1.OpenTelemetryCollectorList{})
+		s.AddKnownTypes(v1beta1.GroupVersion, &v1beta1.OpenTelemetryCollector{}, &v1beta1.OpenTelemetryCollectorList{})
 		s.AddKnownTypes(v1.SchemeGroupVersion, &v1.Pod{}, &v1.PodList{})
 		metav1.AddToGroupVersion(s, v1alpha1.GroupVersion)
 		return nil
@@ -262,7 +273,7 @@ func TestAgent_getHealth(t *testing.T) {
 					StatusTimeUnixNano: uint64(fakeClock.Now().UnixNano()),
 					ComponentHealthMap: map[string]*protobufs.ComponentHealth{
 						"testnamespace/collector": {
-							Healthy:            false, // we're working with mocks so the status will never be reconciled.
+							Healthy:            true,
 							StartTimeUnixNano:  collectorStartTime,
 							LastError:          "",
 							Status:             "",
@@ -295,7 +306,7 @@ func TestAgent_getHealth(t *testing.T) {
 					StatusTimeUnixNano: uint64(fakeClock.Now().UnixNano()),
 					ComponentHealthMap: map[string]*protobufs.ComponentHealth{
 						"testnamespace/collector": {
-							Healthy:            false, // we're working with mocks so the status will never be reconciled.
+							Healthy:            true,
 							StartTimeUnixNano:  collectorStartTime,
 							LastError:          "",
 							Status:             "",
@@ -303,7 +314,7 @@ func TestAgent_getHealth(t *testing.T) {
 							ComponentHealthMap: map[string]*protobufs.ComponentHealth{},
 						},
 						"testnamespace/other": {
-							Healthy:            false, // we're working with mocks so the status will never be reconciled.
+							Healthy:            true,
 							StartTimeUnixNano:  collectorStartTime,
 							LastError:          "",
 							Status:             "",
@@ -335,7 +346,7 @@ func TestAgent_getHealth(t *testing.T) {
 					StatusTimeUnixNano: uint64(fakeClock.Now().UnixNano()),
 					ComponentHealthMap: map[string]*protobufs.ComponentHealth{
 						"other/third": {
-							Healthy:            false, // we're working with mocks so the status will never be reconciled.
+							Healthy:            true,
 							StartTimeUnixNano:  collectorStartTime,
 							LastError:          "",
 							Status:             "",
@@ -404,14 +415,17 @@ func TestAgent_getHealth(t *testing.T) {
 			agent.clock = fakeClock
 			err := agent.Start()
 			defer agent.Shutdown()
+
 			require.NoError(t, err, "should be able to start agent")
 			if len(tt.args.configs) > 0 {
-				require.True(t, len(tt.args.configs) == len(tt.want), "must have an equal amount of configs and checks.")
+				require.Len(t, tt.args.configs, len(tt.want), "must have an equal amount of configs and checks.")
 			} else {
 				require.Len(t, tt.want, 1, "must have exactly one want if no config is supplied.")
 				require.Equal(t, tt.want[0], agent.getHealth())
 			}
+
 			for i, configMap := range tt.args.configs {
+				var data *types.MessageData
 				data, err := getMessageDataFromConfigFile(configMap)
 				require.NoError(t, err, "should be able to load data")
 				agent.onMessage(tt.args.ctx, data)
@@ -485,7 +499,8 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"receivers: [otlp]",
+						"receivers:",
+						"- otlp",
 						"status:",
 					},
 				},
@@ -513,7 +528,9 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"receivers: [otlp]",
+						"grpc:",
+						"receivers:",
+						"- otlp",
 						"status:",
 					},
 				},
@@ -539,7 +556,7 @@ func TestAgent_onMessage(t *testing.T) {
 				status: &protobufs.RemoteConfigStatus{
 					LastRemoteConfigHash: []byte(invalidYamlConfigHash),
 					Status:               protobufs.RemoteConfigStatuses_RemoteConfigStatuses_FAILED,
-					ErrorMessage:         "error converting YAML to JSON: yaml: line 23: could not find expected ':'",
+					ErrorMessage:         "failed to unmarshal config into v1beta1 API Version: error converting YAML to JSON: yaml: line 23: could not find expected ':'",
 				},
 			},
 		},
@@ -561,7 +578,8 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"receivers: [otlp]",
+						"receivers:",
+						"- otlp",
 						"status:",
 					},
 				},
@@ -632,7 +650,6 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: []",
 						"status:",
 					},
 				},
@@ -646,7 +663,9 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: [memory_limiter, batch]",
+						"processors:",
+						"- memory_limiter",
+						"- batch",
 						"replicas: 3",
 						"status:",
 					},
@@ -678,7 +697,6 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: []",
 						"status:",
 					},
 				},
@@ -692,14 +710,13 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: []",
 						"status:",
 					},
 				},
 				nextStatus: &protobufs.RemoteConfigStatus{
 					LastRemoteConfigHash: []byte(invalidYamlConfigHash), // The new hash should be of the bad config
 					Status:               protobufs.RemoteConfigStatuses_RemoteConfigStatuses_FAILED,
-					ErrorMessage:         "error converting YAML to JSON: yaml: line 23: could not find expected ':'",
+					ErrorMessage:         "failed to unmarshal config into v1beta1 API Version: error converting YAML to JSON: yaml: line 23: could not find expected ':'",
 				},
 			},
 		},
@@ -725,7 +742,6 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: []",
 						"status:",
 					},
 				},
@@ -739,7 +755,6 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: []",
 						"status:",
 					},
 					otherCollectorKey: {
@@ -747,7 +762,9 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + otherCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: [memory_limiter, batch]",
+						"processors:",
+						"- memory_limiter",
+						"- batch",
 						"status:",
 					},
 				},
@@ -776,7 +793,6 @@ func TestAgent_onMessage(t *testing.T) {
 						"name: " + testCollectorName,
 						"namespace: " + testNamespace,
 						"send_batch_size: 10000",
-						"processors: []",
 						"status:",
 					},
 				},
@@ -795,14 +811,17 @@ func TestAgent_onMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockClient := &mockOpampClient{}
+
 			conf := config.NewConfig(logr.Discard())
 			loadErr := config.LoadFromFile(conf, tt.fields.configFile)
 			require.NoError(t, loadErr, "should be able to load config")
+
 			applier := getFakeApplier(t, conf)
 			agent := NewAgent(l, applier, conf, mockClient)
 			err := agent.Start()
 			defer agent.Shutdown()
 			require.NoError(t, err, "should be able to start agent")
+
 			data, err := getMessageDataFromConfigFile(tt.args.configFile)
 			require.NoError(t, err, "should be able to load data")
 			agent.onMessage(tt.args.ctx, data)
@@ -814,17 +833,20 @@ func TestAgent_onMessage(t *testing.T) {
 			}
 			assert.NotNilf(t, effectiveConfig.ConfigMap.GetConfigMap(), "configmap should have data")
 			for colNameNamespace, expectedContents := range tt.want.contents {
-				assert.Contains(t, effectiveConfig.ConfigMap.GetConfigMap(), colNameNamespace)
+				configFileMap := effectiveConfig.ConfigMap.GetConfigMap()
+				require.Contains(t, configFileMap, colNameNamespace)
+				configFileString := string(configFileMap[colNameNamespace].GetBody())
 				for _, content := range expectedContents {
-					asString := string(effectiveConfig.ConfigMap.GetConfigMap()[colNameNamespace].GetBody())
-					assert.Contains(t, asString, content)
+					assert.Contains(t, configFileString, content, "config should contain %s", content)
 				}
 			}
 			assert.Equal(t, tt.want.status, mockClient.lastStatus)
+
 			if tt.args.nextConfigFile == nil {
 				// Nothing left to do!
 				return
 			}
+
 			nextData, err := getMessageDataFromConfigFile(tt.args.nextConfigFile)
 			require.NoError(t, err, "should be able to load updated data")
 			agent.onMessage(tt.args.ctx, nextData)
@@ -833,10 +855,11 @@ func TestAgent_onMessage(t *testing.T) {
 			assert.Equal(t, nextEffectiveConfig, mockClient.lastEffectiveConfig, "client's config should be updated")
 			assert.NotNilf(t, nextEffectiveConfig.ConfigMap.GetConfigMap(), "configmap should have updated data")
 			for colNameNamespace, expectedContents := range tt.want.nextContents {
-				assert.Contains(t, nextEffectiveConfig.ConfigMap.GetConfigMap(), colNameNamespace)
+				configFileMap := nextEffectiveConfig.ConfigMap.GetConfigMap()
+				require.Contains(t, configFileMap, colNameNamespace)
+				configFileString := string(configFileMap[colNameNamespace].GetBody())
 				for _, content := range expectedContents {
-					asString := string(nextEffectiveConfig.ConfigMap.GetConfigMap()[colNameNamespace].GetBody())
-					assert.Contains(t, asString, content)
+					assert.Contains(t, configFileString, content)
 				}
 			}
 			assert.Equal(t, tt.want.nextStatus, mockClient.lastStatus)
@@ -860,15 +883,20 @@ func Test_CanUpdateIdentity(t *testing.T) {
 	defer agent.Shutdown()
 	require.NoError(t, err, "should be able to start agent")
 	previousInstanceId := agent.instanceId.String()
-	entropy := ulid.Monotonic(rand.Reader, 0)
-	newId := ulid.MustNew(ulid.MaxTime(), entropy)
+	newId, err := uuid.NewV7()
+	require.NoError(t, err)
+	marshalledId, err := newId.MarshalBinary()
+	require.NoError(t, err)
 	agent.onMessage(context.Background(), &types.MessageData{
 		AgentIdentification: &protobufs.AgentIdentification{
-			NewInstanceUid: newId.String(),
+			NewInstanceUid: marshalledId,
 		},
 	})
 	assert.NotEqual(t, previousInstanceId, newId.String())
 	assert.Equal(t, agent.instanceId, newId)
+	parsedUUID, err := uuid.FromBytes(marshalledId)
+	require.NoError(t, err)
+	assert.Equal(t, newId, parsedUUID)
 }
 
 func getMessageDataFromConfigFile(filemap map[string]string) (*types.MessageData, error) {

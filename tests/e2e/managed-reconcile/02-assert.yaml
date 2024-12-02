@@ -52,22 +52,25 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: simplest-collector
+  name: simplest-collector-aec5aa11
 data:
   collector.yaml: |
     receivers:
       otlp:
         protocols:
           grpc:
+            endpoint: 0.0.0.0:4317
           http:
-    processors:
-
+            endpoint: 0.0.0.0:4318
     exporters:
-      debug:
-
+      debug: null
     service:
+      telemetry:
+        metrics:
+          address: 0.0.0.0:8888
       pipelines:
         traces:
-          receivers: [otlp]
-          processors: []
-          exporters: [debug]
+          exporters:
+            - debug
+          receivers:
+            - otlp

@@ -1,6 +1,5 @@
-debug: null
-exporters: null
-processors: null
+exporters:
+  debug:
 receivers:
   prometheus:
     config:
@@ -52,6 +51,5 @@ service:
     metrics:
       exporters:
       - debug
-      processors: []
       receivers:
       - prometheus

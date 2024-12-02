@@ -21,14 +21,15 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
-
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-
 	"github.com/stretchr/testify/assert"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
+
+var testScheme = scheme.Scheme
 
 func TestOpAMPBridgeDefaultingWebhook(t *testing.T) {
 	one := int32(1)
@@ -49,9 +50,7 @@ func TestOpAMPBridgeDefaultingWebhook(t *testing.T) {
 			opampBridge: OpAMPBridge{},
 			expected: OpAMPBridge{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": "opentelemetry-operator",
-					},
+					Labels: map[string]string{},
 				},
 				Spec: OpAMPBridgeSpec{
 					Replicas:        &one,
@@ -70,9 +69,7 @@ func TestOpAMPBridgeDefaultingWebhook(t *testing.T) {
 			},
 			expected: OpAMPBridge{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": "opentelemetry-operator",
-					},
+					Labels: map[string]string{},
 				},
 				Spec: OpAMPBridgeSpec{
 					Replicas:        &five,
@@ -92,9 +89,7 @@ func TestOpAMPBridgeDefaultingWebhook(t *testing.T) {
 			},
 			expected: OpAMPBridge{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": "opentelemetry-operator",
-					},
+					Labels: map[string]string{},
 				},
 				Spec: OpAMPBridgeSpec{
 					Replicas:        &one,

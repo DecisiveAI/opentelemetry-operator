@@ -33,16 +33,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	k8sreconcile "sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/controllers"
-	"github.com/decisiveai/opentelemetry-operator/internal/autodetect/openshift"
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/controllers"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/openshift"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
 
 var opampBridgeLogger = logf.Log.WithName("opamp-bridge-controller-unit-tests")
 var opampBridgeMockAutoDetector = &mockAutoDetect{
 	OpenShiftRoutesAvailabilityFunc: func() (openshift.RoutesAvailability, error) {
 		return openshift.RoutesAvailable, nil
+	},
+	PrometheusCRsAvailabilityFunc: func() (prometheus.Availability, error) {
+		return prometheus.Available, nil
+	},
+	RBACPermissionsFunc: func(ctx context.Context) (rbac.Availability, error) {
+		return rbac.Available, nil
 	},
 }
 

@@ -22,18 +22,31 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/adapters"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
-// headless label is to differentiate the headless service from the clusterIP service.
+// headless and monitoring labels are to differentiate the base/headless/monitoring services from the clusterIP service.
 const (
-	headlessLabel  = "operator.opentelemetry.io/collector-headless-service"
-	headlessExists = "Exists"
+	headlessLabel    = "operator.opentelemetry.io/collector-headless-service"
+	monitoringLabel  = "operator.opentelemetry.io/collector-monitoring-service"
+	serviceTypeLabel = "operator.opentelemetry.io/collector-service-type"
+	valueExists      = "Exists"
 )
+
+type ServiceType int
+
+const (
+	BaseServiceType ServiceType = iota
+	HeadlessServiceType
+	MonitoringServiceType
+)
+
+func (s ServiceType) String() string {
+	return [...]string{"base", "headless", "monitoring"}[s]
+}
 
 func HeadlessService(params manifests.Params) (*corev1.Service, error) {
 	h, err := Service(params)
@@ -42,7 +55,8 @@ func HeadlessService(params manifests.Params) (*corev1.Service, error) {
 	}
 
 	h.Name = naming.HeadlessService(params.OtelCol.Name)
-	h.Labels[headlessLabel] = headlessExists
+	h.Labels[headlessLabel] = valueExists
+	h.Labels[serviceTypeLabel] = HeadlessServiceType.String()
 
 	// copy to avoid modifying params.OtelCol.Annotations
 	annotations := map[string]string{
@@ -54,22 +68,22 @@ func HeadlessService(params manifests.Params) (*corev1.Service, error) {
 	h.Annotations = annotations
 
 	h.Spec.ClusterIP = "None"
-	// mydecisive
-	h.Spec.Type = ""
 	return h, nil
 }
 
 func MonitoringService(params manifests.Params) (*corev1.Service, error) {
+
 	name := naming.MonitoringService(params.OtelCol.Name)
 	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
+	labels[monitoringLabel] = valueExists
+	labels[serviceTypeLabel] = MonitoringServiceType.String()
 
-	c, err := adapters.ConfigFromString(params.OtelCol.Spec.Config)
+	annotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
 	if err != nil {
-		params.Log.Error(err, "couldn't extract the configuration")
 		return nil, err
 	}
 
-	metricsPort, err := adapters.ConfigToMetricsPort(params.Log, c)
+	_, metricsPort, err := params.OtelCol.Spec.Config.Service.MetricsEndpoint()
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +93,7 @@ func MonitoringService(params manifests.Params) (*corev1.Service, error) {
 			Name:        name,
 			Namespace:   params.OtelCol.Namespace,
 			Labels:      labels,
-			Annotations: params.OtelCol.Annotations,
+			Annotations: annotations,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector:  manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
@@ -88,6 +102,8 @@ func MonitoringService(params manifests.Params) (*corev1.Service, error) {
 				Name: "monitoring",
 				Port: metricsPort,
 			}},
+			IPFamilies:     params.OtelCol.Spec.IpFamilies,
+			IPFamilyPolicy: params.OtelCol.Spec.IpFamilyPolicy,
 		},
 	}, nil
 }
@@ -95,32 +111,23 @@ func MonitoringService(params manifests.Params) (*corev1.Service, error) {
 func Service(params manifests.Params) (*corev1.Service, error) {
 	name := naming.Service(params.OtelCol.Name)
 	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
+	labels[serviceTypeLabel] = BaseServiceType.String()
 
-	configFromString, err := adapters.ConfigFromString(params.OtelCol.Spec.Config)
-	if err != nil {
-		params.Log.Error(err, "couldn't extract the configuration from the context")
-		return nil, err
-	}
-
-	ports, err := adapters.ConfigToPorts(params.Log, configFromString)
+	annotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
 	if err != nil {
 		return nil, err
 	}
 
-	// mydecisive non-grpc ports only.
-	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
-		for i := len(ports) - 1; i >= 0; i-- {
-			if ports[i].AppProtocol != nil && *ports[i].AppProtocol == "grpc" {
-				ports = append(ports[:i], ports[i+1:]...)
-			}
-		}
+	ports, err := params.OtelCol.Spec.Config.GetAllPorts(params.Log)
+	if err != nil {
+		return nil, err
 	}
 
 	// set appProtocol to h2c for grpc ports on OpenShift.
 	// OpenShift uses HA proxy that uses appProtocol for its configuration.
 	for i := range ports {
 		h2c := "h2c"
-		if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeRoute && ports[i].AppProtocol != nil && strings.EqualFold(*ports[i].AppProtocol, "grpc") {
+		if params.OtelCol.Spec.Ingress.Type == v1beta1.IngressTypeRoute && ports[i].AppProtocol != nil && strings.EqualFold(*ports[i].AppProtocol, "grpc") {
 			ports[i].AppProtocol = &h2c
 		}
 	}
@@ -141,7 +148,7 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 			}
 		}
 
-		ports = append(params.OtelCol.Spec.Ports, resultingInferredPorts...)
+		ports = append(toServicePorts(params.OtelCol.Spec.Ports), resultingInferredPorts...)
 	}
 
 	// if we have no ports, we don't need a service
@@ -152,26 +159,8 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 	}
 
 	trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
-	if params.OtelCol.Spec.Mode == v1alpha1.ModeDaemonSet {
+	if params.OtelCol.Spec.Mode == v1beta1.ModeDaemonSet {
 		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
-	}
-
-	// mydecisive.
-	var spec corev1.ServiceSpec
-	if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeAws {
-		spec = corev1.ServiceSpec{
-			InternalTrafficPolicy: &trafficPolicy,
-			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
-			Type:                  "LoadBalancer",
-			Ports:                 ports,
-		}
-	} else {
-		spec = corev1.ServiceSpec{
-			InternalTrafficPolicy: &trafficPolicy,
-			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
-			Ports:                 ports,
-			ClusterIP:             "",
-		}
 	}
 
 	return &corev1.Service{
@@ -179,91 +168,38 @@ func Service(params manifests.Params) (*corev1.Service, error) {
 			Name:        naming.Service(params.OtelCol.Name),
 			Namespace:   params.OtelCol.Namespace,
 			Labels:      labels,
-			Annotations: params.OtelCol.Annotations,
-		},
-		Spec: spec,
-	}, nil
-}
-
-// mydecisive.
-func ServiceBehindIngress(params manifests.Params) (*corev1.Service, error) {
-	// we need this service for aws only
-	if params.OtelCol.Spec.Ingress.Type != v1alpha1.IngressTypeAws {
-		return nil, nil
-	}
-	name := naming.BehindIngressService(params.OtelCol.Name)
-	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
-
-	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := len(ports) - 1; i >= 0; i-- {
-		if ports[i].AppProtocol == nil || (ports[i].AppProtocol != nil && *ports[i].AppProtocol != "grpc") {
-			ports = append(ports[:i], ports[i+1:]...)
-		}
-	}
-
-	// set appProtocol to h2c for grpc ports on OpenShift.
-	// OpenShift uses HA proxy that uses appProtocol for its configuration.
-	for i := range ports {
-		h2c := "h2c"
-		if params.OtelCol.Spec.Ingress.Type == v1alpha1.IngressTypeRoute && ports[i].AppProtocol != nil && strings.EqualFold(*ports[i].AppProtocol, "grpc") {
-			ports[i].AppProtocol = &h2c
-		}
-	}
-
-	if len(params.OtelCol.Spec.Ports) > 0 {
-		// we should add all the ports from the CR
-		// there are two cases where problems might occur:
-		// 1) when the port number is already being used by a receiver
-		// 2) same, but for the port name
-		//
-		// in the first case, we remove the port we inferred from the list
-		// in the second case, we rename our inferred port to something like "port-%d"
-		portNumbers, portNames := extractPortNumbersAndNames(params.OtelCol.Spec.Ports)
-		var resultingInferredPorts []corev1.ServicePort
-		for _, inferred := range ports {
-			if filtered := filterPort(params.Log, inferred, portNumbers, portNames); filtered != nil {
-				resultingInferredPorts = append(resultingInferredPorts, *filtered)
-			}
-		}
-
-		ports = append(params.OtelCol.Spec.Ports, resultingInferredPorts...)
-	}
-
-	// if we have no ports, we don't need a service
-	if len(ports) == 0 {
-		params.Log.V(1).Info("the instance's configuration didn't yield any ports to open, skipping service", "instance.name", params.OtelCol.Name, "instance.namespace", params.OtelCol.Namespace)
-		return nil, err
-	}
-
-	trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
-	if params.OtelCol.Spec.Mode == v1alpha1.ModeDaemonSet {
-		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
-	}
-
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        name,
-			Namespace:   params.OtelCol.Namespace,
-			Labels:      labels,
-			Annotations: params.OtelCol.Annotations,
+			Annotations: annotations,
 		},
 		Spec: corev1.ServiceSpec{
-			// AWS LB controller
-			Type:                  "NodePort",
 			InternalTrafficPolicy: &trafficPolicy,
 			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
-			//		ClusterIP:             "",
-			Ports: ports,
+			ClusterIP:             "",
+			Ports:                 ports,
+			IPFamilies:            params.OtelCol.Spec.IpFamilies,
+			IPFamilyPolicy:        params.OtelCol.Spec.IpFamilyPolicy,
 		},
 	}, nil
 }
 
-func filterPort(logger logr.Logger, candidate corev1.ServicePort, portNumbers map[int32]bool, portNames map[string]bool) *corev1.ServicePort {
-	if portNumbers[candidate.Port] {
+type PortNumberKey struct {
+	Port     int32
+	Protocol corev1.Protocol
+}
+
+func newPortNumberKeyByPort(port int32) PortNumberKey {
+	return PortNumberKey{Port: port, Protocol: corev1.ProtocolTCP}
+}
+
+func newPortNumberKey(port int32, protocol corev1.Protocol) PortNumberKey {
+	if protocol == "" {
+		// K8s defaults to TCP if protocol is empty, so evaluate the port the same
+		protocol = corev1.ProtocolTCP
+	}
+	return PortNumberKey{Port: port, Protocol: protocol}
+}
+
+func filterPort(logger logr.Logger, candidate corev1.ServicePort, portNumbers map[PortNumberKey]bool, portNames map[string]bool) *corev1.ServicePort {
+	if portNumbers[newPortNumberKey(candidate.Port, candidate.Protocol)] {
 		return nil
 	}
 
@@ -288,12 +224,12 @@ func filterPort(logger logr.Logger, candidate corev1.ServicePort, portNumbers ma
 	return &candidate
 }
 
-func extractPortNumbersAndNames(ports []corev1.ServicePort) (map[int32]bool, map[string]bool) {
-	numbers := map[int32]bool{}
+func extractPortNumbersAndNames(ports []v1beta1.PortsSpec) (map[PortNumberKey]bool, map[string]bool) {
+	numbers := map[PortNumberKey]bool{}
 	names := map[string]bool{}
 
 	for _, port := range ports {
-		numbers[port.Port] = true
+		numbers[newPortNumberKey(port.Port, port.Protocol)] = true
 		names[port.Name] = true
 	}
 

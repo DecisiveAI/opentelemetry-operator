@@ -22,7 +22,8 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/oklog/ulid/v2"
+	"github.com/google/uuid"
+	"github.com/open-telemetry/opamp-go/protobufs"
 	"github.com/shirou/gopsutil/process"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
@@ -30,8 +31,6 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	otelresource "go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-
-	"github.com/open-telemetry/opamp-go/protobufs"
 )
 
 // MetricReporter is a metric reporter that collects Agent metrics and sends them to an
@@ -54,7 +53,7 @@ type MetricReporter struct {
 // NewMetricReporter creates an OTLP/HTTP client to the destination address supplied by the server.
 // TODO: do more validation on the endpoint, allow for gRPC.
 // TODO: set global provider and add more metrics to be reported.
-func NewMetricReporter(logger logr.Logger, dest *protobufs.TelemetryConnectionSettings, agentType string, agentVersion string, instanceId ulid.ULID) (*MetricReporter, error) {
+func NewMetricReporter(logger logr.Logger, dest *protobufs.TelemetryConnectionSettings, agentType string, agentVersion string, instanceId uuid.UUID) (*MetricReporter, error) {
 
 	if dest.DestinationEndpoint == "" {
 		return nil, fmt.Errorf("metric destination must specify DestinationEndpoint")

@@ -17,6 +17,7 @@ package v1alpha1
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -27,13 +28,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
-	"github.com/decisiveai/opentelemetry-operator/pkg/constants"
-)
-
-const (
-	envPrefix       = "OTEL_"
-	envSplunkPrefix = "SPLUNK_"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/constants"
 )
 
 var (
@@ -96,10 +92,6 @@ func (w InstrumentationWebhook) defaulter(r *Instrumentation) error {
 	if r.Labels == nil {
 		r.Labels = map[string]string{}
 	}
-	if r.Labels["app.kubernetes.io/managed-by"] == "" {
-		r.Labels["app.kubernetes.io/managed-by"] = "opentelemetry-operator"
-	}
-
 	if r.Spec.Java.Image == "" {
 		r.Spec.Java.Image = w.cfg.AutoInstrumentationJavaImage()
 	}
@@ -246,41 +238,58 @@ func (w InstrumentationWebhook) validate(r *Instrumentation) (admission.Warnings
 		return warnings, fmt.Errorf("spec.sampler.type is not valid: %s", r.Spec.Sampler.Type)
 	}
 
-	// validate env vars
-	if err := w.validateEnv(r.Spec.Env); err != nil {
-		return warnings, err
+	var err error
+	err = validateInstrVolume(r.Spec.ApacheHttpd.VolumeClaimTemplate, r.Spec.ApacheHttpd.VolumeSizeLimit)
+	if err != nil {
+		return warnings, fmt.Errorf("spec.apachehttpd.volumeClaimTemplate and spec.apachehttpd.volumeSizeLimit cannot both be defined: %w", err)
 	}
-	if err := w.validateEnv(r.Spec.Java.Env); err != nil {
-		return warnings, err
+	err = validateInstrVolume(r.Spec.DotNet.VolumeClaimTemplate, r.Spec.DotNet.VolumeSizeLimit)
+	if err != nil {
+		return warnings, fmt.Errorf("spec.dotnet.volumeClaimTemplate and spec.dotnet.volumeSizeLimit cannot both be defined: %w", err)
 	}
-	if err := w.validateEnv(r.Spec.NodeJS.Env); err != nil {
-		return warnings, err
+	err = validateInstrVolume(r.Spec.Go.VolumeClaimTemplate, r.Spec.Go.VolumeSizeLimit)
+	if err != nil {
+		return warnings, fmt.Errorf("spec.go.volumeClaimTemplate and spec.go.volumeSizeLimit cannot both be defined: %w", err)
 	}
-	if err := w.validateEnv(r.Spec.Python.Env); err != nil {
-		return warnings, err
+	err = validateInstrVolume(r.Spec.Java.VolumeClaimTemplate, r.Spec.Java.VolumeSizeLimit)
+	if err != nil {
+		return warnings, fmt.Errorf("spec.java.volumeClaimTemplate and spec.java.volumeSizeLimit cannot both be defined: %w", err)
 	}
-	if err := w.validateEnv(r.Spec.DotNet.Env); err != nil {
-		return warnings, err
+	err = validateInstrVolume(r.Spec.Nginx.VolumeClaimTemplate, r.Spec.Nginx.VolumeSizeLimit)
+	if err != nil {
+		return warnings, fmt.Errorf("spec.nginx.volumeClaimTemplate and spec.nginx.volumeSizeLimit cannot both be defined: %w", err)
 	}
-	if err := w.validateEnv(r.Spec.Go.Env); err != nil {
-		return warnings, err
+	err = validateInstrVolume(r.Spec.NodeJS.VolumeClaimTemplate, r.Spec.NodeJS.VolumeSizeLimit)
+	if err != nil {
+		return warnings, fmt.Errorf("spec.nodejs.volumeClaimTemplate and spec.nodejs.volumeSizeLimit cannot both be defined: %w", err)
 	}
-	if err := w.validateEnv(r.Spec.ApacheHttpd.Env); err != nil {
-		return warnings, err
+	err = validateInstrVolume(r.Spec.Python.VolumeClaimTemplate, r.Spec.Python.VolumeSizeLimit)
+	if err != nil {
+		return warnings, fmt.Errorf("spec.python.volumeClaimTemplate and spec.python.volumeSizeLimit cannot both be defined: %w", err)
 	}
-	if err := w.validateEnv(r.Spec.Nginx.Env); err != nil {
-		return warnings, err
-	}
+
+	warnings = append(warnings, validateExporter(r.Spec.Exporter)...)
+
 	return warnings, nil
 }
 
-func (w InstrumentationWebhook) validateEnv(envs []corev1.EnvVar) error {
-	for _, env := range envs {
-		if !strings.HasPrefix(env.Name, envPrefix) && !strings.HasPrefix(env.Name, envSplunkPrefix) {
-			return fmt.Errorf("env name should start with \"OTEL_\" or \"SPLUNK_\": %s", env.Name)
+func validateExporter(exporter Exporter) []string {
+	var warnings []string
+	if exporter.TLS != nil {
+		tls := exporter.TLS
+		if tls.Key != "" && tls.Cert == "" || tls.Cert != "" && tls.Key == "" {
+			warnings = append(warnings, "both exporter.tls.key and exporter.tls.cert mut be set")
+		}
+
+		if !strings.HasPrefix(exporter.Endpoint, "https://") {
+			warnings = append(warnings, "exporter.tls is configured but exporter.endpoint is not enabling TLS with https://")
 		}
 	}
-	return nil
+	if strings.HasPrefix(exporter.Endpoint, "https://") && exporter.TLS == nil {
+		warnings = append(warnings, "exporter is using https:// but exporter.tls is unset")
+	}
+
+	return warnings
 }
 
 func validateJaegerRemoteSamplerArgument(argument string) error {
@@ -310,6 +319,13 @@ func validateJaegerRemoteSamplerArgument(argument string) error {
 				return fmt.Errorf("initialSamplingRate should be in rage [0..1]: %s", kv[1])
 			}
 		}
+	}
+	return nil
+}
+
+func validateInstrVolume(volumeClaimTemplate corev1.PersistentVolumeClaimTemplate, volumeSizeLimit *resource.Quantity) error {
+	if !reflect.ValueOf(volumeClaimTemplate).IsZero() && volumeSizeLimit != nil {
+		return fmt.Errorf("unable to resolve volume size")
 	}
 	return nil
 }

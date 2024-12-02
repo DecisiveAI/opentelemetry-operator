@@ -19,18 +19,26 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
 // DaemonSet builds the deployment for the given instance.
-func DaemonSet(params manifests.Params) *appsv1.DaemonSet {
+func DaemonSet(params manifests.Params) (*appsv1.DaemonSet, error) {
 	name := naming.Collector(params.OtelCol.Name)
 	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, params.Config.LabelsFilter())
 
-	annotations := Annotations(params.OtelCol)
-	podAnnotations := PodAnnotations(params.OtelCol)
+	annotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
+	if err != nil {
+		return nil, err
+	}
+
+	podAnnotations, err := manifestutils.PodAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
+	if err != nil {
+		return nil, err
+	}
+
 	return &appsv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        naming.Collector(params.OtelCol.Name),
@@ -56,13 +64,14 @@ func DaemonSet(params manifests.Params) *appsv1.DaemonSet {
 					NodeSelector:          params.OtelCol.Spec.NodeSelector,
 					HostNetwork:           params.OtelCol.Spec.HostNetwork,
 					ShareProcessNamespace: &params.OtelCol.Spec.ShareProcessNamespace,
-					DNSPolicy:             getDNSPolicy(params.OtelCol),
+					DNSPolicy:             manifestutils.GetDNSPolicy(params.OtelCol.Spec.HostNetwork, params.OtelCol.Spec.PodDNSConfig),
+					DNSConfig:             &params.OtelCol.Spec.PodDNSConfig,
 					SecurityContext:       params.OtelCol.Spec.PodSecurityContext,
 					PriorityClassName:     params.OtelCol.Spec.PriorityClassName,
 					Affinity:              params.OtelCol.Spec.Affinity,
 				},
 			},
-			UpdateStrategy: params.OtelCol.Spec.UpdateStrategy,
+			UpdateStrategy: params.OtelCol.Spec.DaemonSetUpdateStrategy,
 		},
-	}
+	}, nil
 }

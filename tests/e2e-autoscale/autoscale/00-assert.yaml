@@ -20,7 +20,7 @@ spec:
   scaleTargetRef:
     kind: OpenTelemetryCollector
     name: simplest
-    apiVersion: opentelemetry.io/v1alpha1
+    apiVersion: opentelemetry.io/v1beta1
   minReplicas: 1
   maxReplicas: 2
   metrics:
@@ -57,16 +57,21 @@ spec:
   scaleTargetRef:
     kind: OpenTelemetryCollector
     name: simplest-set-utilization
-    apiVersion: opentelemetry.io/v1alpha1
+    apiVersion: opentelemetry.io/v1beta1
   minReplicas: 1
   maxReplicas: 2
   metrics:
-    - type: Resource
-      resource:
+    - resource:
+        name: memory
+        target:
+          averageUtilization: 99
+          type: Utilization
+      type: Resource
+    - resource:
         name: cpu
         target:
-          type: Utilization
           averageUtilization: 99
+          type: Utilization
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 300

@@ -15,28 +15,46 @@
 package target
 
 import (
-	"fmt"
-	"net/url"
-
 	"github.com/prometheus/common/model"
 )
 
-// LinkJSON This package contains common structs and methods that relate to scrape targets.
-type LinkJSON struct {
-	Link string `json:"_link"`
-}
+// nodeLabels are labels that are used to identify the node on which the given
+// target is residing. To learn more about these labels, please refer to:
+// https://prometheus.io/docs/prometheus/latest/configuration/configuration/#kubernetes_sd_config
+var (
+	nodeLabels = []model.LabelName{
+		"__meta_kubernetes_pod_node_name",
+		"__meta_kubernetes_node_name",
+		"__meta_kubernetes_endpoint_node_name",
+	}
+	endpointSliceTargetKindLabel model.LabelName = "__meta_kubernetes_endpointslice_address_target_kind"
+	endpointSliceTargetNameLabel model.LabelName = "__meta_kubernetes_endpointslice_address_target_name"
+)
 
 type Item struct {
-	JobName       string         `json:"-"`
-	Link          LinkJSON       `json:"-"`
-	TargetURL     []string       `json:"targets"`
-	Labels        model.LabelSet `json:"labels"`
-	CollectorName string         `json:"-"`
+	JobName       string
+	TargetURL     []string
+	Labels        model.LabelSet
+	CollectorName string
 	hash          string
 }
 
 func (t *Item) Hash() string {
 	return t.hash
+}
+
+func (t *Item) GetNodeName() string {
+	for _, label := range nodeLabels {
+		if val, ok := t.Labels[label]; ok {
+			return string(val)
+		}
+	}
+
+	if val := t.Labels[endpointSliceTargetKindLabel]; val != "Node" {
+		return ""
+	}
+
+	return string(t.Labels[endpointSliceTargetNameLabel])
 }
 
 // NewItem Creates a new target item.
@@ -46,7 +64,6 @@ func (t *Item) Hash() string {
 func NewItem(jobName string, targetURL string, label model.LabelSet, collectorName string) *Item {
 	return &Item{
 		JobName:       jobName,
-		Link:          LinkJSON{Link: fmt.Sprintf("/jobs/%s/targets", url.QueryEscape(jobName))},
 		hash:          jobName + targetURL + label.Fingerprint().String(),
 		TargetURL:     []string{targetURL},
 		Labels:        label,

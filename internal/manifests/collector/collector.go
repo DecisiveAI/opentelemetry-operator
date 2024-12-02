@@ -17,9 +17,10 @@ package collector
 import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
-	"github.com/decisiveai/opentelemetry-operator/pkg/featuregate"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/rbac"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/pkg/featuregate"
 )
 
 const (
@@ -29,43 +30,45 @@ const (
 // Build creates the manifest for the collector resource.
 func Build(params manifests.Params) ([]client.Object, error) {
 	var resourceManifests []client.Object
-	var manifestFactories []manifests.K8sManifestFactory
+	var manifestFactories []manifests.K8sManifestFactory[manifests.Params]
 	switch params.OtelCol.Spec.Mode {
-	case v1alpha1.ModeDeployment:
-		manifestFactories = append(manifestFactories, manifests.FactoryWithoutError(Deployment))
-		manifestFactories = append(manifestFactories, manifests.FactoryWithoutError(PodDisruptionBudget))
-	case v1alpha1.ModeStatefulSet:
-		manifestFactories = append(manifestFactories, manifests.FactoryWithoutError(StatefulSet))
-		manifestFactories = append(manifestFactories, manifests.FactoryWithoutError(PodDisruptionBudget))
-	case v1alpha1.ModeDaemonSet:
-		manifestFactories = append(manifestFactories, manifests.FactoryWithoutError(DaemonSet))
-	case v1alpha1.ModeSidecar:
+	case v1beta1.ModeDeployment:
+		manifestFactories = append(manifestFactories, manifests.Factory(Deployment))
+		manifestFactories = append(manifestFactories, manifests.Factory(PodDisruptionBudget))
+	case v1beta1.ModeStatefulSet:
+		manifestFactories = append(manifestFactories, manifests.Factory(StatefulSet))
+		manifestFactories = append(manifestFactories, manifests.Factory(PodDisruptionBudget))
+	case v1beta1.ModeDaemonSet:
+		manifestFactories = append(manifestFactories, manifests.Factory(DaemonSet))
+	case v1beta1.ModeSidecar:
 		params.Log.V(5).Info("not building sidecar...")
 	}
-	manifestFactories = append(manifestFactories, []manifests.K8sManifestFactory{
+	manifestFactories = append(manifestFactories, []manifests.K8sManifestFactory[manifests.Params]{
 		manifests.Factory(ConfigMap),
-		manifests.FactoryWithoutError(HorizontalPodAutoscaler),
-		manifests.FactoryWithoutError(ServiceAccount),
+		manifests.Factory(HorizontalPodAutoscaler),
+		manifests.Factory(ServiceAccount),
 		manifests.Factory(Service),
 		manifests.Factory(HeadlessService),
 		manifests.Factory(MonitoringService),
-		// mydecisive
-		manifests.Factory(ServiceBehindIngress),
 		manifests.Factory(Ingress),
 	}...)
 
+	if featuregate.CollectorUsesTargetAllocatorCR.IsEnabled() {
+		manifestFactories = append(manifestFactories, manifests.Factory(TargetAllocator))
+	}
+
 	if params.OtelCol.Spec.Observability.Metrics.EnableMetrics && featuregate.PrometheusOperatorIsAvailable.IsEnabled() {
-		if params.OtelCol.Spec.Mode == v1alpha1.ModeSidecar {
+		if params.OtelCol.Spec.Mode == v1beta1.ModeSidecar {
 			manifestFactories = append(manifestFactories, manifests.Factory(PodMonitor))
 		} else {
-			manifestFactories = append(manifestFactories, manifests.Factory(ServiceMonitor))
+			manifestFactories = append(manifestFactories, manifests.Factory(ServiceMonitor), manifests.Factory(ServiceMonitorMonitoring))
 		}
 	}
 
-	if params.Config.CreateRBACPermissions() {
+	if params.Config.CreateRBACPermissions() == rbac.Available {
 		manifestFactories = append(manifestFactories,
-			manifests.FactoryWithoutError(ClusterRole),
-			manifests.FactoryWithoutError(ClusterRoleBinding),
+			manifests.Factory(ClusterRole),
+			manifests.Factory(ClusterRoleBinding),
 		)
 	}
 

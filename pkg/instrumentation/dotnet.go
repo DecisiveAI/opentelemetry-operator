@@ -20,7 +20,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1alpha1"
 )
 
 const (
@@ -51,6 +51,8 @@ const (
 )
 
 func injectDotNetSDK(dotNetSpec v1alpha1.DotNet, pod corev1.Pod, index int, runtime string) (corev1.Pod, error) {
+
+	volume := instrVolume(dotNetSpec.VolumeClaimTemplate, dotnetVolumeName, dotNetSpec.VolumeSizeLimit)
 
 	// caller checks if there is at least one container.
 	container := &pod.Spec.Containers[index]
@@ -110,27 +112,20 @@ func injectDotNetSDK(dotNetSpec v1alpha1.DotNet, pod corev1.Pod, index int, runt
 	setDotNetEnvVar(container, envDotNetSharedStore, dotNetSharedStorePath, concatEnvValues)
 
 	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
-		Name:      dotnetVolumeName,
+		Name:      volume.Name,
 		MountPath: dotnetInstrMountPath,
 	})
 
 	// We just inject Volumes and init containers for the first processed container.
 	if isInitContainerMissing(pod, dotnetInitContainerName) {
-		pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
-			Name: dotnetVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-					SizeLimit: volumeSize(dotNetSpec.VolumeSizeLimit),
-				},
-			}})
-
+		pod.Spec.Volumes = append(pod.Spec.Volumes, volume)
 		pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
 			Name:      dotnetInitContainerName,
 			Image:     dotNetSpec.Image,
-			Command:   []string{"cp", "-a", "/autoinstrumentation/.", dotnetInstrMountPath},
+			Command:   []string{"cp", "-r", "/autoinstrumentation/.", dotnetInstrMountPath},
 			Resources: dotNetSpec.Resources,
 			VolumeMounts: []corev1.VolumeMount{{
-				Name:      dotnetVolumeName,
+				Name:      volume.Name,
 				MountPath: dotnetInstrMountPath,
 			}},
 		})

@@ -1,25 +1,25 @@
 #https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/exporter/prometheusexporter/README.md
 
-apiVersion: opentelemetry.io/v1alpha1
+apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
   name: cluster-collector
-  namespace: kuttl-otlp-metrics
+  namespace: chainsaw-otlp-metrics
 spec:
   mode: deployment
   observability:
     metrics:
       enableMetrics: true
-  config: |
+  config:
     receivers:
       otlp:
         protocols:
-          grpc:
-          http:
-    processors:
+          grpc: {}
+          http:  {}
+    processors: {}
     exporters:
       otlp:
-        endpoint: jaeger-allinone-collector-headless.kuttl-otlp-metrics.svc:4317
+        endpoint: jaeger-allinone-collector-headless.chainsaw-otlp-metrics.svc:4317
         tls:
           insecure: true
       prometheus:
@@ -30,9 +30,7 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: []
           exporters: [otlp]
         metrics:
           receivers: [otlp]
-          processors: []
           exporters: [prometheus]

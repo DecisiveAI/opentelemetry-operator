@@ -1,6 +1,5 @@
 exporters:
-debug:
-processors:
+  debug:
 receivers:
   prometheus:
     config:
@@ -48,4 +47,3 @@ service:
       - debug
       receivers:
       - prometheus
-      processors: []

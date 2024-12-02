@@ -15,43 +15,33 @@
 package collector
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/go-logr/logr"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/decisiveai/opentelemetry-operator/apis/v1alpha1"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
-	"github.com/decisiveai/opentelemetry-operator/internal/manifests/collector/adapters"
-	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
+	"github.com/open-telemetry/opentelemetry-operator/internal/autodetect/prometheus"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests"
+	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
+	"github.com/open-telemetry/opentelemetry-operator/internal/naming"
 )
 
-// ServiceMonitor returns the service monitor for the given instance.
+// PodMonitor returns the pod monitor for the given instance.
 func PodMonitor(params manifests.Params) (*monitoringv1.PodMonitor, error) {
-	if !params.OtelCol.Spec.Observability.Metrics.EnableMetrics {
-		params.Log.V(2).Info("Metrics disabled for this OTEL Collector",
-			"params.OtelCol.name", params.OtelCol.Name,
-			"params.OtelCol.namespace", params.OtelCol.Namespace,
-		)
-		return nil, nil
-	}
-	var pm monitoringv1.PodMonitor
-
-	if params.OtelCol.Spec.Mode != v1alpha1.ModeSidecar {
+	if !shouldCreatePodMonitor(params) {
 		return nil, nil
 	}
 
-	pm = monitoringv1.PodMonitor{
+	name := naming.PodMonitor(params.OtelCol.Name)
+	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, nil)
+	selectorLabels := manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector)
+	pm := monitoringv1.PodMonitor{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: params.OtelCol.Namespace,
-			Name:      naming.PodMonitor(params.OtelCol.Name),
-			Labels: map[string]string{
-				"app.kubernetes.io/name":       naming.PodMonitor(params.OtelCol.Name),
-				"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", params.OtelCol.Namespace, params.OtelCol.Name),
-				"app.kubernetes.io/managed-by": "opentelemetry-operator",
-			},
+			Name:      name,
+			Labels:    labels,
 		},
 		Spec: monitoringv1.PodMonitorSpec{
 			JobLabel:        "app.kubernetes.io/instance",
@@ -60,10 +50,7 @@ func PodMonitor(params manifests.Params) (*monitoringv1.PodMonitor, error) {
 				MatchNames: []string{params.OtelCol.Namespace},
 			},
 			Selector: metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"app.kubernetes.io/managed-by": "opentelemetry-operator",
-					"app.kubernetes.io/instance":   fmt.Sprintf("%s.%s", params.OtelCol.Namespace, params.OtelCol.Name),
-				},
+				MatchLabels: selectorLabels,
 			},
 			PodMetricsEndpoints: append(
 				[]monitoringv1.PodMetricsEndpoint{
@@ -77,13 +64,8 @@ func PodMonitor(params manifests.Params) (*monitoringv1.PodMonitor, error) {
 	return &pm, nil
 }
 
-func metricsEndpointsFromConfig(logger logr.Logger, otelcol v1alpha1.OpenTelemetryCollector) []monitoringv1.PodMetricsEndpoint {
-	config, err := adapters.ConfigFromString(otelcol.Spec.Config)
-	if err != nil {
-		logger.V(2).Error(err, "Error while parsing the configuration")
-		return []monitoringv1.PodMetricsEndpoint{}
-	}
-	exporterPorts, err := adapters.ConfigToComponentPorts(logger, adapters.ComponentTypeExporter, config)
+func metricsEndpointsFromConfig(logger logr.Logger, otelcol v1beta1.OpenTelemetryCollector) []monitoringv1.PodMetricsEndpoint {
+	exporterPorts, err := otelcol.Spec.Config.GetExporterPorts(logger)
 	if err != nil {
 		logger.Error(err, "couldn't build endpoints to podMonitors from configuration")
 		return []monitoringv1.PodMetricsEndpoint{}
@@ -98,4 +80,23 @@ func metricsEndpointsFromConfig(logger logr.Logger, otelcol v1alpha1.OpenTelemet
 		}
 	}
 	return metricsEndpoints
+}
+
+func shouldCreatePodMonitor(params manifests.Params) bool {
+	l := params.Log.WithValues(
+		"params.OtelCol.name", params.OtelCol.Name,
+		"params.OtelCol.namespace", params.OtelCol.Namespace,
+	)
+
+	if !params.OtelCol.Spec.Observability.Metrics.EnableMetrics {
+		l.V(2).Info("Metrics disabled for this OTEL Collector. PodMonitor will not ve created")
+		return false
+	} else if params.Config.PrometheusCRAvailability() == prometheus.NotAvailable {
+		l.V(2).Info("Cannot enable PodMonitor when prometheus CRDs are unavailable")
+		return false
+	} else if params.OtelCol.Spec.Mode != v1beta1.ModeSidecar {
+		l.V(2).Info("Not using sidecar mode. PodMonitor will not be created")
+		return false
+	}
+	return true
 }

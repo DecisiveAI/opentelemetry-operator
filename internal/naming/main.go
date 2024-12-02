@@ -16,13 +16,14 @@
 package naming
 
 // ConfigMap builds the name for the config map used in the OpenTelemetryCollector containers.
-func ConfigMap(otelcol string) string {
-	return DNSName(Truncate("%s-collector", 63, otelcol))
+// The configHash should be calculated using manifestutils.GetConfigMapSHA.
+func ConfigMap(otelcol, configHash string) string {
+	return DNSName(Truncate("%s-collector-%s", 63, otelcol, configHash[:8]))
 }
 
 // TAConfigMap returns the name for the config map used in the TargetAllocator.
-func TAConfigMap(otelcol string) string {
-	return DNSName(Truncate("%s-targetallocator", 63, otelcol))
+func TAConfigMap(targetAllocator string) string {
+	return DNSName(Truncate("%s-targetallocator", 63, targetAllocator))
 }
 
 // OpAMPBridgeConfigMap builds the name for the config map used in the OpAMPBridge containers.
@@ -110,12 +111,6 @@ func HeadlessService(otelcol string) string {
 	return DNSName(Truncate("%s-headless", 63, Service(otelcol)))
 }
 
-// mydecisive.
-// BehindIngressService builds the name for the monitoring service based on the instance.
-func BehindIngressService(otelcol string) string {
-	return DNSName(Truncate("%s-behind-ingress", 63, Service(otelcol)))
-}
-
 // MonitoringService builds the name for the monitoring service based on the instance.
 func MonitoringService(otelcol string) string {
 	return DNSName(Truncate("%s-monitoring", 63, Service(otelcol)))
@@ -142,13 +137,13 @@ func ClusterRole(otelcol string, namespace string) string {
 }
 
 // ClusterRoleBinding builds the cluster role binding name based on the instance.
-func ClusterRoleBinding(otelcol string) string {
-	return DNSName(Truncate("%s-collector", 63, otelcol))
+func ClusterRoleBinding(otelcol, namespace string) string {
+	return DNSName(Truncate("%s-%s-collector", 63, otelcol, namespace))
 }
 
 // TAService returns the name to use for the TargetAllocator service.
-func TAService(otelcol string) string {
-	return DNSName(Truncate("%s-targetallocator", 63, otelcol))
+func TAService(taName string) string {
+	return DNSName(Truncate("%s-targetallocator", 63, taName))
 }
 
 // OpAMPBridgeService returns the name to use for the OpAMPBridge service.
@@ -184,4 +179,39 @@ func TargetAllocatorServiceMonitor(otelcol string) string {
 // OpAMPBridgeServiceAccount builds the service account name based on the instance.
 func OpAMPBridgeServiceAccount(opampBridge string) string {
 	return DNSName(Truncate("%s-opamp-bridge", 63, opampBridge))
+}
+
+// SelfSignedIssuer returns the SelfSigned Issuer name based on the instance.
+func SelfSignedIssuer(otelcol string) string {
+	return DNSName(Truncate("%s-self-signed-issuer", 63, otelcol))
+}
+
+// CAIssuer returns the CA Issuer name based on the instance.
+func CAIssuer(otelcol string) string {
+	return DNSName(Truncate("%s-ca-issuer", 63, otelcol))
+}
+
+// CACertificateSecret returns the Secret name based on the instance.
+func CACertificate(otelcol string) string {
+	return DNSName(Truncate("%s-ca-cert", 63, otelcol))
+}
+
+// TAServerCertificate returns the Certificate name based on the instance.
+func TAServerCertificate(otelcol string) string {
+	return DNSName(Truncate("%s-ta-server-cert", 63, otelcol))
+}
+
+// TAServerCertificateSecretName returns the Secret name based on the instance.
+func TAServerCertificateSecretName(otelcol string) string {
+	return DNSName(Truncate("%s-ta-server-cert", 63, otelcol))
+}
+
+// TAClientCertificate returns the Certificate name based on the instance.
+func TAClientCertificate(otelcol string) string {
+	return DNSName(Truncate("%s-ta-client-cert", 63, otelcol))
+}
+
+// TAClientCertificateSecretName returns the Secret name based on the instance.
+func TAClientCertificateSecretName(otelcol string) string {
+	return DNSName(Truncate("%s-ta-client-cert", 63, otelcol))
 }

@@ -82,14 +82,6 @@ type Ingress struct {
 	// type "route" is used.
 	// +optional
 	Route OpenShiftRoute `json:"route,omitempty"`
-
-	// mydecisive,
-	// CollectorEndpoints should contain dns names for all collectors endpoints (grpc receivers)
-	// mapped to receivers names e.g. :
-	// otlp/1: otlp1.grpc.some.domain
-	// otlp/2: otlp2.grpc.some.domain
-	// +optional
-	CollectorEndpoints map[string]string `json:"collectorEndpoints,omitempty"`
 }
 
 // OpenShiftRoute defines openshift route specific settings.
@@ -182,7 +174,7 @@ type OpenTelemetryCollectorSpec struct {
 	// ImagePullPolicy indicates the pull policy to be used for retrieving the container image (Always, Never, IfNotPresent)
 	// +optional
 	ImagePullPolicy v1.PullPolicy `json:"imagePullPolicy,omitempty"`
-	// Config is the raw JSON to be used as the collector's configuration. Refer to the OpenTelemetry Collector documentation for details.
+	// Config is the raw YAML to be used as the collector's configuration. Refer to the OpenTelemetry Collector documentation for details.
 	// +required
 	Config string `json:"config,omitempty"`
 	// VolumeMounts represents the mount points to use in the underlying collector deployment(s)
@@ -194,7 +186,7 @@ type OpenTelemetryCollectorSpec struct {
 	// used to open additional ports that can't be inferred by the operator, like for custom receivers.
 	// +optional
 	// +listType=atomic
-	Ports []v1.ServicePort `json:"ports,omitempty"`
+	Ports []PortsSpec `json:"ports,omitempty"`
 	// ENV vars to set on the OpenTelemetry Collector's Pods. These can then in certain cases be
 	// consumed in the config file for the Collector.
 	// +optional
@@ -299,6 +291,16 @@ type OpenTelemetryCollectorSpec struct {
 	DeploymentUpdateStrategy appsv1.DeploymentStrategy `json:"deploymentUpdateStrategy,omitempty"`
 }
 
+// PortsSpec defines the OpenTelemetryCollector's container/service ports additional specifications.
+type PortsSpec struct {
+	// Allows defining which port to bind to the host in the Container.
+	// +optional
+	HostPort int32 `json:"hostPort,omitempty"`
+
+	// Maintain previous fields in new struct
+	v1.ServicePort `json:",inline"`
+}
+
 // OpenTelemetryTargetAllocator defines the configurations for the Prometheus target allocator.
 type OpenTelemetryTargetAllocator struct {
 	// Replicas is the number of pod instances for the underlying TargetAllocator. This should only be set to a value
@@ -313,7 +315,9 @@ type OpenTelemetryTargetAllocator struct {
 	// +optional
 	Resources v1.ResourceRequirements `json:"resources,omitempty"`
 	// AllocationStrategy determines which strategy the target allocator should use for allocation.
-	// The current options are least-weighted and consistent-hashing. The default option is consistent-hashing
+	// The current options are least-weighted, consistent-hashing and per-node. The default is
+	// consistent-hashing.
+	// WARNING: The per-node strategy currently ignores targets without a Node, like control plane components.
 	// +optional
 	// +kubebuilder:default:=consistent-hashing
 	AllocationStrategy OpenTelemetryTargetAllocatorAllocationStrategy `json:"allocationStrategy,omitempty"`
@@ -445,8 +449,8 @@ type OpenTelemetryCollectorStatus struct {
 	Replicas int32 `json:"replicas,omitempty"`
 }
 
+// +kubebuilder:deprecatedversion:warning="OpenTelemetryCollector v1alpha1 is deprecated. Migrate to v1beta1."
 // +kubebuilder:object:root=true
-// +kubebuilder:storageversion
 // +kubebuilder:resource:shortName=otelcol;otelcols
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.scale.replicas,selectorpath=.status.scale.selector
@@ -459,7 +463,7 @@ type OpenTelemetryCollectorStatus struct {
 // +operator-sdk:csv:customresourcedefinitions:displayName="OpenTelemetry Collector"
 // This annotation provides a hint for OLM which resources are managed by OpenTelemetryCollector kind.
 // It's not mandatory to list all resources.
-// +operator-sdk:csv:customresourcedefinitions:resources={{Pod,v1},{Deployment,apps/v1},{DaemonSets,apps/v1},{StatefulSets,apps/v1},{ConfigMaps,v1},{Service,v1}}
+// +operator-sdk:csv:customresourcedefinitions:resources={{Pod,v1},{Deployment,apps/v1},{DaemonSets,apps/v1},{StatefulSets,apps/v1},{ConfigMaps,v1},{Service,v1},{Ingress,networking/v1}}
 
 // OpenTelemetryCollector is the Schema for the opentelemetrycollectors API.
 type OpenTelemetryCollector struct {

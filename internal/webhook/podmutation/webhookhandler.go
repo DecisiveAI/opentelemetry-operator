@@ -26,14 +26,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	"github.com/decisiveai/opentelemetry-operator/internal/config"
+	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
 
-// +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod.kb.io,sideEffects=none,admissionReviewVersions=v1
-// +kubebuilder:rbac:groups="",resources=namespaces,verbs=list;watch
+// +kubebuilder:webhook:path=/mutate-v1-pod,mutating=true,failurePolicy=ignore,groups="",resources=pods,verbs=create,versions=v1,name=mpod.kb.io,sideEffects=none,admissionReviewVersions=v1
+// +kubebuilder:rbac:groups="",resources=namespaces;secrets,verbs=get;list;watch
 // +kubebuilder:rbac:groups=opentelemetry.io,resources=opentelemetrycollectors,verbs=get;list;watch
 // +kubebuilder:rbac:groups=opentelemetry.io,resources=instrumentations,verbs=get;list;watch
 // +kubebuilder:rbac:groups="apps",resources=replicasets,verbs=get;list;watch
+// +kubebuilder:rbac:groups="batch",resources=jobs,verbs=get;list;watch
 
 var _ WebhookHandler = (*podMutationWebhook)(nil)
 
@@ -45,7 +46,7 @@ type WebhookHandler interface {
 // the implementation.
 type podMutationWebhook struct {
 	client      client.Client
-	decoder     *admission.Decoder
+	decoder     admission.Decoder
 	logger      logr.Logger
 	podMutators []PodMutator
 	config      config.Config
@@ -57,7 +58,7 @@ type PodMutator interface {
 }
 
 // NewWebhookHandler creates a new WebhookHandler.
-func NewWebhookHandler(cfg config.Config, logger logr.Logger, decoder *admission.Decoder, cl client.Client, podMutators []PodMutator) WebhookHandler {
+func NewWebhookHandler(cfg config.Config, logger logr.Logger, decoder admission.Decoder, cl client.Client, podMutators []PodMutator) WebhookHandler {
 	return &podMutationWebhook{
 		config:      cfg,
 		decoder:     decoder,
