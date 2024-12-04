@@ -1452,6 +1452,10 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  collectorEndpoints:
+                    additionalProperties:
+                      type: string
+                    type: object
                   hostname:
                     type: string
                   ingressClassName:
@@ -1487,6 +1491,7 @@ spec:
                     enum:
                     - ingress
                     - route
+                    - aws
                     type: string
                 type: object
               initContainers:
@@ -6054,6 +6059,10 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  collectorEndpoints:
+                    additionalProperties:
+                      type: string
+                    type: object
                   hostname:
                     type: string
                   ingressClassName:
@@ -6089,6 +6098,7 @@ spec:
                     enum:
                     - ingress
                     - route
+                    - aws
                     type: string
                 type: object
               initContainers:
