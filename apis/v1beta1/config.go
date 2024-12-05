@@ -536,3 +536,39 @@ func addPrefix(prefix string, arr []string) []string {
 	}
 	return prefixed
 }
+
+// mydecisive
+func (c *Config) GetReceiverPortsWithUrlPaths(logger logr.Logger) (components.ComponentsPortsUrlPaths, error) {
+	return c.getPortsWithUrlPathsForComponentKinds(logger, KindReceiver)
+}
+
+// mydecisive
+func (c *Config) getPortsWithUrlPathsForComponentKinds(logger logr.Logger, componentKinds ...ComponentKind) (components.ComponentsPortsUrlPaths, error) {
+	componentsPortsUrlPaths := components.ComponentsPortsUrlPaths{}
+	enabledComponents := c.GetEnabledComponents()
+	for _, componentKind := range componentKinds {
+		var retriever components.ParserRetriever
+		var cfg AnyConfig
+		switch componentKind {
+		case KindReceiver:
+			retriever = receivers.ReceiverFor
+			cfg = c.Receivers
+		case KindExporter:
+			retriever = exporters.ParserFor
+			cfg = c.Exporters
+		case KindProcessor:
+			break
+		}
+		for componentName := range enabledComponents[componentKind] {
+			// TODO: Clean up the naming here and make it simpler to use a retriever.
+			parser := retriever(componentName)
+			if parsedPorts, err := parser.PortsWithUrlPaths(logger, componentName, cfg.Object[componentName]); err != nil {
+				return nil, err
+			} else {
+				componentsPortsUrlPaths[componentName] = parsedPorts
+			}
+		}
+	}
+
+	return componentsPortsUrlPaths, nil
+}

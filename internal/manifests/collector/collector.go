@@ -51,6 +51,9 @@ func Build(params manifests.Params) ([]client.Object, error) {
 		manifests.Factory(HeadlessService),
 		manifests.Factory(MonitoringService),
 		manifests.Factory(Ingress),
+		// mydecisive
+		manifests.Factory(GrpcService),
+		manifests.Factory(NonGrpcService),
 	}...)
 
 	if featuregate.CollectorUsesTargetAllocatorCR.IsEnabled() {
