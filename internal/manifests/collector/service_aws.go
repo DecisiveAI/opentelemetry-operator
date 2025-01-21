@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"maps"
+
 	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
 	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
 	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
@@ -87,10 +89,17 @@ func NonGrpcService(params manifests.Params) (*corev1.Service, error) {
 	name := naming.NonGrpcService(params.OtelCol.Name)
 	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
 
-	annotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
+	metaAnnotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
 	if err != nil {
 		return nil, err
 	}
+
+	annotations, err := manifestutils.LbServiceAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
+	if err != nil {
+		return nil, err
+	}
+
+	maps.Copy(metaAnnotations, annotations)
 
 	ports, err := params.OtelCol.Spec.Config.GetAllPorts(params.Log)
 	if err != nil {

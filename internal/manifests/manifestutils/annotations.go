@@ -38,6 +38,22 @@ func Annotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []st
 	return annotations, nil
 }
 
+// LbServiceAnnotations return the LbServiceAnnotations for OpenTelemetryCollector resources.
+func LbServiceAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
+	// new map every time, so that we don't touch the instance's annotations
+	annotations := map[string]string{}
+
+	if nil != instance.Spec.Ingress.LbServiceAnnotations {
+		for k, v := range instance.Spec.Ingress.LbServiceAnnotations {
+			if !IsFilteredSet(k, filterAnnotations) {
+				annotations[k] = v
+			}
+		}
+	}
+
+	return annotations, nil
+}
+
 // PodAnnotations return the spec annotations for OpenTelemetryCollector pod.
 func PodAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
 	// new map every time, so that we don't touch the instance's annotations

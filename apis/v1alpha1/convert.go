@@ -120,12 +120,14 @@ func tov1beta1(in OpenTelemetryCollector) (v1beta1.OpenTelemetryCollector, error
 			UpgradeStrategy: v1beta1.UpgradeStrategy(copy.Spec.UpgradeStrategy),
 			Config:          *cfg,
 			Ingress: v1beta1.Ingress{
-				Type:             v1beta1.IngressType(copy.Spec.Ingress.Type),
-				RuleType:         v1beta1.IngressRuleType(copy.Spec.Ingress.RuleType),
-				Hostname:         copy.Spec.Ingress.Hostname,
-				Annotations:      copy.Spec.Ingress.Annotations,
-				TLS:              copy.Spec.Ingress.TLS,
-				IngressClassName: copy.Spec.Ingress.IngressClassName,
+				Type:        v1beta1.IngressType(copy.Spec.Ingress.Type),
+				RuleType:    v1beta1.IngressRuleType(copy.Spec.Ingress.RuleType),
+				Hostname:    copy.Spec.Ingress.Hostname,
+				Annotations: copy.Spec.Ingress.Annotations,
+				// mydecisive
+				LbServiceAnnotations: copy.Spec.Ingress.LbServiceAnnotations,
+				TLS:                  copy.Spec.Ingress.TLS,
+				IngressClassName:     copy.Spec.Ingress.IngressClassName,
 				Route: v1beta1.OpenShiftRoute{
 					Termination: v1beta1.TLSRouteTerminationType(copy.Spec.Ingress.Route.Termination),
 				},
@@ -339,10 +341,13 @@ func tov1alpha1(in v1beta1.OpenTelemetryCollector) (*OpenTelemetryCollector, err
 			Tolerations:          copy.Spec.Tolerations,
 			Volumes:              copy.Spec.Volumes,
 			Ingress: Ingress{
-				Type:             IngressType(copy.Spec.Ingress.Type),
-				RuleType:         IngressRuleType(copy.Spec.Ingress.RuleType),
-				Hostname:         copy.Spec.Ingress.Hostname,
-				Annotations:      copy.Spec.Ingress.Annotations,
+				Type:        IngressType(copy.Spec.Ingress.Type),
+				RuleType:    IngressRuleType(copy.Spec.Ingress.RuleType),
+				Hostname:    copy.Spec.Ingress.Hostname,
+				Annotations: copy.Spec.Ingress.Annotations,
+				// mydecisive
+				LbServiceAnnotations: copy.Spec.Ingress.LbServiceAnnotations,
+
 				TLS:              copy.Spec.Ingress.TLS,
 				IngressClassName: copy.Spec.Ingress.IngressClassName,
 				Route: OpenShiftRoute{

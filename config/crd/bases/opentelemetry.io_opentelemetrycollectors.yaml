@@ -1460,6 +1460,10 @@ spec:
                     type: string
                   ingressClassName:
                     type: string
+                  lbServiceAnnotations:
+                    additionalProperties:
+                      type: string
+                    type: object
                   route:
                     properties:
                       termination:
@@ -6067,6 +6071,10 @@ spec:
                     type: string
                   ingressClassName:
                     type: string
+                  lbServiceAnnotations:
+                    additionalProperties:
+                      type: string
+                    type: object
                   route:
                     properties:
                       termination:
