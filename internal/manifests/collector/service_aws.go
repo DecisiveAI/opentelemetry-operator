@@ -99,7 +99,10 @@ func NonGrpcService(params manifests.Params) (*corev1.Service, error) {
 		return nil, err
 	}
 
+	// to merge 2 maps
 	maps.Copy(metaAnnotations, annotations)
+	// to get common keys values from ingress.lbServiceAnnotations
+	maps.Copy(annotations, metaAnnotations)
 
 	ports, err := params.OtelCol.Spec.Config.GetAllPorts(params.Log)
 	if err != nil {
