@@ -43,11 +43,9 @@ func LbServiceAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotat
 	// new map every time, so that we don't touch the instance's annotations
 	annotations := map[string]string{}
 
-	if nil != instance.Spec.Ingress.LbServiceAnnotations {
-		for k, v := range instance.Spec.Ingress.LbServiceAnnotations {
-			if !IsFilteredSet(k, filterAnnotations) {
-				annotations[k] = v
-			}
+	for k, v := range instance.Spec.Ingress.LbServiceAnnotations {
+		if !IsFilteredSet(k, filterAnnotations) {
+			annotations[k] = v
 		}
 	}
 
