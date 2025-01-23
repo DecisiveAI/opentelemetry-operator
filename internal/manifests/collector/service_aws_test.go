@@ -110,7 +110,7 @@ func TestDesiredServiceAws(t *testing.T) {
 	})
 
 }
-func TesAnnotationsForNonGrpcService(t *testing.T) {
+func TestAnnotationsForNonGrpcService(t *testing.T) {
 
 	grpc := "grpc"
 
