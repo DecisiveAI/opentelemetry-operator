@@ -21,6 +21,7 @@ import (
 	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -106,6 +107,59 @@ func TestDesiredServiceAws(t *testing.T) {
 		sort.Slice(desiredPorts, func(i, j int) bool { return desiredPorts[i].Name < desiredPorts[j].Name })
 		sort.Slice(actualPorts, func(i, j int) bool { return actualPorts[i].Name < actualPorts[j].Name })
 		assert.Equal(t, desiredPorts, actualPorts)
+	})
+
+}
+func TestAnnotationsForNonGrpcService(t *testing.T) {
+
+	grpc := "grpc"
+
+	t.Run("create non-gRPC Service", func(t *testing.T) {
+		params, err := newParams("something:tag", testFileServiceAws)
+		if err != nil {
+			t.Fatal(err)
+		}
+		params.OtelCol.Spec.Ingress.Type = v1beta1.IngressTypeAws
+		params.OtelCol.Spec.Ports = []v1beta1.PortsSpec{}
+		params.OtelCol.Annotations = map[string]string{
+			"annotation_common": "value_from_meta",
+			"meta.annotation":   "meta_value_2",
+		}
+		params.OtelCol.Spec.Ingress.LbServiceAnnotations = map[string]string{
+			"annotation_common":  "value_from_service",
+			"service.annotation": "value_from_service_2",
+		}
+		trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
+
+		desiredNonGrpcService := corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					"meta.annotation":    "meta_value_2",
+					"annotation_common":  "value_from_service",
+					"service.annotation": "value_from_service_2",
+				},
+			},
+			Spec: corev1.ServiceSpec{
+				Type:                  corev1.ServiceTypeLoadBalancer,
+				InternalTrafficPolicy: &trafficPolicy,
+				Ports: []corev1.ServicePort{
+					{
+						Name:        "otlp-1-http",
+						Port:        4318,
+						TargetPort:  intstr.FromInt32(4318),
+						Protocol:    "",
+						AppProtocol: &grpc,
+					},
+				},
+			},
+		}
+
+		actualNonGrpcService, err := NonGrpcService(params)
+		assert.NoError(t, err)
+
+		desiredAnnotations := desiredNonGrpcService.Annotations
+		actualAnnotations := actualNonGrpcService.Annotations
+		assert.Equal(t, desiredAnnotations, actualAnnotations)
 	})
 
 }

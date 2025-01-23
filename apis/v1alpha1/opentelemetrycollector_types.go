@@ -68,6 +68,10 @@ type Ingress struct {
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 
+	// LbServiceAnnotations to add to Service of LoadBalancer type for AWS LB controller managementVV.
+	// +optional
+	LbServiceAnnotations map[string]string `json:"lbServiceAnnotations,omitempty"`
+
 	// TLS configuration.
 	// +optional
 	TLS []networkingv1.IngressTLS `json:"tls,omitempty"`
