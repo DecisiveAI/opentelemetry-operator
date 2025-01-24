@@ -89,17 +89,17 @@ func NonGrpcService(params manifests.Params) (*corev1.Service, error) {
 	name := naming.NonGrpcService(params.OtelCol.Name)
 	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, []string{})
 
-	metaAnnotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
+	annotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
 	if err != nil {
 		return nil, err
 	}
 
-	annotations, err := manifestutils.LbServiceAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
+	ingressAnnotations, err := manifestutils.LbServiceAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
 	if err != nil {
 		return nil, err
 	}
 
-	maps.Copy(metaAnnotations, annotations)
+	maps.Copy(annotations, ingressAnnotations)
 
 	ports, err := params.OtelCol.Spec.Config.GetAllPorts(params.Log)
 	if err != nil {
