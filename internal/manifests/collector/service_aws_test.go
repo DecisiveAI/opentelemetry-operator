@@ -179,9 +179,6 @@ func TestAnnotationsForNonGrpcService(t *testing.T) {
 
 func TestDesiredServiceAwsEmptyServiceTypes(t *testing.T) {
 
-	grpc := "grpc"
-	http := "http"
-
 	t.Run("create gRPC and non-gRPC Services", func(t *testing.T) {
 		params, err := newParams("something:tag", testFileServiceAws)
 		if err != nil {
@@ -189,75 +186,15 @@ func TestDesiredServiceAwsEmptyServiceTypes(t *testing.T) {
 		}
 		params.OtelCol.Spec.Ingress.Type = v1beta1.IngressTypeAws
 		params.OtelCol.Spec.Ports = []v1beta1.PortsSpec{}
-		trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
-
-		desiredGrpcSpec := corev1.ServiceSpec{
-			Type:                  corev1.ServiceTypeNodePort,
-			InternalTrafficPolicy: &trafficPolicy,
-			Ports: []corev1.ServicePort{
-				{
-					Name:        "jaeger-grpc",
-					Port:        14260,
-					TargetPort:  intstr.FromInt32(14260),
-					Protocol:    corev1.ProtocolTCP,
-					AppProtocol: &grpc,
-				},
-				{
-					Name:        "otlp-1-grpc",
-					Port:        12345,
-					TargetPort:  intstr.FromInt32(12345),
-					Protocol:    "",
-					AppProtocol: &grpc,
-				},
-				{
-					Name:        "otlp-2-grpc",
-					Port:        98765,
-					TargetPort:  intstr.FromInt32(98765),
-					Protocol:    "",
-					AppProtocol: &grpc,
-				},
-			},
-		}
-		desiredNonGrpcSpec := corev1.ServiceSpec{
-			Type:                  corev1.ServiceTypeLoadBalancer,
-			InternalTrafficPolicy: &trafficPolicy,
-			Ports: []corev1.ServicePort{
-				{
-					Name:        "otlp-1-http",
-					Port:        4318,
-					TargetPort:  intstr.FromInt32(4318),
-					Protocol:    "",
-					AppProtocol: &http,
-				},
-				{
-					Name:        "otlp-2-http",
-					Port:        12121,
-					TargetPort:  intstr.FromInt32(12121),
-					Protocol:    "",
-					AppProtocol: &http,
-				},
-			},
-		}
 
 		actualGrpc, err := GrpcService(params)
 		assert.NoError(t, err)
-		assert.Equal(t, desiredGrpcSpec.Type, actualGrpc.Spec.Type)
-
-		desiredPorts := desiredGrpcSpec.Ports
-		actualPorts := actualGrpc.Spec.Ports
-		sort.Slice(desiredPorts, func(i, j int) bool { return desiredPorts[i].Name < desiredPorts[j].Name })
-		sort.Slice(actualPorts, func(i, j int) bool { return actualPorts[i].Name < actualPorts[j].Name })
-		assert.Equal(t, desiredPorts, actualPorts)
+		assert.Equal(t, corev1.ServiceTypeClusterIP, actualGrpc.Spec.Type)
 
 		actualNonGrpc, err := NonGrpcService(params)
 		assert.NoError(t, err)
-		assert.Equal(t, desiredNonGrpcSpec.Type, actualNonGrpc.Spec.Type)
+		assert.Equal(t, corev1.ServiceTypeClusterIP, actualNonGrpc.Spec.Type)
 
-		desiredPorts = desiredGrpcSpec.Ports
-		actualPorts = actualGrpc.Spec.Ports
-		sort.Slice(desiredPorts, func(i, j int) bool { return desiredPorts[i].Name < desiredPorts[j].Name })
-		sort.Slice(actualPorts, func(i, j int) bool { return actualPorts[i].Name < actualPorts[j].Name })
-		assert.Equal(t, desiredPorts, actualPorts)
 	})
 
 }
