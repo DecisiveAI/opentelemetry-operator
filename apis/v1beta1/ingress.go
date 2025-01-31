@@ -14,7 +14,10 @@
 
 package v1beta1
 
-import networkingv1 "k8s.io/api/networking/v1"
+import (
+	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
+)
 
 type (
 	// IngressType represents how a collector should be exposed (ingress vs route).
@@ -68,6 +71,18 @@ const (
 	IngressRuleTypeSubdomain IngressRuleType = "subdomain"
 )
 
+// mydecisive
+// IngressService defines Service properties related to Ingress configuration.
+type IngressService struct {
+	// Type defines the type of the Service.
+	// +kubebuilder:validation:Enum=ClusterIP;NodePort;LoadBalancer;ExternalName
+	// +optional
+	Type corev1.ServiceType `json:"type"`
+	// Annotations to add to service.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
 // Ingress is used to specify how OpenTelemetry Collector is exposed. This
 // functionality is only available if one of the valid modes is set.
 // Valid modes are: deployment, daemonset and statefulset.
@@ -98,10 +113,6 @@ type Ingress struct {
 	// +optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// LbServiceAnnotations to add to Service of LoadBalancer type for AWS LB controller managementVV.
-	// +optional
-	LbServiceAnnotations map[string]string `json:"lbServiceAnnotations,omitempty"`
-
 	// TLS configuration.
 	// +optional
 	TLS []networkingv1.IngressTLS `json:"tls,omitempty"`
@@ -116,6 +127,12 @@ type Ingress struct {
 	// type "route" is used.
 	// +optional
 	Route OpenShiftRoute `json:"route,omitempty"`
+
+	// mydecisive,
+	// +optional
+	GrpcService *IngressService `json:"grpcService,omitempty"`
+	// +optional
+	NonGrpcService *IngressService `json:"nonGrpcService,omitempty"`
 
 	// mydecisive,
 	// CollectorEndpoints should contain dns names for all collectors endpoints (grpc receivers)

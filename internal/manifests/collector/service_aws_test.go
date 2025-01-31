@@ -30,6 +30,157 @@ const testFileServiceAws = "testdata/service_aws_testdata.yaml"
 func TestDesiredServiceAws(t *testing.T) {
 
 	grpc := "grpc"
+	http := "http"
+
+	t.Run("create gRPC and non-gRPC Services", func(t *testing.T) {
+		params, err := newParams("something:tag", testFileServiceAws)
+		if err != nil {
+			t.Fatal(err)
+		}
+		params.OtelCol.Spec.Ingress.Type = v1beta1.IngressTypeAws
+		params.OtelCol.Spec.Ports = []v1beta1.PortsSpec{}
+		params.OtelCol.Spec.Ingress.GrpcService = &v1beta1.IngressService{Type: corev1.ServiceTypeNodePort}
+		params.OtelCol.Spec.Ingress.NonGrpcService = &v1beta1.IngressService{Type: corev1.ServiceTypeLoadBalancer}
+		trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
+
+		desiredGrpcSpec := corev1.ServiceSpec{
+			Type:                  corev1.ServiceTypeNodePort,
+			InternalTrafficPolicy: &trafficPolicy,
+			Ports: []corev1.ServicePort{
+				{
+					Name:        "jaeger-grpc",
+					Port:        14260,
+					TargetPort:  intstr.FromInt32(14260),
+					Protocol:    corev1.ProtocolTCP,
+					AppProtocol: &grpc,
+				},
+				{
+					Name:        "otlp-1-grpc",
+					Port:        12345,
+					TargetPort:  intstr.FromInt32(12345),
+					Protocol:    "",
+					AppProtocol: &grpc,
+				},
+				{
+					Name:        "otlp-2-grpc",
+					Port:        98765,
+					TargetPort:  intstr.FromInt32(98765),
+					Protocol:    "",
+					AppProtocol: &grpc,
+				},
+			},
+		}
+		desiredNonGrpcSpec := corev1.ServiceSpec{
+			Type:                  corev1.ServiceTypeLoadBalancer,
+			InternalTrafficPolicy: &trafficPolicy,
+			Ports: []corev1.ServicePort{
+				{
+					Name:        "otlp-1-http",
+					Port:        12121,
+					TargetPort:  intstr.FromInt32(12121),
+					Protocol:    "",
+					AppProtocol: &http,
+				},
+				{
+					Name:        "otlp-2-http",
+					Port:        4318,
+					TargetPort:  intstr.FromInt32(4318),
+					Protocol:    "",
+					AppProtocol: &http,
+				},
+				{
+					Name:        "port-14268",
+					Port:        14268,
+					TargetPort:  intstr.FromInt32(14268),
+					Protocol:    "TCP",
+					AppProtocol: &http,
+				},
+			},
+		}
+
+		actualGrpc, err := GrpcService(params)
+		assert.NoError(t, err)
+		assert.Equal(t, desiredGrpcSpec.Type, actualGrpc.Spec.Type)
+
+		desiredPorts := desiredGrpcSpec.Ports
+		actualPorts := actualGrpc.Spec.Ports
+		sort.Slice(desiredPorts, func(i, j int) bool { return desiredPorts[i].Name < desiredPorts[j].Name })
+		sort.Slice(actualPorts, func(i, j int) bool { return actualPorts[i].Name < actualPorts[j].Name })
+		assert.Equal(t, desiredPorts, actualPorts)
+
+		actualNonGrpc, err := NonGrpcService(params)
+		assert.NoError(t, err)
+		assert.Equal(t, desiredNonGrpcSpec.Type, actualNonGrpc.Spec.Type)
+
+		desiredPorts = desiredNonGrpcSpec.Ports
+		actualPorts = actualNonGrpc.Spec.Ports
+		sort.Slice(desiredPorts, func(i, j int) bool { return desiredPorts[i].Name < desiredPorts[j].Name })
+		sort.Slice(actualPorts, func(i, j int) bool { return actualPorts[i].Name < actualPorts[j].Name })
+		assert.Equal(t, desiredPorts, actualPorts)
+	})
+
+}
+func TestAnnotationsForNonGrpcService(t *testing.T) {
+
+	http := "http"
+
+	t.Run("create non-gRPC Service", func(t *testing.T) {
+		params, err := newParams("something:tag", testFileServiceAws)
+		if err != nil {
+			t.Fatal(err)
+		}
+		params.OtelCol.Spec.Ingress.Type = v1beta1.IngressTypeAws
+		params.OtelCol.Spec.Ports = []v1beta1.PortsSpec{}
+		params.OtelCol.Annotations = map[string]string{
+			"annotation_common": "value_from_meta",
+			"meta.annotation":   "meta_value_2",
+		}
+		params.OtelCol.Spec.Ingress.NonGrpcService = &v1beta1.IngressService{
+			Type: corev1.ServiceTypeLoadBalancer,
+			Annotations: map[string]string{
+				"annotation_common":  "value_from_service",
+				"service.annotation": "value_from_service_2",
+			},
+		}
+		trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
+
+		desiredNonGrpcService := corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Annotations: map[string]string{
+					"meta.annotation":    "meta_value_2",
+					"annotation_common":  "value_from_service",
+					"service.annotation": "value_from_service_2",
+				},
+			},
+			Spec: corev1.ServiceSpec{
+				Type:                  corev1.ServiceTypeLoadBalancer,
+				InternalTrafficPolicy: &trafficPolicy,
+				Ports: []corev1.ServicePort{
+					{
+						Name:        "otlp-1-http",
+						Port:        4318,
+						TargetPort:  intstr.FromInt32(4318),
+						Protocol:    "",
+						AppProtocol: &http,
+					},
+				},
+			},
+		}
+
+		actualNonGrpcService, err := NonGrpcService(params)
+		assert.NoError(t, err)
+
+		desiredAnnotations := desiredNonGrpcService.Annotations
+		actualAnnotations := actualNonGrpcService.Annotations
+		assert.Equal(t, desiredAnnotations, actualAnnotations)
+	})
+
+}
+
+func TestDesiredServiceAwsEmptyServiceTypes(t *testing.T) {
+
+	grpc := "grpc"
+	http := "http"
 
 	t.Run("create gRPC and non-gRPC Services", func(t *testing.T) {
 		params, err := newParams("something:tag", testFileServiceAws)
@@ -76,14 +227,14 @@ func TestDesiredServiceAws(t *testing.T) {
 					Port:        4318,
 					TargetPort:  intstr.FromInt32(4318),
 					Protocol:    "",
-					AppProtocol: &grpc,
+					AppProtocol: &http,
 				},
 				{
-					Name:        "otlp-2-grpc",
+					Name:        "otlp-2-http",
 					Port:        12121,
 					TargetPort:  intstr.FromInt32(12121),
 					Protocol:    "",
-					AppProtocol: &grpc,
+					AppProtocol: &http,
 				},
 			},
 		}
@@ -107,59 +258,6 @@ func TestDesiredServiceAws(t *testing.T) {
 		sort.Slice(desiredPorts, func(i, j int) bool { return desiredPorts[i].Name < desiredPorts[j].Name })
 		sort.Slice(actualPorts, func(i, j int) bool { return actualPorts[i].Name < actualPorts[j].Name })
 		assert.Equal(t, desiredPorts, actualPorts)
-	})
-
-}
-func TestAnnotationsForNonGrpcService(t *testing.T) {
-
-	grpc := "grpc"
-
-	t.Run("create non-gRPC Service", func(t *testing.T) {
-		params, err := newParams("something:tag", testFileServiceAws)
-		if err != nil {
-			t.Fatal(err)
-		}
-		params.OtelCol.Spec.Ingress.Type = v1beta1.IngressTypeAws
-		params.OtelCol.Spec.Ports = []v1beta1.PortsSpec{}
-		params.OtelCol.Annotations = map[string]string{
-			"annotation_common": "value_from_meta",
-			"meta.annotation":   "meta_value_2",
-		}
-		params.OtelCol.Spec.Ingress.LbServiceAnnotations = map[string]string{
-			"annotation_common":  "value_from_service",
-			"service.annotation": "value_from_service_2",
-		}
-		trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
-
-		desiredNonGrpcService := corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Annotations: map[string]string{
-					"meta.annotation":    "meta_value_2",
-					"annotation_common":  "value_from_service",
-					"service.annotation": "value_from_service_2",
-				},
-			},
-			Spec: corev1.ServiceSpec{
-				Type:                  corev1.ServiceTypeLoadBalancer,
-				InternalTrafficPolicy: &trafficPolicy,
-				Ports: []corev1.ServicePort{
-					{
-						Name:        "otlp-1-http",
-						Port:        4318,
-						TargetPort:  intstr.FromInt32(4318),
-						Protocol:    "",
-						AppProtocol: &grpc,
-					},
-				},
-			},
-		}
-
-		actualNonGrpcService, err := NonGrpcService(params)
-		assert.NoError(t, err)
-
-		desiredAnnotations := desiredNonGrpcService.Annotations
-		actualAnnotations := actualNonGrpcService.Annotations
-		assert.Equal(t, desiredAnnotations, actualAnnotations)
 	})
 
 }
