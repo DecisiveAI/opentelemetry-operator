@@ -151,10 +151,6 @@ func tov1beta1(in OpenTelemetryCollector) (v1beta1.OpenTelemetryCollector, error
 	}, nil
 }
 
-//func tov1beta1IngressService(service IngressService) v1beta1.IngressService {
-//
-//}
-
 func tov1beta1Ports(in []PortsSpec) []v1beta1.PortsSpec {
 	var ports []v1beta1.PortsSpec
 
