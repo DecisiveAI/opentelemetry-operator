@@ -120,18 +120,18 @@ func tov1beta1(in OpenTelemetryCollector) (v1beta1.OpenTelemetryCollector, error
 			UpgradeStrategy: v1beta1.UpgradeStrategy(copy.Spec.UpgradeStrategy),
 			Config:          *cfg,
 			Ingress: v1beta1.Ingress{
-				Type:        v1beta1.IngressType(copy.Spec.Ingress.Type),
-				RuleType:    v1beta1.IngressRuleType(copy.Spec.Ingress.RuleType),
-				Hostname:    copy.Spec.Ingress.Hostname,
-				Annotations: copy.Spec.Ingress.Annotations,
-				// mydecisive
-				LbServiceAnnotations: copy.Spec.Ingress.LbServiceAnnotations,
-				TLS:                  copy.Spec.Ingress.TLS,
-				IngressClassName:     copy.Spec.Ingress.IngressClassName,
+				Type:             v1beta1.IngressType(copy.Spec.Ingress.Type),
+				RuleType:         v1beta1.IngressRuleType(copy.Spec.Ingress.RuleType),
+				Hostname:         copy.Spec.Ingress.Hostname,
+				Annotations:      copy.Spec.Ingress.Annotations,
+				TLS:              copy.Spec.Ingress.TLS,
+				IngressClassName: copy.Spec.Ingress.IngressClassName,
 				Route: v1beta1.OpenShiftRoute{
 					Termination: v1beta1.TLSRouteTerminationType(copy.Spec.Ingress.Route.Termination),
 				},
 				// mydecisive
+				GrpcService:        tov1beta1IngressService(copy.Spec.Ingress.GrpcService),
+				NonGrpcService:     tov1beta1IngressService(copy.Spec.Ingress.NonGrpcService),
 				CollectorEndpoints: copy.Spec.Ingress.CollectorEndpoints,
 			},
 			LivenessProbe: tov1beta1Probe(copy.Spec.LivenessProbe),
@@ -346,7 +346,8 @@ func tov1alpha1(in v1beta1.OpenTelemetryCollector) (*OpenTelemetryCollector, err
 				Hostname:    copy.Spec.Ingress.Hostname,
 				Annotations: copy.Spec.Ingress.Annotations,
 				// mydecisive
-				LbServiceAnnotations: copy.Spec.Ingress.LbServiceAnnotations,
+				GrpcService:    tov1alpha1IngressService(copy.Spec.Ingress.GrpcService),
+				NonGrpcService: tov1alpha1IngressService(copy.Spec.Ingress.NonGrpcService),
 
 				TLS:              copy.Spec.Ingress.TLS,
 				IngressClassName: copy.Spec.Ingress.IngressClassName,
@@ -377,6 +378,17 @@ func tov1alpha1(in v1beta1.OpenTelemetryCollector) (*OpenTelemetryCollector, err
 			DeploymentUpdateStrategy:  copy.Spec.DeploymentUpdateStrategy,
 		},
 	}, nil
+}
+
+// mydecisive
+func tov1alpha1IngressService(in *v1beta1.IngressService) *IngressService {
+	if in == nil {
+		return nil
+	}
+	return &IngressService{
+		Type:        in.Type,
+		Annotations: in.Annotations,
+	}
 }
 
 func tov1alpha1PodDisruptionBudget(in *v1beta1.PodDisruptionBudgetSpec) *PodDisruptionBudgetSpec {
@@ -515,4 +527,15 @@ func tov1beta1TAAllocationStrategy(strategy OpenTelemetryTargetAllocatorAllocati
 		return v1beta1.TargetAllocatorAllocationStrategyLeastWeighted
 	}
 	return ""
+}
+
+// mydecisive
+func tov1beta1IngressService(in *IngressService) *v1beta1.IngressService {
+	if in == nil {
+		return nil
+	}
+	return &v1beta1.IngressService{
+		Type:        in.Type,
+		Annotations: in.Annotations,
+	}
 }

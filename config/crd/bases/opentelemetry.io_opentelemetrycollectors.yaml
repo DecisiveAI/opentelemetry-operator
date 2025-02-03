@@ -1456,13 +1456,41 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  grpcService:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      type:
+                        enum:
+                        - ClusterIP
+                        - NodePort
+                        - LoadBalancer
+                        - ExternalName
+                        type: string
+                    required:
+                    - type
+                    type: object
                   hostname:
                     type: string
                   ingressClassName:
                     type: string
-                  lbServiceAnnotations:
-                    additionalProperties:
-                      type: string
+                  nonGrpcService:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      type:
+                        enum:
+                        - ClusterIP
+                        - NodePort
+                        - LoadBalancer
+                        - ExternalName
+                        type: string
+                    required:
+                    - type
                     type: object
                   route:
                     properties:
@@ -6067,13 +6095,41 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  grpcService:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      type:
+                        enum:
+                        - ClusterIP
+                        - NodePort
+                        - LoadBalancer
+                        - ExternalName
+                        type: string
+                    required:
+                    - type
+                    type: object
                   hostname:
                     type: string
                   ingressClassName:
                     type: string
-                  lbServiceAnnotations:
-                    additionalProperties:
-                      type: string
+                  nonGrpcService:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      type:
+                        enum:
+                        - ClusterIP
+                        - NodePort
+                        - LoadBalancer
+                        - ExternalName
+                        type: string
+                    required:
+                    - type
                     type: object
                   route:
                     properties:

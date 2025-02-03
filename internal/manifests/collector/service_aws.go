@@ -24,6 +24,14 @@ func GrpcService(params manifests.Params) (*corev1.Service, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	ingressAnnotations, err := manifestutils.GrpcServiceAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
+	if err != nil {
+		return nil, err
+	}
+
+	maps.Copy(annotations, ingressAnnotations)
+
 	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
 	if err != nil {
 		return nil, err
@@ -64,6 +72,13 @@ func GrpcService(params manifests.Params) (*corev1.Service, error) {
 		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
 	}
 
+	serviceType := corev1.ServiceTypeClusterIP
+	if params.OtelCol.Spec.Ingress.GrpcService != nil {
+		if params.OtelCol.Spec.Ingress.GrpcService.Type != "" {
+			serviceType = params.OtelCol.Spec.Ingress.GrpcService.Type
+		}
+	}
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
@@ -72,7 +87,7 @@ func GrpcService(params manifests.Params) (*corev1.Service, error) {
 			Annotations: annotations,
 		},
 		Spec: corev1.ServiceSpec{
-			Type:                  "NodePort",
+			Type:                  serviceType,
 			InternalTrafficPolicy: &trafficPolicy,
 			Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
 			Ports:                 ports,
@@ -94,7 +109,7 @@ func NonGrpcService(params manifests.Params) (*corev1.Service, error) {
 		return nil, err
 	}
 
-	ingressAnnotations, err := manifestutils.LbServiceAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
+	ingressAnnotations, err := manifestutils.NonGrpcServiceAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
 	if err != nil {
 		return nil, err
 	}
@@ -142,11 +157,18 @@ func NonGrpcService(params manifests.Params) (*corev1.Service, error) {
 		trafficPolicy = corev1.ServiceInternalTrafficPolicyLocal
 	}
 
+	serviceType := corev1.ServiceTypeClusterIP
+	if params.OtelCol.Spec.Ingress.NonGrpcService != nil {
+		if params.OtelCol.Spec.Ingress.NonGrpcService.Type != "" {
+			serviceType = params.OtelCol.Spec.Ingress.NonGrpcService.Type
+		}
+	}
+
 	var spec corev1.ServiceSpec
 	spec = corev1.ServiceSpec{
 		InternalTrafficPolicy: &trafficPolicy,
 		Selector:              manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
-		Type:                  "LoadBalancer",
+		Type:                  serviceType,
 		Ports:                 ports,
 	}
 

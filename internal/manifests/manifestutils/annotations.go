@@ -38,14 +38,38 @@ func Annotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []st
 	return annotations, nil
 }
 
-// LbServiceAnnotations return the LbServiceAnnotations for OpenTelemetryCollector resources.
-func LbServiceAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
+// mydecisive
+// GrpcServiceAnnotations return the LbServiceAnnotations for OpenTelemetryCollector resources.
+func GrpcServiceAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
 	// new map every time, so that we don't touch the instance's annotations
 	annotations := map[string]string{}
 
-	for k, v := range instance.Spec.Ingress.LbServiceAnnotations {
-		if !IsFilteredSet(k, filterAnnotations) {
-			annotations[k] = v
+	if nil != instance.Spec.Ingress.GrpcService {
+		if nil != instance.Spec.Ingress.GrpcService.Annotations {
+			for k, v := range instance.Spec.Ingress.GrpcService.Annotations {
+				if !IsFilteredSet(k, filterAnnotations) {
+					annotations[k] = v
+				}
+			}
+		}
+	}
+
+	return annotations, nil
+}
+
+// mydecisive
+// NonGrpcServiceAnnotations return the LbServiceAnnotations for OpenTelemetryCollector resources.
+func NonGrpcServiceAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
+	// new map every time, so that we don't touch the instance's annotations
+	annotations := map[string]string{}
+
+	if nil != instance.Spec.Ingress.NonGrpcService {
+		if nil != instance.Spec.Ingress.NonGrpcService.Annotations {
+			for k, v := range instance.Spec.Ingress.NonGrpcService.Annotations {
+				if !IsFilteredSet(k, filterAnnotations) {
+					annotations[k] = v
+				}
+			}
 		}
 	}
 

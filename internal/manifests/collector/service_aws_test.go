@@ -30,6 +30,7 @@ const testFileServiceAws = "testdata/service_aws_testdata.yaml"
 func TestDesiredServiceAws(t *testing.T) {
 
 	grpc := "grpc"
+	http := "http"
 
 	t.Run("create gRPC and non-gRPC Services", func(t *testing.T) {
 		params, err := newParams("something:tag", testFileServiceAws)
@@ -38,6 +39,8 @@ func TestDesiredServiceAws(t *testing.T) {
 		}
 		params.OtelCol.Spec.Ingress.Type = v1beta1.IngressTypeAws
 		params.OtelCol.Spec.Ports = []v1beta1.PortsSpec{}
+		params.OtelCol.Spec.Ingress.GrpcService = &v1beta1.IngressService{Type: corev1.ServiceTypeNodePort}
+		params.OtelCol.Spec.Ingress.NonGrpcService = &v1beta1.IngressService{Type: corev1.ServiceTypeLoadBalancer}
 		trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
 
 		desiredGrpcSpec := corev1.ServiceSpec{
@@ -73,17 +76,24 @@ func TestDesiredServiceAws(t *testing.T) {
 			Ports: []corev1.ServicePort{
 				{
 					Name:        "otlp-1-http",
-					Port:        4318,
-					TargetPort:  intstr.FromInt32(4318),
-					Protocol:    "",
-					AppProtocol: &grpc,
-				},
-				{
-					Name:        "otlp-2-grpc",
 					Port:        12121,
 					TargetPort:  intstr.FromInt32(12121),
 					Protocol:    "",
-					AppProtocol: &grpc,
+					AppProtocol: &http,
+				},
+				{
+					Name:        "otlp-2-http",
+					Port:        4318,
+					TargetPort:  intstr.FromInt32(4318),
+					Protocol:    "",
+					AppProtocol: &http,
+				},
+				{
+					Name:        "port-14268",
+					Port:        14268,
+					TargetPort:  intstr.FromInt32(14268),
+					Protocol:    "TCP",
+					AppProtocol: &http,
 				},
 			},
 		}
@@ -102,8 +112,8 @@ func TestDesiredServiceAws(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, desiredNonGrpcSpec.Type, actualNonGrpc.Spec.Type)
 
-		desiredPorts = desiredGrpcSpec.Ports
-		actualPorts = actualGrpc.Spec.Ports
+		desiredPorts = desiredNonGrpcSpec.Ports
+		actualPorts = actualNonGrpc.Spec.Ports
 		sort.Slice(desiredPorts, func(i, j int) bool { return desiredPorts[i].Name < desiredPorts[j].Name })
 		sort.Slice(actualPorts, func(i, j int) bool { return actualPorts[i].Name < actualPorts[j].Name })
 		assert.Equal(t, desiredPorts, actualPorts)
@@ -112,7 +122,7 @@ func TestDesiredServiceAws(t *testing.T) {
 }
 func TestAnnotationsForNonGrpcService(t *testing.T) {
 
-	grpc := "grpc"
+	http := "http"
 
 	t.Run("create non-gRPC Service", func(t *testing.T) {
 		params, err := newParams("something:tag", testFileServiceAws)
@@ -125,9 +135,12 @@ func TestAnnotationsForNonGrpcService(t *testing.T) {
 			"annotation_common": "value_from_meta",
 			"meta.annotation":   "meta_value_2",
 		}
-		params.OtelCol.Spec.Ingress.LbServiceAnnotations = map[string]string{
-			"annotation_common":  "value_from_service",
-			"service.annotation": "value_from_service_2",
+		params.OtelCol.Spec.Ingress.NonGrpcService = &v1beta1.IngressService{
+			Type: corev1.ServiceTypeLoadBalancer,
+			Annotations: map[string]string{
+				"annotation_common":  "value_from_service",
+				"service.annotation": "value_from_service_2",
+			},
 		}
 		trafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
 
@@ -148,7 +161,7 @@ func TestAnnotationsForNonGrpcService(t *testing.T) {
 						Port:        4318,
 						TargetPort:  intstr.FromInt32(4318),
 						Protocol:    "",
-						AppProtocol: &grpc,
+						AppProtocol: &http,
 					},
 				},
 			},
@@ -160,6 +173,28 @@ func TestAnnotationsForNonGrpcService(t *testing.T) {
 		desiredAnnotations := desiredNonGrpcService.Annotations
 		actualAnnotations := actualNonGrpcService.Annotations
 		assert.Equal(t, desiredAnnotations, actualAnnotations)
+	})
+
+}
+
+func TestDesiredServiceAwsEmptyServiceTypes(t *testing.T) {
+
+	t.Run("create gRPC and non-gRPC Services", func(t *testing.T) {
+		params, err := newParams("something:tag", testFileServiceAws)
+		if err != nil {
+			t.Fatal(err)
+		}
+		params.OtelCol.Spec.Ingress.Type = v1beta1.IngressTypeAws
+		params.OtelCol.Spec.Ports = []v1beta1.PortsSpec{}
+
+		actualGrpc, err := GrpcService(params)
+		assert.NoError(t, err)
+		assert.Equal(t, corev1.ServiceTypeClusterIP, actualGrpc.Spec.Type)
+
+		actualNonGrpc, err := NonGrpcService(params)
+		assert.NoError(t, err)
+		assert.Equal(t, corev1.ServiceTypeClusterIP, actualNonGrpc.Spec.Type)
+
 	})
 
 }

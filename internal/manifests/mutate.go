@@ -288,8 +288,6 @@ func mutateTargetAllocator(existing, desired *v1alpha1.TargetAllocator) {
 }
 
 func mutateService(existing, desired *corev1.Service) {
-	// mydecisive
-	existing.Annotations = desired.Annotations
 	existing.Spec.Ports = desired.Spec.Ports
 	existing.Spec.Selector = desired.Spec.Selector
 }
