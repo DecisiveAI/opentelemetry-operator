@@ -76,6 +76,23 @@ func NonGrpcServiceAnnotations(instance v1beta1.OpenTelemetryCollector, filterAn
 	return annotations, nil
 }
 
+// mydecisive
+// IngressAnnotations return the ingress annotations for OpenTelemetryCollector resources.
+func IngressAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
+	// new map every time, so that we don't touch the instance's annotations
+	annotations := map[string]string{}
+
+	if nil != instance.Spec.Ingress.Annotations {
+		for k, v := range instance.Spec.Ingress.Annotations {
+			if !IsFilteredSet(k, filterAnnotations) {
+				annotations[k] = v
+			}
+		}
+	}
+
+	return annotations, nil
+}
+
 // PodAnnotations return the spec annotations for OpenTelemetryCollector pod.
 func PodAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
 	// new map every time, so that we don't touch the instance's annotations

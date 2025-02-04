@@ -287,9 +287,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	clientset, clientErr := kubernetes.NewForConfig(mgr.GetConfig())
+	clientset, err := kubernetes.NewForConfig(mgr.GetConfig())
 	if err != nil {
-		setupLog.Error(clientErr, "failed to create kubernetes clientset")
+		setupLog.Error(err, "failed to create kubernetes clientset")
 	}
 
 	ctx := ctrl.SetupSignalHandler()
@@ -392,6 +392,7 @@ func main() {
 		Scheme:   mgr.GetScheme(),
 		Config:   cfg,
 		Recorder: mgr.GetEventRecorderFor("opentelemetry-operator"),
+		Reviewer: reviewer,
 	})
 
 	if err = collectorReconciler.SetupWithManager(mgr); err != nil {
@@ -424,7 +425,7 @@ func main() {
 	}
 
 	if cfg.PrometheusCRAvailability() == prometheus.Available {
-		operatorMetrics, opError := operatormetrics.NewOperatorMetrics(mgr.GetConfig(), scheme)
+		operatorMetrics, opError := operatormetrics.NewOperatorMetrics(mgr.GetConfig(), scheme, ctrl.Log.WithName("operator-metrics-sm"))
 		if opError != nil {
 			setupLog.Error(opError, "Failed to create the operator metrics SM")
 		}
@@ -456,6 +457,8 @@ func main() {
 				warnings = append(warnings, newErr.Error())
 				return warnings
 			}
+
+			params.ErrorAsWarning = true
 			_, newErr = collectorManifests.Build(params)
 			if newErr != nil {
 				warnings = append(warnings, newErr.Error())

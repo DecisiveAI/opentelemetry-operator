@@ -37,6 +37,7 @@ func Ingress(params manifests.Params) (*networkingv1.Ingress, error) {
 	} else if params.OtelCol.Spec.Ingress.Type != v1beta1.IngressTypeAws && params.OtelCol.Spec.Ingress.Type != v1beta1.IngressTypeIngress {
 		return nil, nil
 	}
+
 	ports, err := servicePortsFromCfg(params.Log, params.OtelCol)
 
 	// if we have no ports, we don't need a ingress entry

@@ -26,15 +26,15 @@ import (
 type ParserOption[ComponentConfigType any] func(*Settings[ComponentConfigType])
 
 type Settings[ComponentConfigType any] struct {
-	protocol       corev1.Protocol
-	appProtocol    *string
-	targetPort     intstr.IntOrString
-	nodePort       int32
-	name           string
-	port           int32
-	defaultRecAddr string
+	protocol    corev1.Protocol
+	appProtocol *string
+	targetPort  intstr.IntOrString
+	nodePort    int32
+	name        string
+	port        int32
 	// mydecisive
 	urlPaths        []string
+	defaultRecAddr  string
 	portParser      PortParser[ComponentConfigType]
 	rbacGen         RBACRuleGenerator[ComponentConfigType]
 	livenessGen     ProbeGenerator[ComponentConfigType]

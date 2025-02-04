@@ -94,7 +94,6 @@ type Ingress struct {
 	// type "route" is used.
 	// +optional
 	Route OpenShiftRoute `json:"route,omitempty"`
-
 	// mydecisive,
 	// +optional
 	GrpcService *IngressService `json:"grpcService,omitempty"`

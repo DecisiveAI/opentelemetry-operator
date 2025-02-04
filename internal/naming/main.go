@@ -116,6 +116,11 @@ func MonitoringService(otelcol string) string {
 	return DNSName(Truncate("%s-monitoring", 63, Service(otelcol)))
 }
 
+// ExtensionService builds the name for the extension service based on the instance.
+func ExtensionService(otelcol string) string {
+	return DNSName(Truncate("%s-extension", 63, Service(otelcol)))
+}
+
 // Service builds the service name based on the instance.
 func Service(otelcol string) string {
 	return DNSName(Truncate("%s-collector", 63, otelcol))
@@ -127,6 +132,7 @@ func GrpcService(otelcol string) string {
 	return DNSName(Truncate("%s-grpc", 63, Service(otelcol)))
 }
 
+// mydecisive
 // NonGrpcService builds the name for the grpc service based on the instance.
 func NonGrpcService(otelcol string) string {
 	return DNSName(Truncate("%s-non-grpc", 63, Service(otelcol)))
