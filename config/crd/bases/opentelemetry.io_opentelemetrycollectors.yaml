@@ -6087,10 +6087,42 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  collectorEndpoints:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  grpcService:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      type:
+                        enum:
+                        - ClusterIP
+                        - NodePort
+                        - LoadBalancer
+                        - ExternalName
+                        type: string
+                    type: object
                   hostname:
                     type: string
                   ingressClassName:
                     type: string
+                  nonGrpcService:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      type:
+                        enum:
+                        - ClusterIP
+                        - NodePort
+                        - LoadBalancer
+                        - ExternalName
+                        type: string
+                    type: object
                   route:
                     properties:
                       termination:
@@ -6122,6 +6154,7 @@ spec:
                     enum:
                     - ingress
                     - route
+                    - aws
                     type: string
                 type: object
               initContainers:

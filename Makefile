@@ -143,7 +143,7 @@ ci: generate fmt vet test ensure-generate-is-noop
 # Build manager binary
 .PHONY: manager
 manager: generate
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(ARCH) go build -o bin/manager_${ARCH} -ldflags "${COMMON_LDFLAGS} ${OPERATOR_LDFLAGS}" main.go
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(ARCH) go build -o bin/manager_${ARCH} -trimpath -ldflags "${COMMON_LDFLAGS} ${OPERATOR_LDFLAGS}" main.go
 
 .PHONY: must-gather
 must-gather:
