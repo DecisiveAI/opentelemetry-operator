@@ -1,0 +1,80 @@
+run:
+  concurrency: 3
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+
+# all available settings of specific linters
+linters-settings:
+  goheader:
+    template-path: header.txt
+  goimports:
+    local-prefixes: github.com/open-telemetry/opentelemetry-operator
+  gci:
+    sections:
+    - standard
+    - default
+    - prefix(github.com/open-telemetry/opentelemetry-operator)
+  misspell:
+    locale: US
+    ignore-words:
+      - cancelled
+      - metre
+      - meter
+      - metres
+      - kilometre
+      - kilometres
+  govet:
+    # settings per analyzer
+    settings:
+      printf: # analyzer name, run `go tool vet help` to see all analyzers
+        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+
+    enable-all: true
+    # TODO: Enable this and fix the alignment issues.
+    disable:
+      - fieldalignment
+  gofmt:
+    simplify: true
+  revive:
+    confidence: 0.8
+  
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: sync/atomic
+            desc: "Use go.uber.org/atomic instead of sync/atomic"
+          - pkg: github.com/pkg/errors
+            desc: "Use 'errors' or 'fmt' instead of github.com/pkg/errors"
+
+issues:
+  exclude-rules:
+    - linters:
+        - gci
+      source: "// \\+kubebuilder"
+
+linters:
+  enable:
+    - goheader
+    - goimports
+    - misspell
+    - gosec
+    - govet
+    - exhaustive
+    - godot
+    - unparam
+    - gosimple
+    - unused
+    - staticcheck
+    - ineffassign
+    - typecheck
+    - unparam
+    - depguard
+    - errcheck
+    - errorlint
+    - gci

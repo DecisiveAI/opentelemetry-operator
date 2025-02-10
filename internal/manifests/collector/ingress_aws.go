@@ -2,14 +2,15 @@ package collector
 
 import (
 	"errors"
+	"maps"
 	"sort"
 
-	"github.com/go-logr/logr"
 	"github.com/decisiveai/opentelemetry-operator/apis/v1beta1"
 	"github.com/decisiveai/opentelemetry-operator/internal/components"
 	"github.com/decisiveai/opentelemetry-operator/internal/manifests"
 	"github.com/decisiveai/opentelemetry-operator/internal/manifests/manifestutils"
 	"github.com/decisiveai/opentelemetry-operator/internal/naming"
+	"github.com/go-logr/logr"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -18,6 +19,16 @@ import (
 func IngressAws(params manifests.Params) (*networkingv1.Ingress, error) {
 	name := naming.Ingress(params.OtelCol.Name)
 	labels := manifestutils.Labels(params.OtelCol.ObjectMeta, name, params.OtelCol.Spec.Image, ComponentOpenTelemetryCollector, params.Config.LabelsFilter())
+	annotations, err := manifestutils.Annotations(params.OtelCol, params.Config.AnnotationsFilter())
+	if err != nil {
+		return nil, err
+	}
+	ingressAnnotations, err := manifestutils.IngressAnnotations(params.OtelCol, params.Config.AnnotationsFilter())
+	if err != nil {
+		return nil, err
+	}
+	maps.Copy(annotations, ingressAnnotations)
+
 	var rules []networkingv1.IngressRule
 	compPortsEndpoints, err := servicePortsUrlPathsFromCfg(params.Log, params.OtelCol)
 	if len(compPortsEndpoints) == 0 || err != nil {
@@ -52,6 +63,7 @@ func IngressAws(params manifests.Params) (*networkingv1.Ingress, error) {
 		)
 		return nil, nil
 	}
+
 	switch params.OtelCol.Spec.Ingress.RuleType {
 	case v1beta1.IngressRuleTypePath, "":
 		if params.OtelCol.Spec.Ingress.CollectorEndpoints == nil || len(params.OtelCol.Spec.Ingress.CollectorEndpoints) == 0 {
@@ -83,7 +95,7 @@ func IngressAws(params manifests.Params) (*networkingv1.Ingress, error) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        name,
 			Namespace:   params.OtelCol.Namespace,
-			Annotations: params.OtelCol.Spec.Ingress.Annotations,
+			Annotations: annotations,
 			Labels:      labels,
 		},
 		Spec: networkingv1.IngressSpec{

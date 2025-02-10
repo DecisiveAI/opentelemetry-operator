@@ -43,7 +43,6 @@ type MultiPortReceiver struct {
 
 	addrMappings map[string]string
 	portMappings map[string]*corev1.ServicePort
-
 	// mydecisive
 	urlPathsMapping map[string]*[]string
 }
@@ -144,10 +143,11 @@ func (mp MultiPortBuilder[ComponentConfigType]) Build() (*MultiPortReceiver, err
 
 	mb := mp[0].MustBuild()
 	multiReceiver := &MultiPortReceiver{
-		name:            mb.name,
-		defaultRecAddr:  mb.settings.defaultRecAddr,
-		addrMappings:    map[string]string{},
-		portMappings:    map[string]*corev1.ServicePort{},
+		name:           mb.name,
+		defaultRecAddr: mb.settings.defaultRecAddr,
+		addrMappings:   map[string]string{},
+		portMappings:   map[string]*corev1.ServicePort{},
+		// mydecisive
 		urlPathsMapping: map[string]*[]string{},
 	}
 	for _, bu := range mp[1:] {

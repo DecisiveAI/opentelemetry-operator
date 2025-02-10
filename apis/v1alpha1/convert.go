@@ -341,20 +341,18 @@ func tov1alpha1(in v1beta1.OpenTelemetryCollector) (*OpenTelemetryCollector, err
 			Tolerations:          copy.Spec.Tolerations,
 			Volumes:              copy.Spec.Volumes,
 			Ingress: Ingress{
-				Type:        IngressType(copy.Spec.Ingress.Type),
-				RuleType:    IngressRuleType(copy.Spec.Ingress.RuleType),
-				Hostname:    copy.Spec.Ingress.Hostname,
-				Annotations: copy.Spec.Ingress.Annotations,
-				// mydecisive
-				GrpcService:    tov1alpha1IngressService(copy.Spec.Ingress.GrpcService),
-				NonGrpcService: tov1alpha1IngressService(copy.Spec.Ingress.NonGrpcService),
-
+				Type:             IngressType(copy.Spec.Ingress.Type),
+				RuleType:         IngressRuleType(copy.Spec.Ingress.RuleType),
+				Hostname:         copy.Spec.Ingress.Hostname,
+				Annotations:      copy.Spec.Ingress.Annotations,
 				TLS:              copy.Spec.Ingress.TLS,
 				IngressClassName: copy.Spec.Ingress.IngressClassName,
 				Route: OpenShiftRoute{
 					Termination: TLSRouteTerminationType(copy.Spec.Ingress.Route.Termination),
 				},
 				// mydecisive
+				GrpcService:        tov1alpha1IngressService(copy.Spec.Ingress.GrpcService),
+				NonGrpcService:     tov1alpha1IngressService(copy.Spec.Ingress.NonGrpcService),
 				CollectorEndpoints: copy.Spec.Ingress.CollectorEndpoints,
 			},
 			HostNetwork:                   copy.Spec.HostNetwork,
@@ -378,17 +376,6 @@ func tov1alpha1(in v1beta1.OpenTelemetryCollector) (*OpenTelemetryCollector, err
 			DeploymentUpdateStrategy:  copy.Spec.DeploymentUpdateStrategy,
 		},
 	}, nil
-}
-
-// mydecisive
-func tov1alpha1IngressService(in *v1beta1.IngressService) *IngressService {
-	if in == nil {
-		return nil
-	}
-	return &IngressService{
-		Type:        in.Type,
-		Annotations: in.Annotations,
-	}
 }
 
 func tov1alpha1PodDisruptionBudget(in *v1beta1.PodDisruptionBudgetSpec) *PodDisruptionBudgetSpec {
@@ -508,6 +495,17 @@ func tov1alpha1TAAllocationStrategy(strategy v1beta1.TargetAllocatorAllocationSt
 		return OpenTelemetryTargetAllocatorAllocationStrategyLeastWeighted
 	}
 	return ""
+}
+
+// mydecisive
+func tov1alpha1IngressService(in *v1beta1.IngressService) *IngressService {
+	if in == nil {
+		return nil
+	}
+	return &IngressService{
+		Type:        in.Type,
+		Annotations: in.Annotations,
+	}
 }
 
 func tov1beta1TAFilterStrategy(strategy string) v1beta1.TargetAllocatorFilterStrategy {
